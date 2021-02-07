@@ -1,4 +1,4 @@
-# alfred
+# PicoTorrent Server Web UI
 
 ## Project setup
 ```
