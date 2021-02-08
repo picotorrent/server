@@ -15,7 +15,7 @@
       <tbody>
         <tr v-for="(torrent, infoHash) in torrents" :key="infoHash">
           <td class="name">{{ torrent.name }}</td>
-          <td class="size">{{ torrent.size_wanted }}</td>
+          <td class="size">{{ torrent.total_wanted }}</td>
           <td class="download">{{ torrent.dl }}</td>
           <td class="upload">{{ torrent.ul }}</td>
           <td class="status">{{ torrent.state }}</td>
@@ -30,12 +30,14 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'Torrents',
-  data () {
-    return {
-      torrents: {}
-    }
+  computed: {
+    ...mapGetters({
+      torrents: 'torrents/all'
+    })
   }
 }
 </script>

@@ -15,6 +15,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data () {
     return {
@@ -23,7 +25,18 @@ export default {
   },
   methods: {
     async add() {
+      const buffer = new Uint8Array(await this.$refs.torrentFile.files[0].arrayBuffer());
+      const tempBuffer = Array.prototype.map.call(buffer, function (ch) {
+        return String.fromCharCode(ch);
+      }).join('');
 
+      await axios.post('/api/jsonrpc', {
+        method: 'session.addTorrent',
+        params: {
+          data: btoa(tempBuffer),
+          save_path: this.addSavePath
+        }
+      });
     }
   }
 }

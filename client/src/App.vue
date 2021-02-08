@@ -35,21 +35,6 @@ export default {
     // navigator.registerProtocolHandler('magnet', 'http://localhost:8080/ting/%s', 'PicoTorrent')
   },
   methods: {
-    async add () {
-      const buffer = new Uint8Array(await this.$refs.torrentFile.files[0].arrayBuffer());
-      const tempBuffer = Array.prototype.map.call(buffer, function (ch) {
-        return String.fromCharCode(ch);
-      }).join('');
-
-      await axios.post('/api/jsonrpc', {
-        method: 'session.addTorrent',
-        params: {
-          data: btoa(tempBuffer),
-          save_path: this.addSavePath
-        }
-      });
-    },
-
     async remove (infoHash) {
       await axios.post('/api/jsonrpc', {
         method: 'session.removeTorrent',
