@@ -6,5 +6,12 @@ module.exports = {
         ws: true
       }
     }
+  },
+  css: {
+    loaderOptions: {
+      sass: {
+        implementation: require('sass')
+      }
+    }
   }
 };

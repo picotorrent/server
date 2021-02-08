@@ -1,0 +1,26 @@
+// Progress bar
+.progress {
+  display         : flex;
+  background-color: var(--progress-bg);
+  height          : var(--progress-height);
+  border-radius   : var(--progress-border-radius);
+  overflow        : hidden;
+  min-width: 100px;
+  position: relative;
+  font-size: 80%;
+  font-weight: bold;
+  line-height: 0;
+  .bar {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    justify-content: center;
+    overflow       : hidden;
+    text-align     : center;
+    white-space    : nowrap;
+    line-height    : 0;
+    color          : var(--progress-bar-color);
+    background     : var(--progress-bar-bg);
+    border-radius  : var(--progress-border-radius);
+  }
+}
