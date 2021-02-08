@@ -228,6 +228,14 @@ lt::info_hash_t SessionManager::AddTorrent(lt::add_torrent_params& params)
         : params.info_hashes;
 }
 
+bool SessionManager::FindTorrent(lt::info_hash_t const& hash, lt::torrent_status& status)
+{
+    auto it = m_torrents.find(hash);
+    if (it == m_torrents.end()) { return false; }
+    status = it->second;
+    return true;
+}
+
 void SessionManager::ForEachTorrent(std::function<bool(libtorrent::torrent_status const& ts)> const& iteree)
 {
     for (auto const& item : m_torrents)

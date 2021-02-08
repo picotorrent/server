@@ -19,6 +19,8 @@
 #include "rpc/settingspackgetbyid.hpp"
 #include "rpc/settingspacklist.hpp"
 #include "rpc/settingspackupdate.hpp"
+#include "rpc/torrentspause.hpp"
+#include "rpc/torrentsresume.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
@@ -34,6 +36,8 @@ using pt::Server::RPC::SettingsPackCreateCommand;
 using pt::Server::RPC::SettingsPackGetByIdCommand;
 using pt::Server::RPC::SettingsPackList;
 using pt::Server::RPC::SettingsPackUpdateCommand;
+using pt::Server::RPC::TorrentsPauseCommand;
+using pt::Server::RPC::TorrentsResumeCommand;
 using pt::Server::SessionManager;
 
 void Run(sqlite3* db, std::shared_ptr<Options> options)
@@ -65,6 +69,8 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
     http->Commands().insert({ "settingsPack.getById",  std::make_shared<SettingsPackGetByIdCommand>(db) });
     http->Commands().insert({ "settingsPack.list",     std::make_shared<SettingsPackList>(db) });
     http->Commands().insert({ "settingsPack.update",   std::make_shared<SettingsPackUpdateCommand>(db, sm) });
+    http->Commands().insert({ "torrents.pause",        std::make_shared<TorrentsPauseCommand>(sm) });
+    http->Commands().insert({ "torrents.resume",       std::make_shared<TorrentsResumeCommand>(sm) });
     http->Run();
 
     io.run();

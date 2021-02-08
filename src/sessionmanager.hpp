@@ -19,6 +19,7 @@ namespace pt::Server
         ~SessionManager();
 
         libtorrent::info_hash_t AddTorrent(libtorrent::add_torrent_params& params);
+        bool FindTorrent(libtorrent::info_hash_t const& hash, libtorrent::torrent_status& status);
         void ForEachTorrent(std::function<bool(libtorrent::torrent_status const& ts)> const&);
         void ReloadSettings();
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false);

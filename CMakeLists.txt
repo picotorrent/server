@@ -63,7 +63,8 @@ add_executable(
     src/rpc/settingspackgetbyid
     src/rpc/settingspackupdate
     src/rpc/settingspacklist
-    src/rpc/torrentsremove
+    src/rpc/torrentspause
+    src/rpc/torrentsresume
 )
 
 target_compile_definitions(
