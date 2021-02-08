@@ -1,0 +1,70 @@
+// Utilities
+
+// States
+.seeding {
+  --state-color: var(--blue);
+  --state-color-hover: var(--blue-hover);
+}
+.downloading {
+  --state-color: var(--primary);
+  --state-color-hover: var(--primary-hover);
+}
+.completed {
+  --state-color: var(--green);
+  --state-color-hover: var(--green-hover);
+}
+.paused {
+  --state-color: var(--yellow);
+  --state-color-hover: var(--yellow-hover);
+}
+.stopped {
+  --state-color: var(--orange); 
+  --state-color-hover: var(--orange-hover); 
+}
+.error {
+  --state-color: var(--red); 
+  --state-color-hover: var(--red-hover); 
+}
+.waiting {
+  --state-color: var(--gray);
+  --state-color-hover: var(--gray-hover);
+}
+
+// Badge
+.badge {
+  background: var(--separator-color);
+  color: var(--white);
+  font-size: 70%;
+  border-radius: 3px;
+  padding: 0.25em 0.5em;
+  margin-left: .5rem;
+  margin-bottom: -2px;
+}
+
+// Backdrop
+.backdrop {
+  @if $ui-backdrop-enable {
+    background     : var(--backdrop-bg);
+    backdrop-filter: var(--backdrop-filter);
+  }
+}
+
+// Hide
+.hide {
+  display: none;
+}
+
+// Separator
+hr {
+  border: 0;
+  border-bottom: var(--separator);
+}
+
+.separator {
+  display     : block;
+  height      : 100%;
+  border-right: var(--separator);
+  @media (max-width: $breakpoint-sm) {
+    display: none;
+  }
+}

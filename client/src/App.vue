@@ -1,50 +1,38 @@
 <template>
-  <div>
-    <fieldset>
-      <legend>Add torrent</legend>
-      File: <input type="file" ref="torrentFile"><br>
-      Save path: <input type="text" v-model="addSavePath"><br>
-      <button @click="add">Add torrent</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Torrents</legend>
-      <table width="100%">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th align="right">Size</th>
-            <th align="right">DL</th>
-            <th align="right">UL</th>
-            <th align="right">State</th>
-            <th>Progress</th>
-            <th></th>
-          </tr>
-        </thead>
-          <tbody>
-          <tr v-for="(torrent, infoHash) in torrents" :key="infoHash">
-            <td>{{ torrent.name }}</td>
-            <td align="right">{{ torrent.size_wanted }}</td>
-            <td align="right">{{ torrent.dl }}</td>
-            <td align="right">{{ torrent.ul }}</td>
-            <td align="right">{{ torrent.state }}</td>
-            <td><progress max="100" :value="torrent.progress * 100" style="width: 100%;" /></td>
-            <td align="right">
-              <button @click="remove(infoHash)">Remove</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </fieldset>
+  <div id="app"> 
+    <Header />
+    <main>
+      <Statusbar />
+      <Torrents />
+      <File class="hide" />
+      <!-- WebSockets error -->
+      <div class="empty">
+        <div class="content error">
+          <i class="icon bi bi-wifi-off"></i>
+          <h2>WebSockets error</h2>
+          <h4>Can't connect to the server</h4>
+        </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 import Vue from 'vue';
+import Header from './components/Header';
+import Statusbar from './components/Statusbar';
+import Torrents from './components/Torrents';
+import File from './components/File';
 
 export default {
   name: 'App',
+  components: {
+    Header,
+    Statusbar,
+    Torrents,
+    File,
+  },
   data () {
     return {
       addSavePath: null,
@@ -105,3 +93,8 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import './scss/style.scss';
+@import '../node_modules/bootstrap-icons/font/bootstrap-icons.css';
+</style>

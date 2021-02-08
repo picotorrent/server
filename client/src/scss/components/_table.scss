@@ -1,0 +1,48 @@
+// Table
+table {
+  border-collapse: collapse;
+  width: 100%;
+  vertical-align: middle;
+  tr {
+    border-bottom: 1px solid var(--separator-color);
+  }
+  th,
+  td {
+    padding: 0.20rem 0.55rem;
+    text-align: left;
+    &:first-child {
+      padding-left: 0.75rem;
+    }
+    &:last-child {
+      padding-right: 0.75rem;
+    }
+  }
+  th {
+    padding-top   : 0.50rem;
+    padding-bottom: 0.50rem;
+    text-transform: uppercase;
+    font-size     : 85%;
+    font-weight   : bolder;
+    td {
+      opacity       : 0.65;
+    }
+  }
+  tbody {
+    tr {
+      font-size: 0.70rem;
+    }
+  }
+}
+
+.components {
+  max-width: 500px;
+  width: 100%;
+  margin-bottom: 1rem;
+  border: var(--separator);
+  border-radius: .25rem;
+  table tbody {
+    tr:last-child {
+      border: 0;
+    }
+  }
+}

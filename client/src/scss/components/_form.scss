@@ -1,0 +1,27 @@
+input,
+select,
+textarea {
+  margin-bottom: 1rem;
+  padding      : 0.35rem 0.75rem;
+  background   : var(--input-bg);
+  color        : var(--input-color);
+  border       : 0;
+  border-radius: .1rem;
+  outline      : 0;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  input {
+    margin: 0 1rem 0 0;
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  label {
+    margin-bottom: 0.5rem;
+  }
+}
