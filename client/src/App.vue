@@ -1,12 +1,10 @@
 <template>
-  <div id="app"> 
+  <div id="app">
     <Header />
     <main>
-      <Statusbar />
-      <Torrents />
-      <File class="hide" />
+      <router-view />
       <!-- WebSockets error -->
-      <div class="empty">
+      <div v-if="false">
         <div class="content error">
           <i class="icon bi bi-wifi-off"></i>
           <h2>WebSockets error</h2>
@@ -19,19 +17,12 @@
 
 <script>
 import axios from 'axios';
-import Vue from 'vue';
-import Header from './components/Header';
-import Statusbar from './components/Statusbar';
-import Torrents from './components/Torrents';
-import File from './components/File';
+import Header from '@/components/Header';
 
 export default {
   name: 'App',
   components: {
     Header,
-    Statusbar,
-    Torrents,
-    File,
   },
   data () {
     return {
@@ -41,32 +32,7 @@ export default {
     }
   },
   mounted () {
-    this.ws = new WebSocket(`ws://${location.host}/api/ws`);
-    this.ws.onmessage = (ev) => {
-      const data = JSON.parse(ev.data);
-
-      switch (data.type) {
-        case 'init':
-          for (const infoHash in data.torrents) {
-            Vue.set(this.torrents, infoHash, data.torrents[infoHash]);
-          }
-          break;
-
-        case 'torrent.added':
-          Vue.set(this.torrents, data.torrent.info_hash, data.torrent);
-          break;
-
-        case 'torrent.removed':
-          Vue.delete(this.torrents, data.info_hash);
-          break;
-
-        case 'torrent.updated':
-          for (const infoHash in data.torrents) {
-            Vue.set(this.torrents, infoHash, data.torrents[infoHash]);
-          }
-          break;
-      }
-    }
+    // navigator.registerProtocolHandler('magnet', 'http://localhost:8080/ting/%s', 'PicoTorrent')
   },
   methods: {
     async add () {

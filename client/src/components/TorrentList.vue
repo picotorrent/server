@@ -1,5 +1,5 @@
 <template>
-  <div class="backdrop torrents" v-if="ws">
+  <div class="backdrop torrents">
     <table v-if="torrents">
       <thead>
         <tr>
@@ -26,27 +26,16 @@
         </tr>
       </tbody>
     </table>
-    <div class="empty" v-if="!torrents">
-      <div class="content">
-        <h4 class="bold">There are no torrents</h4>
-        <p>Looks so empty around here...</p>
-        <h5>Add torrent</h5>
-        <div class="group">
-          <label for="add-torrent">File</label>
-          <input id="add-torrent-file" type="file" ref="torrentFile">
-        </div>
-        <div class="group">
-          <label for="add-torrent-path">Save path</label>
-          <input id="add-torrent-path" type="text" v-model="addSavePath">
-        </div>
-        <button @click="add">Add torrent</button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Torrents'
+  name: 'Torrents',
+  data () {
+    return {
+      torrents: {}
+    }
+  }
 }
 </script>

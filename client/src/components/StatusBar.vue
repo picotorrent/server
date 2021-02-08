@@ -1,5 +1,5 @@
 <template>
-  <div class="backdrop status-bar" v-if="ws">
+  <div class="backdrop status-bar">
     <div class="item">
       <i class="bi bi-file-earmark"></i>
       <span>Torrents</span> 
