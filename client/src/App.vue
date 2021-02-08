@@ -16,7 +16,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import Header from '@/components/Header';
 
 export default {
@@ -24,23 +23,8 @@ export default {
   components: {
     Header,
   },
-  data () {
-    return {
-      addSavePath: null,
-      torrents: {},
-      ws: null
-    }
-  },
   mounted () {
     // navigator.registerProtocolHandler('magnet', 'http://localhost:8080/ting/%s', 'PicoTorrent')
-  },
-  methods: {
-    async remove (infoHash) {
-      await axios.post('/api/jsonrpc', {
-        method: 'session.removeTorrent',
-        params: [ infoHash ]
-      });
-    }
   }
 }
 </script>

@@ -37,6 +37,8 @@ export default {
           save_path: this.addSavePath
         }
       });
+
+      this.$router.push('/');
     }
   }
 }

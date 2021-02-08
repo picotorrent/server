@@ -15,9 +15,9 @@
       <tbody>
         <tr v-for="(torrent, infoHash) in torrents" :key="infoHash">
           <td class="name">{{ torrent.name }}</td>
-          <td class="size">{{ torrent.total_wanted }}</td>
-          <td class="download">{{ torrent.dl }}</td>
-          <td class="upload">{{ torrent.ul }}</td>
+          <td class="size">{{ torrent.total_wanted | fileSize }}</td>
+          <td class="download">{{ torrent.dl | speed }}</td>
+          <td class="upload">{{ torrent.ul | speed }}</td>
           <td class="status">{{ torrent.state }}</td>
           <td class="progress"><progress max="100" :value="torrent.progress * 100" style="width: 100%;" /></td>
           <td class="actions">
@@ -30,7 +30,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import axios from 'axios';
+import prettyBytes from 'pretty-bytes';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Torrents',
@@ -38,6 +40,26 @@ export default {
     ...mapGetters({
       torrents: 'torrents/all'
     })
+  },
+  filters: {
+    fileSize (val) {
+      if (!val) { return '-'; }
+      return prettyBytes(val)
+    },
+    speed (val) {
+      if (!val || val === 0) {
+        return '-';
+      }
+      return `${prettyBytes(val)}/s`;
+    }
+  },
+  methods: {
+    async remove (infoHash) {
+      await axios.post('/api/jsonrpc', {
+        method: 'session.removeTorrent',
+        params: [ infoHash ]
+      });
+    }
   }
 }
 </script>
