@@ -1,6 +1,7 @@
 <template>
   <main class="settings">
     <div class="sidebar">
+      <h2 class="title">Settings</h2>
       <div class="menu">
         <a href="#" class="item">
           <i class="bi bi-star"></i>
@@ -29,7 +30,7 @@
       </div>
     </div>
     <div class="content">
-      <h3>Settings</h3>
+      <h3 class="title">General</h3>
       <hr>
       <h4>User Interface</h4>
 

@@ -33,16 +33,3 @@ table {
     }
   }
 }
-
-.components {
-  max-width: 500px;
-  width: 100%;
-  margin-bottom: 1rem;
-  border: var(--separator);
-  border-radius: .25rem;
-  table tbody {
-    tr:last-child {
-      border: 0;
-    }
-  }
-}

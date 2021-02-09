@@ -25,7 +25,7 @@
     <!-- Header: Right -->
     <div class="right">
       <router-link to="/settings" class="item" title="Settings"><i class="bi bi-sliders"></i></router-link>
-      <router-link to="/about" class="item" title="About"><i class="bi bi-info-square"></i></router-link>
+      <router-link to="/about" class="item" title="About"><i class="bi bi-info-circle"></i></router-link>
     </div>
   </header>
 </template>

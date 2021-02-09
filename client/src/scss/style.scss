@@ -1,7 +1,8 @@
 @import "variables";
 @import "root";
-@import "components/all";
 @import "utilities";
+@import "components/all";
+@import "pages/all";
 
 *, ::after, ::before {
   box-sizing: border-box;
@@ -43,114 +44,6 @@ body {
   flex          : 1;
 }
 
-// Main
-main {
-  flex          : 1;
-  display       : flex;
-  flex-direction: column;
-  overflow-y    : auto;
-  position      : relative;
-}
-
-.sidebar,
-.content {
-  padding: 0 1rem;
-  @media (min-width: $breakpoint-sm) {
-    padding: 1rem;
-  }
-}
-
-// Page: About
-.social {
-  margin-bottom: 1rem;
-}
-
-// Page: Settings
-.settings {
-  flex-direction: column;
-  @media (min-width: $breakpoint-sm) {
-    flex-direction: row;
-  }
-  .sidebar {
-    padding: 1rem;
-    flex: 0 0 auto;
-    background: var(--sidebar-bg);
-    @media (min-width: $breakpoint-sm) {
-      padding: 1rem .25rem;
-      flex: 1 1 175px;
-      max-width: 175px;
-    }
-    .menu {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      @media (min-width: $breakpoint-sm) {
-        flex-direction: column;
-      }
-      .item {
-        margin: 0 0.25rem;
-        padding: 0.5rem 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 110%;
-        font-weight: 500;
-        text-decoration: none;
-        color: var(--body-color);
-        flex: 1;
-        border-radius: .25rem;
-        @media (min-width: $breakpoint-sm) {
-          border-radius: 0rem;
-          margin: 0 0 0.5rem;
-          justify-content: flex-start;
-        }
-        &:first-child {
-          margin-left: 0;
-        }
-        &:last-child {
-          margin-right: 0;
-        }
-        &.active {
-          background: var(--primary);
-          color: var(--white);
-          @media (min-width: $breakpoint-sm) {
-            background: transparent;
-            color: var(--body-color);
-            box-shadow: inset 4px 0 0 var(--primary);
-          }
-        }
-        &:hover:not(.active) {
-          background: var(--gray-hover);
-          border-radius: .25rem;
-        }
-        // Icons
-        .bi {
-          font-size: 145%;
-          line-height: 0;
-          transition: all 0.35s ease;
-          @media (min-width: $breakpoint-sm) {
-            margin-bottom: -2px;
-            margin-right: 0.75rem;
-          }
-        }
-        // Text
-        span {
-          display: none;
-          @media (min-width: $breakpoint-sm) {
-            display: inline;
-          }
-        }
-      }
-    }
-  }
-  .content {
-    flex: 1 1 100%;
-    @media (min-width: $breakpoint-sm) {
-      flex: 1;
-    }
-  }
-}
-
 // Torrents (Table)
 .torrents {
   display                   : block;
@@ -179,16 +72,34 @@ main {
         }
       }  
       // Progress-bar
+      progress,
       .progress {
         span {
           display: var(--torrents-table-progress-text, 'inline');
         }
       }  
+      // Table: Actions
+      &.actions {
+        text-align     : right;
+        justify-content: flex-end;
+        button {
+          padding: 0.25rem;
+          .bi {
+            margin: 0;
+            font-size: .85rem;
+          }
+        }
+      }
     }
+    // Table: Head
     th {
       font-size     : 85%;
       letter-spacing: 1px;
+      &.actions {
+        font-size: 0;
+      }
     }
+    // Table: Row
     tr {
       border-bottom: 0;
       @media (min-width: $breakpoint-sm) {
@@ -200,8 +111,12 @@ main {
       }
     }
     // Bar
-    .bar {
-      background: var(--state-color, var(--primary)); 
+    progress,
+    .progress {
+      &::-webkit-progress-value,
+      .bar {
+        background: var(--state-color, var(--primary)); 
+      }
     }
     // Mobile
     @media (max-width: $breakpoint-sm) {
@@ -251,6 +166,7 @@ main {
               order : 10;
               flex  : 1 1 100%;
               border: 0;
+              progress,
               .progress {
                 width : 100%;
                 height: 10px;
@@ -258,36 +174,6 @@ main {
             }
           }
         }
-      }
-    }
-  }
-}
-
-// Empty
-.empty {
-  width          : 100%;
-  height         : 100%;
-  display        : flex;
-  flex-direction : column;
-  align-items    : center;
-  justify-content: center;
-  padding: 1rem;
-  .content {
-    padding      : 2rem 1.5rem;
-    background   : rgba($dark, 0.25);
-    border-radius: .75rem;
-    .icon {
-      display      : block;
-      font-size    : 4rem;
-      line-height  : 0;
-      margin-bottom: 2rem;
-      text-align   : center;
-      color        : var(--primary);
-    }
-    &.error {
-      text-align: center;
-      .icon {
-        color: var(--red);
       }
     }
   }
@@ -403,118 +289,16 @@ main {
   }
 }
 
-// Row
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  &.cols-3 {
-    flex: 1 1 33.333%;
-    max-width: 33.333%;
-  }
-  &.cols-2 {
-    flex: 1 1 50%;
-    max-width: 50%;
-  }
-  &.cols-1 {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-}
-
-// Tabs
-.tabs {
-  .menu {
-    display      : flex;
-    width        : 100%;
-    border-top   : var(--separator);
-    border-bottom: var(--separator);
-    .item {
-      padding      : 0.75rem 1rem;
-      background   : transparent;
-      color        : var(--body-color);
-      font-size    : 0.85rem;
-      border       : 0;
-      border-radius: 0;
-      outline      : 0;
-      transition   : all 0.35s ease;
-      position     : relative;
-      cursor       : pointer;
-      &.active {
-        &::after {
-          content: "";
-          position: absolute;
-          bottom: 4px;
-          left: 1rem;
-          right: 1rem;
-          border-bottom: 2px solid var(--primary);
-        }
-      }
-      &:hover {
-        background: rgba(255, 255, 255, 0.025);
-      }
-    }
-  }
-  .content {
-    .tab {
-      &:not(.show) {
-        display: none;
-      }
-    }
-  }
-}
-
-// Tree
-.tree {
+// Components
+.components {
+  max-width: 500px;
   width: 100%;
-  .folder {
-    width: 100%;
-    margin-bottom: 0.25rem;
-    .root {
-      background: transparent;
+  margin-bottom: 1rem;
+  border: var(--separator);
+  border-radius: .25rem;
+  table tbody {
+    tr:last-child {
       border: 0;
-      color: var(--body-color-highlight);
-      outline: 0;
-      padding: 0;
-    }
-    .item {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      padding: 0.25rem 0;
-      & > div {
-        margin: 0 0.5rem;
-        &:first-child {
-          margin-left: 1rem;
-          width: 200px;
-          height: 30px;
-          overflow-x: auto;
-        }
-      }
-    }
-  }
-}
-
-// Social Links
-.social {
-  display    : flex;
-  align-items: center;
-  a {
-    display        : flex;
-    align-items    : center;
-    text-decoration: none;
-    margin-right   : 0.75rem;
-    transition     : all 0.35s ease;
-    &:last-child {
-      margin-right: 0;
-    }
-    .icon {
-      width: 16px;
-      height: 16px;
-      object-fit: cover;
-      object-position: center;
-      path {
-        fill: #777;
-      }
     }
   }
 }

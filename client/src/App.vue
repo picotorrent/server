@@ -1,17 +1,7 @@
 <template>
   <div id="app">
     <Header />
-    <main>
-      <router-view />
-      <!-- WebSockets error -->
-      <div v-if="false">
-        <div class="content error">
-          <i class="icon bi bi-wifi-off"></i>
-          <h2>WebSockets error</h2>
-          <h4>Can't connect to the server</h4>
-        </div>
-      </div>
-    </main>
+    <router-view />
   </div>
 </template>
 
