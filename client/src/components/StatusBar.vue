@@ -2,19 +2,19 @@
   <div class="backdrop status-bar">
     <div class="item">
       <i class="bi bi-file-earmark"></i>
-      <span>Torrents</span> 
+      <span>Torrents</span> {{ torrentsCount }}
     </div>
     <div class="item">
       <i class="bi bi-download"></i>
-      <span>Download</span> 25,0 MB/s
+      <span>Download</span> {{ torrentsTotalDl | speed }}
     </div>
     <div class="item">
       <i class="bi bi-upload"></i>
-      <span>Upload</span> 1,0 MB/s
+      <span>Upload</span> {{ torrentsTotalUl | speed }}
     </div>
     <div class="item">
       <i class="bi bi-hdd-network"></i>
-      <span>DHT</span> 280 node(s)
+      <span>DHT nodes</span> {{ sessionStats('dht.dht_nodes') }}
     </div>
     <div class="graphs">
       <div class="download">
@@ -41,7 +41,17 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
-  name: 'Statusbar'
+  name: 'StatusBar',
+  computed: {
+    ...mapGetters({
+      sessionStats: 'session/byId',
+      torrentsCount: 'torrents/count',
+      torrentsTotalDl: 'torrents/dl_total',
+      torrentsTotalUl: 'torrents/ul_total'
+    })
+  }
 }
 </script>

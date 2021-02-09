@@ -25,6 +25,15 @@ export default {
       addSavePath: null
     }
   },
+  async mounted () {
+    const res = await axios.post('/api/jsonrpc', {
+      jsonrpc: '2.0',
+      method: 'config.get',
+      params: [ 'default_save_path' ]
+    });
+
+    this.addSavePath = res.data.result.default_save_path;
+  },
   methods: {
     async add() {
       const buffer = new Uint8Array(await this.$refs.torrentFile.files[0].arrayBuffer());

@@ -40,5 +40,6 @@ namespace pt::Server
         std::unique_ptr<libtorrent::session> m_session;
         std::map<libtorrent::info_hash_t, libtorrent::torrent_status> m_torrents;
         std::vector<std::weak_ptr<std::function<void(nlohmann::json&)>>> m_subscribers;
+        std::vector<libtorrent::stats_metric> m_stats;
     };
 }

@@ -11,5 +11,15 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     opts->m_port = 1337;
     opts->m_webRoot = nullptr;
 
+    if (const char* httpHost = std::getenv("PICOTORRENT_HTTP_HOST"))
+    {
+        opts->m_host = httpHost;
+    }
+
+    if (const char* webRoot = std::getenv("PICOTORRENT_WEBROOT_PATH"))
+    {
+        opts->m_webRoot = std::make_shared<std::string>(webRoot);
+    }
+
     return opts;
 }

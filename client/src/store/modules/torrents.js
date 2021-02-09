@@ -8,7 +8,16 @@ const getters = {
   all: state => state.torrents,
   byId: state => id => {
     return state.torrents[id]
-  }
+  },
+  count: state => Object.keys(state.torrents).length,
+
+  dl_total: state => Object.values(state.torrents)
+    .map(t => t.dl)
+    .reduce((a, b) => a + b, 0),
+
+  ul_total: state => Object.values(state.torrents)
+    .map(t => t.ul)
+    .reduce((a, b) => a + b, 0)
 }
 
 const actions = {

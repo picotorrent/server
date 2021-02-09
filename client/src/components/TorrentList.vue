@@ -21,7 +21,7 @@
           <td class="status">{{ torrent.state }}</td>
           <td class="progress"><progress max="100" :value="torrent.progress * 100" >{{ torrent.progress * 100 }}</progress></td>
           <td class="actions">
-            <button class="remove" title="Remove"><i class="bi bi-trash"></i></button>
+            <button class="remove" title="Remove" @click="remove(infoHash)"><i class="bi bi-trash"></i></button>
           </td>
         </tr>
       </tbody>
@@ -31,7 +31,6 @@
 
 <script>
 import axios from 'axios';
-import prettyBytes from 'pretty-bytes';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -40,18 +39,6 @@ export default {
     ...mapGetters({
       torrents: 'torrents/all'
     })
-  },
-  filters: {
-    fileSize (val) {
-      if (!val) { return '-'; }
-      return prettyBytes(val)
-    },
-    speed (val) {
-      if (!val || val === 0) {
-        return '-';
-      }
-      return `${prettyBytes(val)}/s`;
-    }
   },
   methods: {
     async remove (infoHash) {

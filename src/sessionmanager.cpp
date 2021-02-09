@@ -5,6 +5,7 @@
 #include <libtorrent/create_torrent.hpp>
 #include <libtorrent/read_resume_data.hpp>
 #include <libtorrent/session.hpp>
+#include <libtorrent/session_stats.hpp>
 #include <libtorrent/write_resume_data.hpp>
 #include <nlohmann/json.hpp>
 
@@ -92,7 +93,8 @@ SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::un
     m_db(db),
     m_session(std::move(session)),
     m_torrents(),
-    m_timer(io)
+    m_timer(io),
+    m_stats(lt::session_stats_metrics())
 {
     m_session->set_alert_notify(
         [this]()
@@ -418,6 +420,24 @@ void SessionManager::ReadAlerts()
             j["type"] = "torrent.added";
             j["torrent"] = ts;
             j["torrent"]["muted"] = extra->muted;
+
+            Broadcast(j);
+
+            break;
+        }
+        case lt::session_stats_alert::alert_type:
+        {
+            lt::session_stats_alert* ssa = lt::alert_cast<lt::session_stats_alert>(alert);
+            auto counters = ssa->counters();
+
+            json j;
+            j["type"] = "session.stats";
+            j["stats"] = json::object();
+
+            for (auto const& stats : m_stats)
+            {
+                j["stats"][stats.name] = counters[stats.value_index];
+            }
 
             Broadcast(j);
 

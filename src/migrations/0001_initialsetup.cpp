@@ -285,5 +285,48 @@ int InitialSetup::Migrate(sqlite3* db)
 
     if (res != SQLITE_OK) { return res; }
 
+    BOOST_LOG_TRIVIAL(info) << "Creating config table";
+
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE config ("
+            "key       TEXT    PRIMARY KEY,"
+            "value     TEXT    NULL"
+        ");",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
+    BOOST_LOG_TRIVIAL(info) << "Creating listen interfaces table";
+
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE listen_interfaces ("
+            "id   INTEGER        PRIMARY KEY,"
+            "host TEXT           NOT NULL,"
+            "port INTEGER        NOT NULL,"
+            "is_outgoing INTEGER NOT NULL CHECK(is_outgoing IN (0,1)),"
+            "is_ssl      INTEGER NOT NULL CHECK(is_ssl      IN (0,1))"
+        ");",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
+    BOOST_LOG_TRIVIAL(info) << "Inserting default listen interfaces";
+
+    res = sqlite3_exec(
+        db,
+        "INSERT INTO listen_interfaces (host, port, is_outgoing, is_ssl) "
+        "VALUES ('0.0.0.0', 6881, 1, 0), ('[::]', 6881, 1, 0);",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
     return SQLITE_OK;
 }

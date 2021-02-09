@@ -12,6 +12,9 @@
 #include "sessionmanager.hpp"
 
 #include "http/httplistener.hpp"
+#include "rpc/configget.hpp"
+#include "rpc/configset.hpp"
+#include "rpc/listeninterfacesgetall.hpp"
 #include "rpc/profileslist.hpp"
 #include "rpc/sessionaddtorrent.hpp"
 #include "rpc/sessionremovetorrent.hpp"
@@ -29,6 +32,9 @@ using pt::Server::Database;
 using pt::Server::Http::HttpListener;
 using pt::Server::Log;
 using pt::Server::Options;
+using pt::Server::RPC::ConfigGetCommand;
+using pt::Server::RPC::ConfigSetCommand;
+using pt::Server::RPC::ListenInterfacesGetAllCommand;
 using pt::Server::RPC::ProfilesListCommand;
 using pt::Server::RPC::SessionAddTorrentCommand;
 using pt::Server::RPC::SessionRemoveTorrentCommand;
@@ -62,15 +68,18 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
         sm,
         options->WebRoot());
 
-    http->Commands().insert({ "profiles.list",         std::make_shared<ProfilesListCommand>(db) });
-    http->Commands().insert({ "session.addTorrent",    std::make_shared<SessionAddTorrentCommand>(sm) });
-    http->Commands().insert({ "session.removeTorrent", std::make_shared<SessionRemoveTorrentCommand>(sm) });
-    http->Commands().insert({ "settingsPack.create",   std::make_shared<SettingsPackCreateCommand>(db) });
-    http->Commands().insert({ "settingsPack.getById",  std::make_shared<SettingsPackGetByIdCommand>(db) });
-    http->Commands().insert({ "settingsPack.list",     std::make_shared<SettingsPackList>(db) });
-    http->Commands().insert({ "settingsPack.update",   std::make_shared<SettingsPackUpdateCommand>(db, sm) });
-    http->Commands().insert({ "torrents.pause",        std::make_shared<TorrentsPauseCommand>(sm) });
-    http->Commands().insert({ "torrents.resume",       std::make_shared<TorrentsResumeCommand>(sm) });
+    http->Commands().insert({ "config.get",              std::make_shared<ConfigGetCommand>(db) });
+    http->Commands().insert({ "config.set",              std::make_shared<ConfigSetCommand>(db) });
+    http->Commands().insert({ "listenInterfaces.getAll", std::make_shared<ListenInterfacesGetAllCommand>(db) });
+    http->Commands().insert({ "profiles.list",           std::make_shared<ProfilesListCommand>(db) });
+    http->Commands().insert({ "session.addTorrent",      std::make_shared<SessionAddTorrentCommand>(sm) });
+    http->Commands().insert({ "session.removeTorrent",   std::make_shared<SessionRemoveTorrentCommand>(sm) });
+    http->Commands().insert({ "settingsPack.create",     std::make_shared<SettingsPackCreateCommand>(db) });
+    http->Commands().insert({ "settingsPack.getById",    std::make_shared<SettingsPackGetByIdCommand>(db) });
+    http->Commands().insert({ "settingsPack.list",       std::make_shared<SettingsPackList>(db) });
+    http->Commands().insert({ "settingsPack.update",     std::make_shared<SettingsPackUpdateCommand>(db, sm) });
+    http->Commands().insert({ "torrents.pause",          std::make_shared<TorrentsPauseCommand>(sm) });
+    http->Commands().insert({ "torrents.resume",         std::make_shared<TorrentsResumeCommand>(sm) });
     http->Run();
 
     io.run();

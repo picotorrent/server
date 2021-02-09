@@ -32,4 +32,8 @@ COPY --from=client-build-env /app/dist /app/client
 
 COPY --from=build-env /app/build/PicoTorrentServer /usr/bin
 
+ENV PICOTORRENT_HTTP_HOST=0.0.0.0
+
+ENV PICOTORRENT_WEBROOT_PATH=/app/client
+
 ENTRYPOINT [ "PicoTorrentServer" ]

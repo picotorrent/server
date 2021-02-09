@@ -56,6 +56,9 @@ add_executable(
     src/http/websocketsession
 
     # rpc
+    src/rpc/configget
+    src/rpc/configset
+    src/rpc/listeninterfacesgetall
     src/rpc/profileslist
     src/rpc/sessionaddtorrent
     src/rpc/sessionremovetorrent

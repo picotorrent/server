@@ -12,6 +12,10 @@ export default function createWebSocketPlugin() {
           store.commit('torrents/ADD_TORRENTS', data.torrents);
           break;
 
+        case 'session.stats':
+          store.commit('session/UPDATE_STATS', data.stats);
+          break;
+
         case 'torrent.removed':
           store.commit('torrents/REMOVE_BY_ID', data.info_hash);
           break;
