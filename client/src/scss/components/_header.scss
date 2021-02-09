@@ -8,6 +8,7 @@ header {
   flex-wrap      : wrap;
   backdrop-filter: var(--backdrop-filter);
   animation      : fade-in 0.35s forwards;
+  z-index        : 999;
   // Logo
   .logo {
     display        : flex;
@@ -67,7 +68,7 @@ header {
     line-height    : 0;
     background     : transparent;
     border         : 0;
-    flex: 0 0 auto;
+    flex           : 0 0 auto;
     &.control {
       padding-left : 0.5rem;
       padding-right: 0.5rem;
@@ -86,6 +87,19 @@ header {
       @media (min-width: $breakpoint-sm) {
         display: block;
       }
+    }
+    &.icon {
+      .title {
+        min-width: 85px;
+      }
+    }
+    &.tooltip {
+      .title {
+        @media (min-width: $breakpoint-sm) {
+          display: none !important;
+        }
+      }
+      
     }
   }
 

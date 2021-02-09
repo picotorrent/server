@@ -212,25 +212,6 @@ body {
       justify-content: flex-start;
       padding        : 0.5rem 0.75rem;
       min-width      : 100px;
-      span {
-        display: none;
-      }
-      &:hover {
-        position: relative;
-        span {
-          position       : absolute;
-          display        : block;
-          left           : 50%;
-          bottom         : -2.25rem;
-          background     : rgba(50, 50, 50, 0.75);
-          padding        : 0.25rem 0.5rem 0.35rem !important;
-          border-radius  : 0.25rem;
-          backdrop-filter: blur(5px);
-          box-shadow     : 0 0.25rem 0.5rem -0.15rem rgba(0, 0, 0, 0.5);
-          transform      : translateX(-50%);
-          z-index        : 999;
-        }
-      }
     }
   }
   .row {
@@ -286,19 +267,5 @@ body {
   }
   .tabs {
     margin: 0 -0.75rem 1rem;
-  }
-}
-
-// Components
-.components {
-  max-width: 500px;
-  width: 100%;
-  margin-bottom: 1rem;
-  border: var(--separator);
-  border-radius: .25rem;
-  table tbody {
-    tr:last-child {
-      border: 0;
-    }
   }
 }

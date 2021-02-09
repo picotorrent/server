@@ -6,6 +6,7 @@ main {
   overflow-y    : auto;
   position      : relative;
   animation     : fade-in 0.35s forwards;
+  //z-index       : -1;
   &:not(.home) {
     .sidebar,
     .content {
