@@ -1,9 +1,22 @@
+// Components
+// Structure
 @import "header";
-@import "footer";
 @import "statusbar";
-@import "progress";
-@import "scrollbar";
-@import "form";
-@import "table";
+@import "main";
+@import "footer";
+// UI
+@import "layout";
 @import "typography";
+@import "tooltip";
+@import "scrollbar";
+// Form, Inputs, Buttons
+@import "form";
 @import "button";
+@import "progress";
+// Content
+@import "dialog";
+@import "table";
+@import "tabs";
+@import "tree";
+// Other
+@import "keyframes";

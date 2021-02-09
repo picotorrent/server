@@ -1,13 +1,14 @@
 
 // Header
 header {
-  --angle: 40deg !important;
-  display    : flex;
-  width      : 100%;
-  align-items: stretch;
-  background : var(--header-bg);
-  flex-wrap  : wrap;
+  display        : flex;
+  width          : 100%;
+  align-items    : stretch;
+  background     : var(--header-bg);
+  flex-wrap      : wrap;
   backdrop-filter: var(--backdrop-filter);
+  animation      : fade-in 0.35s forwards;
+  z-index        : 999;
   // Logo
   .logo {
     display        : flex;
@@ -21,9 +22,9 @@ header {
     transition     : all 0.35s ease;
     svg,
     img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
+      width          : 22px;
+      height         : 22px;
+      object-fit     : contain;
       object-position: center;
     }
     &:hover {
@@ -36,16 +37,17 @@ header {
   .center,
   .right {
     display: flex;
-    flex: 1;
+    flex   : 1;
   }
   
   // Center
   .center {
+    flex           : 1 1 auto;
     justify-content: center;
-    align-self: center;
-    @media (max-width: $breakpoint-sm) {
+    align-self     : center;
+    @media (max-width: $breakpoint-md) {
       order: 2;
-      flex: 1 1 100%;
+      flex : 1 1 100%;
     }
   }
 
@@ -66,47 +68,68 @@ header {
     line-height    : 0;
     background     : transparent;
     border         : 0;
+    flex           : 0 0 auto;
     &.control {
       padding-left : 0.5rem;
       padding-right: 0.5rem;
       .bi {
-        font-size   : 150%;
+        font-size  : 150%;
       }
     }
     &:hover {      
-      color: $white;
-      background: rgba(255,255,255,0.15);
+      color     : $white;
+      background: rgba(255, 255, 255,0.15);
     }
     span {
+      margin-top : -2px;
       margin-left: .5rem;
-      @media (max-width: $breakpoint-sm) {
-        display: none;
+      display    : none;
+      @media (min-width: $breakpoint-sm) {
+        display: block;
       }
+    }
+    &.icon {
+      .title {
+        min-width: 85px;
+      }
+    }
+    &.tooltip {
+      .title {
+        @media (min-width: $breakpoint-sm) {
+          display: none !important;
+        }
+      }
+      
     }
   }
 
   // Icons
   .bi {
-    font-size: 125%;
+    font-size  : 125%;
     line-height: 0;
-    margin-top: -1px;    
-    transition: all 0.35s ease;
+    margin-top : -1px;
+    transition : all 0.35s ease;
   }
 
   // Filter
   .filter {
-    padding    : 0 1rem;
-    display    : flex;
-    align-items: center;
-    background : var(--header-filter-bg);
-    margin     : 0;
-    width      : 100%;
-    //box-shadow   : 0 1px 0 var(--separator-color);
-    //@media (min-width: $breakpoint-sm) {
-      margin       : 0.5rem;
-      border-radius: var(--header-filter-border-radius);
-      box-shadow   : 0 0.25rem .5rem -.25rem rgba($black,0.25);
-    //}
+    padding      : 0 1rem;
+    display      : flex;
+    align-items  : center;
+    background   : var(--header-filter-bg);
+    width        : 100%;
+    margin       : 0.5rem;
+    border-radius: var(--header-filter-border-radius);
+    box-shadow   : 0 0.25rem .5rem -.25rem rgba($black,0.25);
+    @media (min-width: $breakpoint-md) {
+      max-width: calc(100% - 100px);
+    }
+    @media (min-width: $breakpoint-md + 200px) {
+      max-width: 400px;
+    }
+    @media (min-width: $breakpoint-lg) {
+      max-width: 600px;
+    }
     .bi {
       display      : flex;
       align-items  : center;
@@ -114,29 +137,24 @@ header {
       margin-bottom: 0;
     }
     label {
-      width: 0;
-      height: 0;
+      width   : 0;
+      height  : 0;
       overflow: hidden;
     }
     input {
-      display: block;
-      width: 100%;
-      min-width: auto;
-      margin: 0;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      transition: all 0.35s ease;
-      padding-top: 0.50rem;
+      display       : block;
+      width         : 100%;
+      min-width     : auto;
+      margin        : 0;
+      border        : 0;
+      outline       : 0;
+      background    : transparent;
+      transition    : all 0.35s ease;
+      padding-top   : 0.50rem;
       padding-bottom: 0.50rem;
-      color: var(--header-filter-color);
+      color         : var(--header-filter-color);
       &::placeholder {
         color: var(--header-filter-color);
-      }
-      @media (min-width: $breakpoint-sm) {
-        min-width: 400px;
-        //padding-top: 0.50rem;
-        //padding-bottom: 0.50rem;
       }
     }
   }

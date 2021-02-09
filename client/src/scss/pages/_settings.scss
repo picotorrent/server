@@ -1,0 +1,124 @@
+// Page: Settings
+main.settings {
+  flex-direction: column;
+  @media (min-width: $breakpoint-sm) {
+    flex-direction: row;
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1rem 0;
+    flex: 0 0 auto;
+    background: var(--sidebar-bg);
+    @media (min-width: $breakpoint-sm) {
+      padding: 1rem;
+      flex: 1 1 175px;
+      max-width: 200px;
+    }
+    .title {
+      order: 1;
+      margin: 1rem 0 0;
+      @media (min-width: $breakpoint-sm) {        
+        font-size: 1.35rem;
+        order: 0;
+        margin: 0 0 1rem;
+      }
+    }
+    .menu {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      order: 0;
+      @media (min-width: $breakpoint-sm) {
+        flex-direction: column;
+        order: 1;
+      }
+      .item {
+        margin: 0 0.25rem;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 110%;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--body-color);
+        flex: 1;
+        border-radius: .25rem;
+        position: relative;
+        @media (min-width: $breakpoint-sm) {
+          border-radius: 0rem;
+          margin: 0 0 0.5rem;
+          justify-content: flex-start;
+        }
+        &:first-child {
+          margin-left: 0;
+        }
+        &:last-child {
+          margin-right: 0;
+        }
+        &.active {
+          color: var(--white);
+          &::before {
+            content: "";
+            position: absolute;
+            top: inherit;
+            left: 20%;
+            right: 20%;
+            bottom: 2px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 1rem;
+          }
+          @media (min-width: $breakpoint-sm) {
+            color: var(--body-color);
+            &::before {
+              top: 5px;
+              left: 3px;
+              bottom: 5px;
+              right: inherit;
+              height: inherit;
+              width: 3px;
+              border-bottom: 0;
+              border-left: 4px solid var(--primary);              
+            }
+          }
+        }
+        &:hover {
+          background: var(--gray-hover);
+          border-radius: .25rem;
+        }
+        // Icons
+        .bi {
+          font-size: 145%;
+          line-height: 0;
+          transition: all 0.35s ease;
+          @media (min-width: $breakpoint-sm) {
+            margin-bottom: -2px;
+            margin-right: 0.75rem;
+          }
+        }
+        // Text
+        span {
+          display: none;
+          @media (min-width: $breakpoint-sm) {
+            display: inline;
+          }
+        }
+      }
+    }
+  }
+  // Content
+  .content {
+    flex: 1 1 100%;
+    @media (min-width: $breakpoint-sm) {
+      flex: 1;
+    }
+    .title {
+      margin-top: 0.25rem;
+      @media (min-width: $breakpoint-sm) {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}

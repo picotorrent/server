@@ -9,19 +9,19 @@
           <th scope="col">UL</th>
           <th scope="col">State</th>
           <th scope="col">Progress</th>
-          <th></th>
+          <th scope="col" class="actions">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(torrent, infoHash) in torrents" :key="infoHash">
+        <tr v-for="(torrent, infoHash) in torrents" :key="infoHash" :class="torrent.state">
           <td class="name">{{ torrent.name }}</td>
           <td class="size">{{ torrent.total_wanted | fileSize }}</td>
           <td class="download">{{ torrent.dl | speed }}</td>
           <td class="upload">{{ torrent.ul | speed }}</td>
           <td class="status">{{ torrent.state }}</td>
-          <td class="progress"><progress max="100" :value="torrent.progress * 100" style="width: 100%;" /></td>
+          <td class="progress"><progress max="100" :value="torrent.progress * 100" >{{ torrent.progress * 100 }}</progress></td>
           <td class="actions">
-            <button @click="remove(infoHash)">Remove</button>
+            <button class="remove" title="Remove"><i class="bi bi-trash"></i></button>
           </td>
         </tr>
       </tbody>

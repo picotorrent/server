@@ -1,9 +1,11 @@
 <template>
-  <div>
+  <main class="home">
     <StatusBar />
     <TorrentList />
+    <!-- WIP -->
     <File class="hide" />
-  </div>
+    <!-- /WIP -->
+  </main>
 </template>
 
 <script>

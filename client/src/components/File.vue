@@ -4,33 +4,33 @@
       <h2>CentOS-7-x86_64-DVD-2020</h2>
       <!-- File: Status-bar -->
       <div class="status-bar">        
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-clock"></i>
-          <span>ETA</span> 22m 14s
+          <span class="title">ETA</span> 22m 14s
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-download"></i>
-          <span>Download</span> 25,0 MB/s
+          <span class="title">Download</span> 25,0 MB/s
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-upload"></i>
-          <span>Upload</span> 1,0 MB/s
+          <span class="title">Upload</span> 1,0 MB/s
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-arrow-up-circle"></i>
-          <span>Seeds</span> 10 of 20
+          <span class="title">Seeds</span> 10 of 20
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-arrow-down-circle"></i>
-          <span>Leechers</span> 1 of 230
+          <span class="title">Leechers</span> 1 of 230
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-arrow-left-right"></i>
-          <span>Ratio</span> 0.000
+          <span class="title">Ratio</span> 0.000
         </div>
-        <div class="item">
+        <div class="item tooltip">
           <i class="bi bi-globe"></i>
-          <span>Availability</span> 124.18
+          <span class="title">Availability</span> 124.18
         </div>
       </div>
       <!-- File: Overview -->

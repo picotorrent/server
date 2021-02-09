@@ -1,0 +1,18 @@
+// Layout
+// Row
+.row {
+  display  : flex;
+  flex-wrap: wrap;
+  &.cols-3 {
+    flex     : 1 1 33.333%;
+    max-width: 33.333%;
+  }
+  &.cols-2 {
+    flex     : 1 1 50%;
+    max-width: 50%;
+  }
+  &.cols-1 {
+    flex     : 1 1 100%;
+    max-width: 100%;
+  }
+}

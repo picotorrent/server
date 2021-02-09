@@ -67,7 +67,7 @@
   --progress-bar-color    : #{$progress-bar-color};
 
   // Dark mode  
-  @media (prefers-color-scheme: #{if($ui-darkscheme-enalbe, 'dark', 'none')}) {
+  @media (prefers-color-scheme: #{if($ui-darkscheme-enable, 'dark', 'none')}) {
     // Colors
     @each $name, $color in $colors {
       --#{$name}: #{darken(desaturate($color, $color-desaturation-amount), $color-darken-amount)};

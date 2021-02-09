@@ -1,0 +1,44 @@
+// Page: About
+main.about {
+  .social {
+    margin-bottom: 1rem;
+  }
+  
+  // Components
+  .components {
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 1rem;
+    border: var(--separator);
+    border-radius: .25rem;
+    table tbody {
+      tr:last-child {
+        border: 0;
+      }
+    }
+  }
+  // Social Links
+  .social {
+    display    : flex;
+    align-items: center;
+    a {
+      display        : flex;
+      align-items    : center;
+      text-decoration: none;
+      margin-right   : 0.75rem;
+      transition     : all 0.35s ease;
+      &:last-child {
+        margin-right: 0;
+      }
+      .icon {
+        width: 16px;
+        height: 16px;
+        object-fit: cover;
+        object-position: center;
+        path {
+          fill: #777;
+        }
+      }
+    }
+  }
+}

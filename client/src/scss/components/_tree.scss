@@ -1,0 +1,30 @@
+// Tree
+.tree {
+  width: 100%;
+  .folder {
+    width: 100%;
+    margin-bottom: 0.25rem;
+    .root {
+      background: transparent;
+      border: 0;
+      color: var(--body-color-highlight);
+      outline: 0;
+      padding: 0;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      padding: 0.25rem 0;
+      & > div {
+        margin: 0 0.5rem;
+        &:first-child {
+          margin-left: 1rem;
+          width: 200px;
+          height: 30px;
+          overflow-x: auto;
+        }
+      }
+    }
+  }
+}
