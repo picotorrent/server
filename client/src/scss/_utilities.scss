@@ -1,30 +1,60 @@
 // Utilities
 
+// Animations
+// Animation: Opening / Fade-in
+.is-opening,
+.fade-in {
+  animation: fade-in 0.5s forwards;
+}
+// Animation: Closing / Fade-out
+.is-closing,
+.fade-out {
+  animation: fade-out 0.5s forwards;
+}
+
 // States
+// State: Blue / Info / Seeding
+.is-blue,
+.info,
 .seeding {
   --state-color: var(--blue);
   --state-color-hover: var(--blue-hover);
 }
+// State: Primary / Downloading
+.is-primary,
 .downloading {
   --state-color: var(--primary);
   --state-color-hover: var(--primary-hover);
 }
+// State: Green / Success / Completed
+.is-green,
+.success,
 .completed {
   --state-color: var(--green);
   --state-color-hover: var(--green-hover);
 }
+// State: Yellow / Warning / Paused
+.is-yellow,
+.warning,
 .paused {
   --state-color: var(--yellow);
   --state-color-hover: var(--yellow-hover);
 }
+// State: Orange / Stopped
+.is-orange,
 .stopped {
   --state-color: var(--orange); 
   --state-color-hover: var(--orange-hover); 
 }
+// State: Red / Danger / Error
+.is-red,
+.danger,
 .error {
   --state-color: var(--red); 
   --state-color-hover: var(--red-hover); 
 }
+// State: Gray / Waiting
+.is-gray,
 .waiting {
   --state-color: var(--gray);
   --state-color-hover: var(--gray-hover);
@@ -52,6 +82,11 @@
 // Hide
 .hide {
   display: none;
+}
+
+// Visibility-hidden [WIP]
+.aria-label {
+  visibility: hidden;
 }
 
 // Separator

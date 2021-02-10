@@ -65,6 +65,10 @@
   --progress-border-radius: #{$progress-border-radius};
   --progress-bar-bg       : #{$progress-bar-bg};
   --progress-bar-color    : #{$progress-bar-color};
+  // Toast
+  --toast-bg        : #{$light-toast-bg};
+  --toast-color     : #{$light-toast-color};
+  --toast-box-shadow: #{$light-toast-box-shadow};
 
   // Dark mode  
   @media (prefers-color-scheme: #{if($ui-darkscheme-enable, 'dark', 'none')}) {
@@ -100,6 +104,10 @@
     --input-color: #{$dark-input-color};
     // Progress
     --progress-bg: #{$dark-progress-bg};
+    // Toast
+    --toast-bg        : #{$dark-toast-bg};
+    --toast-color     : #{$dark-toast-color};
+    --toast-box-shadow: #{$dark-toast-box-shadow};
   }
 }
 
