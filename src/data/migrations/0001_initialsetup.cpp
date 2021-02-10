@@ -4,9 +4,9 @@
 #include <libtorrent/session.hpp>
 #include <libtorrent/settings_pack.hpp>
 
-#include "../data/models/settingspack.hpp"
+#include "../models/settingspack.hpp"
 
-using pt::Server::Migrations::InitialSetup;
+using pt::Server::Data::Migrations::InitialSetup;
 
 int InitialSetup::Migrate(sqlite3* db)
 {
@@ -307,6 +307,7 @@ int InitialSetup::Migrate(sqlite3* db)
             "id   INTEGER        PRIMARY KEY,"
             "host TEXT           NOT NULL,"
             "port INTEGER        NOT NULL,"
+            "is_local    INTEGER NOT NULL CHECK(is_local    IN (0,1)),"
             "is_outgoing INTEGER NOT NULL CHECK(is_outgoing IN (0,1)),"
             "is_ssl      INTEGER NOT NULL CHECK(is_ssl      IN (0,1))"
         ");",
@@ -320,8 +321,8 @@ int InitialSetup::Migrate(sqlite3* db)
 
     res = sqlite3_exec(
         db,
-        "INSERT INTO listen_interfaces (host, port, is_outgoing, is_ssl) "
-        "VALUES ('0.0.0.0', 6881, 1, 0), ('[::]', 6881, 1, 0);",
+        "INSERT INTO listen_interfaces (host, port, is_local, is_outgoing, is_ssl) "
+        "VALUES ('0.0.0.0', 6881, 0, 1, 0), ('[::]', 6881, 0, 1, 0);",
         nullptr,
         nullptr,
         nullptr);

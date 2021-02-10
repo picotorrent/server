@@ -6,14 +6,14 @@
 
 #include <boost/log/trivial.hpp>
 
+#include "data/migrations/0001_initialsetup.hpp"
 #include "data/transaction.hpp"
-#include "migrations/0001_initialsetup.hpp"
 
 using pt::Server::Database;
 
 static std::map<std::string, std::function<int(sqlite3*)>> DatabaseMigrations =
 {
-    { "0001_CreateSessionParamsTable", &pt::Server::Migrations::InitialSetup::Migrate },
+    { "0001_CreateSessionParamsTable", &pt::Server::Data::Migrations::InitialSetup::Migrate },
 };
 
 bool CreateMigrationsTable(sqlite3* db)

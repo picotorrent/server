@@ -9,13 +9,16 @@
 #include <libtorrent/write_resume_data.hpp>
 #include <nlohmann/json.hpp>
 
+#include "data/models/listeninterface.hpp"
 #include "data/models/profile.hpp"
 #include "data/models/settingspack.hpp"
 #include "json/torrentstatus.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
+using pt::Server::Data::Models::ListenInterface;
 using pt::Server::Data::Models::Profile;
+using pt::Server::Data::SettingsPack;
 using pt::Server::SessionManager;
 
 static std::string to_str(lt::info_hash_t hash)
@@ -30,6 +33,47 @@ struct add_params
 {
     bool muted;
 };
+
+static lt::settings_pack GetSettingsPack(sqlite3* db)
+{
+    auto profile = Profile::GetActive(db);
+    auto settings = SettingsPack::GetById(db, profile->SettingsPackId());
+    auto pack = settings->Settings();
+
+    std::stringstream incoming;
+    std::stringstream outgoing;
+
+    for (auto const& listenInterface : ListenInterface::GetAll(db))
+    {
+        incoming << ","
+            << listenInterface->Host()
+            << ":"
+            << listenInterface->Port()
+            << (listenInterface->IsLocal() ? "l" : "")
+            << (listenInterface->IsSsl() ? "s" : "");
+
+        if (listenInterface->IsOutgoing())
+        {
+            outgoing << ","
+                << listenInterface->Host();
+        }
+    }
+
+    if (incoming.str().size() > 0)
+    {
+        pack.set_str(lt::settings_pack::listen_interfaces, incoming.str().substr(1));
+    }
+
+    if (outgoing.str().size() > 0)
+    {
+        pack.set_str(lt::settings_pack::outgoing_interfaces, outgoing.str().substr(1));
+    }
+
+    // Set static things like alert_mask
+    pack.set_int(lt::settings_pack::alert_mask, lt::alert_category::all);
+
+    return pack;
+}
 
 std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db)
 {
@@ -63,22 +107,8 @@ std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io
         sqlite3_finalize(stmt);
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Loading active profile";
-    auto profile = Profile::GetActive(db);
-
-    BOOST_LOG_TRIVIAL(debug) << "Loading settings from profile " << profile->Name();
-    auto settings = Data::SettingsPack::GetById(db, profile->SettingsPackId());
-
-    if (settings == nullptr)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Failed to load settings pack with id " << profile->SettingsPackId();
-    }
-    else
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Applying settings pack " << settings->Name();
-        params.settings = settings->Settings();
-        BOOST_LOG_TRIVIAL(info) << "Session settings loaded";
-    }
+    BOOST_LOG_TRIVIAL(info) << "Loading session settings";
+    params.settings = GetSettingsPack(db);
 
     auto session = std::make_unique<lt::session>(params);
     auto sm = std::shared_ptr<SessionManager>(
@@ -248,10 +278,8 @@ void SessionManager::ForEachTorrent(std::function<bool(libtorrent::torrent_statu
 
 void SessionManager::ReloadSettings()
 {
-    auto profile = Profile::GetActive(m_db);
-    auto settings = Data::SettingsPack::GetById(m_db, profile->SettingsPackId());
-
-    m_session->apply_settings(settings->Settings());
+    m_session->apply_settings(
+        GetSettingsPack(m_db));
 }
 
 void SessionManager::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
@@ -423,6 +451,16 @@ void SessionManager::ReadAlerts()
 
             Broadcast(j);
 
+            break;
+        }
+        case lt::listen_failed_alert::alert_type:
+        {
+            BOOST_LOG_TRIVIAL(error) << alert->message();
+            break;
+        }
+        case lt::listen_succeeded_alert::alert_type:
+        {
+            BOOST_LOG_TRIVIAL(info) << alert->message();
             break;
         }
         case lt::session_stats_alert::alert_type:

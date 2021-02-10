@@ -3,11 +3,13 @@ import VueRouter from 'vue-router'
 import prettyBytes from 'pretty-bytes'
 
 import App from './App.vue'
+import RpcPlugin from './plugins/rpc'
 import router from './router'
 import store from './store'
 
 Vue.config.productionTip = false
 Vue.use(VueRouter)
+Vue.use(RpcPlugin)
 
 Vue.filter('fileSize', (val) => {
   if (!val) { return '-'; }

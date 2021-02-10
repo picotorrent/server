@@ -4,7 +4,7 @@
 
 #include <sqlite3.h>
 
-namespace pt::Server::Migrations
+namespace pt::Server::Data::Migrations
 {
     struct InitialSetup
     {

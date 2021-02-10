@@ -42,13 +42,12 @@ add_executable(
     src/sessionmanager
 
     # data
+    src/data/migrations/0001_initialsetup
     src/data/transaction
+    src/data/models/listeninterface
     src/data/models/profile
     src/data/models/settingspack
     src/data/models/settingspacknames
-
-    # migrations
-    src/migrations/0001_initialsetup
 
     # http
     src/http/httplistener
@@ -59,6 +58,7 @@ add_executable(
     src/rpc/configget
     src/rpc/configset
     src/rpc/listeninterfacesgetall
+    src/rpc/listeninterfacesremove
     src/rpc/profileslist
     src/rpc/sessionaddtorrent
     src/rpc/sessionremovetorrent
