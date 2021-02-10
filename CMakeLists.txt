@@ -46,6 +46,7 @@ add_executable(
     src/data/transaction
     src/data/models/listeninterface
     src/data/models/profile
+    src/data/models/proxy
     src/data/models/settingspack
     src/data/models/settingspacknames
 
@@ -61,6 +62,7 @@ add_executable(
     src/rpc/listeninterfacesgetall
     src/rpc/listeninterfacesremove
     src/rpc/profileslist
+    src/rpc/proxycreate
     src/rpc/sessionaddtorrent
     src/rpc/sessionremovetorrent
     src/rpc/settingspackcreate

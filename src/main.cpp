@@ -18,6 +18,7 @@
 #include "rpc/listeninterfacesgetall.hpp"
 #include "rpc/listeninterfacesremove.hpp"
 #include "rpc/profileslist.hpp"
+#include "rpc/proxycreate.hpp"
 #include "rpc/sessionaddtorrent.hpp"
 #include "rpc/sessionremovetorrent.hpp"
 #include "rpc/settingspackcreate.hpp"
@@ -40,6 +41,7 @@ using pt::Server::RPC::ListenInterfacesCreateCommand;
 using pt::Server::RPC::ListenInterfacesGetAllCommand;
 using pt::Server::RPC::ListenInterfacesRemoveCommand;
 using pt::Server::RPC::ProfilesListCommand;
+using pt::Server::RPC::ProxyCreateCommand;
 using pt::Server::RPC::SessionAddTorrentCommand;
 using pt::Server::RPC::SessionRemoveTorrentCommand;
 using pt::Server::RPC::SettingsPackCreateCommand;
@@ -78,6 +80,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
     http->Commands().insert({ "listenInterfaces.getAll", std::make_shared<ListenInterfacesGetAllCommand>(db) });
     http->Commands().insert({ "listenInterfaces.remove", std::make_shared<ListenInterfacesRemoveCommand>(db, sm) });
     http->Commands().insert({ "profiles.list",           std::make_shared<ProfilesListCommand>(db) });
+    http->Commands().insert({ "proxy.create",            std::make_shared<ProxyCreateCommand>(db, sm) });
     http->Commands().insert({ "session.addTorrent",      std::make_shared<SessionAddTorrentCommand>(sm) });
     http->Commands().insert({ "session.removeTorrent",   std::make_shared<SessionRemoveTorrentCommand>(sm) });
     http->Commands().insert({ "settingsPack.create",     std::make_shared<SettingsPackCreateCommand>(db) });

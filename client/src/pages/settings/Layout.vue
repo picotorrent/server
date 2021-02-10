@@ -19,10 +19,10 @@
           <i class="bi bi-hdd-network"></i>
           <span>Connection</span>
         </router-link>
-        <a href="#" class="item">
+        <router-link to="/settings/proxy" active-class="active" class="item">
           <i class="bi bi-hdd-rack"></i>
           <span>Proxy</span>
-        </a>
+        </router-link>
         <a href="#" class="item">
           <i class="bi bi-lightning"></i>
           <span>Advanced</span>

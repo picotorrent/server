@@ -7,6 +7,7 @@ import SettingsCommon from '@/pages/settings/Common';
 import SettingsConnection from '@/pages/settings/Connection';
 import SettingsDownloads from '@/pages/settings/Downloads';
 import SettingsLayout from '@/pages/settings/Layout';
+import SettingsProxy from '@/pages/settings/Proxy';
 
 export default new VueRouter({
   routes: [
@@ -20,7 +21,8 @@ export default new VueRouter({
       children: [
         { path: 'common',     component: SettingsCommon     },
         { path: 'connection', component: SettingsConnection },
-        { path: 'downloads',  component: SettingsDownloads  }
+        { path: 'downloads',  component: SettingsDownloads  },
+        { path: 'proxy',      component: SettingsProxy      }
       ]
     }
   ]

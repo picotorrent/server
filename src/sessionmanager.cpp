@@ -11,6 +11,7 @@
 
 #include "data/models/listeninterface.hpp"
 #include "data/models/profile.hpp"
+#include "data/models/proxy.hpp"
 #include "data/models/settingspack.hpp"
 #include "json/torrentstatus.hpp"
 
@@ -18,6 +19,7 @@ namespace lt = libtorrent;
 using json = nlohmann::json;
 using pt::Server::Data::Models::ListenInterface;
 using pt::Server::Data::Models::Profile;
+using pt::Server::Data::Models::Proxy;
 using pt::Server::Data::SettingsPack;
 using pt::Server::SessionManager;
 
@@ -67,6 +69,17 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
     if (outgoing.str().size() > 0)
     {
         pack.set_str(lt::settings_pack::outgoing_interfaces, outgoing.str().substr(1));
+    }
+
+    // Load proxy
+    if (profile->ProxyId())
+    {
+        auto proxy = Proxy::GetById(db, profile->ProxyId().value());
+
+        if (proxy != nullptr)
+        {
+            BOOST_LOG_TRIVIAL(info) << "Setting up session proxy";
+        }
     }
 
     // Set static things like alert_mask

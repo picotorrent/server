@@ -226,6 +226,28 @@ int InitialSetup::Migrate(sqlite3* db)
     Data::SettingsPack::Create(db, "High-performance seed", "High-performance seed settings", lt::high_performance_seed());
     Data::SettingsPack::Create(db, "Min. memory usage",     "Minimal memory usage settings",  lt::min_memory_usage());
 
+    BOOST_LOG_TRIVIAL(info) << "Creating proxy table";
+
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE proxy ("
+            "id                        INTEGER PRIMARY KEY,"
+            "name                      TEXT    NOT NULL,"
+            "type                      INTEGER NOT NULL,"
+            "hostname                  TEXT    NOT NULL,"
+            "port                      INTEGER NOT NULL,"
+            "username                  TEXT    NULL,"
+            "password                  TEXT    NULL,"
+            "proxy_hostnames           INTEGER NOT NULL CHECK(proxy_hostnames           IN (0,1)),"
+            "proxy_peer_connections    INTEGER NOT NULL CHECK(proxy_peer_connections    IN (0,1)),"
+            "proxy_tracker_connections INTEGER NOT NULL CHECK(proxy_tracker_connections IN (0,1))"
+        ");",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
     BOOST_LOG_TRIVIAL(info) << "Creating profiles table";
 
     res = sqlite3_exec(
@@ -235,6 +257,7 @@ int InitialSetup::Migrate(sqlite3* db)
             "name                TEXT NOT NULL,"
             "description         TEXT NULL,"
             "is_active           INTEGER NOT NULL DEFAULT 0,"
+            "proxy_id            INTEGER     NULL REFERENCES proxy(id),"
             "settings_pack_id    INTEGER NOT NULL REFERENCES settings_pack(id),"
             "created_at          TEXT NOT NULL DEFAULT (strftime('%s'))"
         ");",
