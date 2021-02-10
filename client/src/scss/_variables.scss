@@ -18,8 +18,8 @@ $black        : hsl(  0,  0%, 05%) !default;
 
 // Color modifier
 // This modifies the color when dark mode/scheme is used
-$color-darken-amount:       10% !default;
-$color-desaturation-amount: 30% !default;
+$color-darken-amount:       7.5% !default;
+$color-desaturation-amount: 17.5% !default;
 
 // Colors: Map
 $colors: (
@@ -66,14 +66,13 @@ $dark-separator-color : rgba(255, 255, 255, 0.05) !default;
 
 // UI
 //
-//
+// General UI settings
 $ui-darkscheme-enable: true !default;                                                                                                                // Boolean True / False
 $ui-backdrop-enable  : true !default;                                                                                                                 // Boolean True / False
 $ui-bg-enable        : true !default;                                                                                                                 // Boolean True / False
 $ui-bg-img           : null !default;
 $ui-pt-icon          : url('./assets/brand/icon.svg') !default;
 $ui-torrents-height  : 100% !default;                                                                                                                 // Height property: 100% / Auto
-
 // UI: Backdrop
 //
 // Fluend Design style for backdrop styling
@@ -178,3 +177,26 @@ $light-input-color: var(--body-color) !default;
 // Form: Input: Dark
 $dark-input-bg    : hsla(0, 100%, 100%, 0.15) !default;
 $dark-input-color : var(--body-color) !default;
+
+// Colors: Alpha
+$alpha-background-color : 0.85 !default;
+
+// Toast
+$toast-max-width           : 350px !default;
+$toast-border              : 0 !default;
+$toast-offset              : 2.00rem !default;
+$toast-body-padding        : 0.5rem !default;
+$toast-border-radius       : 0.35rem !default;
+$toast-header-margin       : $toast-body-padding $toast-body-padding 0 !default;
+$toast-header-padding      : 0.15rem 0.25rem !default;
+$toast-header-border-radius: 0.25rem !default;
+$toast-header-icon-margin  : 0.50rem !default;
+$toast-zindex              : 9999;
+// Toast: Light
+$light-toast-bg            : rgba($light, $alpha-background-color) !default;
+$light-toast-color         : var(--body-color) !default;
+$light-toast-box-shadow    : 0 0.25rem 1rem -0.15rem rgba(0, 0, 0, 0.15) !default;
+// Toast: Dark
+$dark-toast-bg             : rgba($dark, $alpha-background-color) !default;
+$dark-toast-color          : var(--body-color) !default;
+$dark-toast-box-shadow     : none !default;
