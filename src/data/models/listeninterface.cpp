@@ -1,8 +1,46 @@
 #include "listeninterface.hpp"
 
 #include "../datareader.hpp"
+#include "../sqliteexception.hpp"
 
+using pt::Server::Data::SQLiteException;
 using pt::Server::Data::Models::ListenInterface;
+
+std::shared_ptr<ListenInterface> ListenInterface::Create(sqlite3* db, std::string const& host, int port, bool isLocal, bool isOutgoing, bool isSsl)
+{
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(
+        db,
+        "INSERT INTO listen_interfaces (host, port, is_local, is_outgoing, is_ssl) VALUES ($1, $2, $3, $4, $5);",
+        -1,
+        &stmt,
+        nullptr);
+
+    sqlite3_bind_text(stmt, 1, host.c_str(), static_cast<int>(host.size()), SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, port);
+    sqlite3_bind_int(stmt, 3, isLocal ? 1 : 0);
+    sqlite3_bind_int(stmt, 4, isOutgoing ? 1 : 0);
+    sqlite3_bind_int(stmt, 5, isSsl ? 1 : 0);
+
+    switch (sqlite3_step(stmt))
+    {
+    case SQLITE_ERROR:
+        throw SQLiteException();
+        break;
+    }
+
+    sqlite3_finalize(stmt);
+
+    auto res = std::make_shared<ListenInterface>();
+    res->m_id         = static_cast<int>(sqlite3_last_insert_rowid(db));
+    res->m_host       = host;
+    res->m_port       = port;
+    res->m_isLocal    = isLocal;
+    res->m_isOutgoing = isOutgoing;
+    res->m_isSsl      = isSsl;
+
+    return std::move(res);
+}
 
 std::vector<std::shared_ptr<ListenInterface>> ListenInterface::GetAll(sqlite3* db)
 {

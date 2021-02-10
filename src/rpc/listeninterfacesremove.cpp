@@ -41,5 +41,5 @@ json ListenInterfacesRemoveCommand::Execute(json& params)
         m_session->ReloadSettings();
     }
 
-    return true;
+    return Ok(true);
 }

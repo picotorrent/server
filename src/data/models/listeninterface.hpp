@@ -12,6 +12,7 @@ namespace pt::Server::Data::Models
     {
     public:
         static std::shared_ptr<ListenInterface> Create(
+            sqlite3* db,
             std::string const& host,
             int port,
             bool isLocal,

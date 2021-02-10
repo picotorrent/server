@@ -37,19 +37,29 @@
       <label for="outgoing">Is outgoing?</label>
       <input type="checkbox" id="outgoing" v-model="addOutgoing">
     </div>
-    <div><button @click="add">Add</button></div>
+    <div>
+      <label for="local">Is local?</label>
+      <input type="checkbox" id="local" v-model="addLocal">
+    </div>
+    <div><button @click="add" :disabled="!addEnabled">Add</button></div>
   </div>
 </template>
 
 <script>
 export default {
+  computed: {
+    addEnabled () {
+      return this.addHost && this.addPort;
+    }
+  },
   data () {
     return {
       listenInterfaces: [],
       addHost: null,
       addPort: null,
       addSsl: false,
-      addOutgoing: false
+      addOutgoing: true,
+      addLocal: false
     }
   },
   async mounted () {
@@ -58,14 +68,24 @@ export default {
   methods: {
     async remove(id) {
       await this.$rpc('listenInterfaces.remove', [ id ]);
+      this.listenInterfaces = await this.$rpc('listenInterfaces.getAll');
     },
     async add() {
-      await this.$rpc('listenInterfaces.add', {
+      await this.$rpc('listenInterfaces.create', {
         host: this.addHost,
-        port: this.addPort,
-        is_ssl: this.addSsl,
-        is_outgoing: this.addOutgoing
+        port: parseInt(this.addPort, 10),
+        is_local: this.addLocal,
+        is_outgoing: this.addOutgoing,
+        is_ssl: this.addSsl
       });
+
+      this.addHost = null;
+      this.addPort = null;
+      this.addLocal = false;
+      this.addOutgoing = true;
+      this.addSsl = false;
+
+      this.listenInterfaces = await this.$rpc('listenInterfaces.getAll');
     }
   }
 }

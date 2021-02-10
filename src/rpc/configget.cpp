@@ -48,8 +48,8 @@ json ConfigGetCommand::Execute(json& params)
 
         sqlite3_finalize(stmt);
 
-        return result;
+        return Ok(result);
     }
 
-    return {};
+    return Error(-1, "no config keys specified");
 }

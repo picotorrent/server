@@ -50,5 +50,5 @@ json ProfilesListCommand::Execute(json& params)
 
     sqlite3_finalize(stmt);
 
-    return result;
+    return Ok(result);
 }

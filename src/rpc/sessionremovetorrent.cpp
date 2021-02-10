@@ -32,5 +32,5 @@ json SessionRemoveTorrentCommand::Execute(json& j)
         }
     }
 
-    return true;
+    return Ok(true);
 }

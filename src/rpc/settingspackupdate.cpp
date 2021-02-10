@@ -121,5 +121,5 @@ json SettingsPackUpdateCommand::Execute(json& params)
         throw ex;
     }
 
-    return true;
+    return Ok(true);
 }

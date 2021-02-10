@@ -153,8 +153,9 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
 
                 json response = {
                     { "jsonrpc", "2.0 "},
-                    { "result", m_commands->at(method)->Execute(j["params"]) }
                 };
+
+                response.merge_patch(m_commands->at(method)->Execute(j["params"]));
 
                 m_queue(command_response(response.dump()));
             }

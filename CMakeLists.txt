@@ -57,6 +57,7 @@ add_executable(
     # rpc
     src/rpc/configget
     src/rpc/configset
+    src/rpc/listeninterfacescreate
     src/rpc/listeninterfacesgetall
     src/rpc/listeninterfacesremove
     src/rpc/profileslist

@@ -70,7 +70,7 @@ json SessionAddTorrentCommand::Execute(json& j)
 
     m_session->AddTorrent(p);
 
-    return {
+    return Ok({
         { "info_hash", "asdf" }
-    };
+    });
 }

@@ -14,6 +14,7 @@
 #include "http/httplistener.hpp"
 #include "rpc/configget.hpp"
 #include "rpc/configset.hpp"
+#include "rpc/listeninterfacescreate.hpp"
 #include "rpc/listeninterfacesgetall.hpp"
 #include "rpc/listeninterfacesremove.hpp"
 #include "rpc/profileslist.hpp"
@@ -35,6 +36,7 @@ using pt::Server::Log;
 using pt::Server::Options;
 using pt::Server::RPC::ConfigGetCommand;
 using pt::Server::RPC::ConfigSetCommand;
+using pt::Server::RPC::ListenInterfacesCreateCommand;
 using pt::Server::RPC::ListenInterfacesGetAllCommand;
 using pt::Server::RPC::ListenInterfacesRemoveCommand;
 using pt::Server::RPC::ProfilesListCommand;
@@ -72,6 +74,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
 
     http->Commands().insert({ "config.get",              std::make_shared<ConfigGetCommand>(db) });
     http->Commands().insert({ "config.set",              std::make_shared<ConfigSetCommand>(db) });
+    http->Commands().insert({ "listenInterfaces.create", std::make_shared<ListenInterfacesCreateCommand>(db, sm) });
     http->Commands().insert({ "listenInterfaces.getAll", std::make_shared<ListenInterfacesGetAllCommand>(db) });
     http->Commands().insert({ "listenInterfaces.remove", std::make_shared<ListenInterfacesRemoveCommand>(db, sm) });
     http->Commands().insert({ "profiles.list",           std::make_shared<ProfilesListCommand>(db) });

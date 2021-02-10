@@ -50,5 +50,5 @@ json TorrentsPauseCommand::Execute(json& j)
         }
     }
 
-    return {};
+    return Ok();
 }
