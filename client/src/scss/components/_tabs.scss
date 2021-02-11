@@ -24,6 +24,7 @@
           left: 1rem;
           right: 1rem;
           border-bottom: 2px solid var(--primary);
+          animation: fade-in 0.5s forwards;
         }
       }
       &:hover {

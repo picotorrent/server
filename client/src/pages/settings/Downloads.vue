@@ -1,12 +1,16 @@
 <template>
-  <div>
+  <div class="settings-downloads">
     <h3 class="title">Downloads</h3>
-    <hr>
-    <h5>Default save path</h5>
+
+    <h5>General</h5>
     <p>The default path where downloads will be saved.</p>
-    <input v-model="defaultSavePath" type="text">
-    <hr>
-    <button @click="save">Save</button>
+    <div class="group">
+      <div class="item">
+        <label for="default-save-path">Default save path</label>
+        <input id="default-save-path" type="text" placeholder="C:\Downloads\Torrents\" v-model="defaultSavePath">
+      </div>
+    </div>
+    <button class="mt-1" @click="save">Save settings</button>
   </div>
 </template>
 

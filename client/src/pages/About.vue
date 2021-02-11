@@ -3,12 +3,14 @@
     <div class="content">
       <h3>PicoTorrent</h3>
       <hr>
+      
       <h4>A tiny and minimal BitTorrent client</h4>
       <p class="lead">
         Designed to be a friendly and tiny BitTorrent client for Windows with high performance, low memory usage and a native user interface.
       </p>
+
       <h4>Components</h4>
-      <div class="components">
+      <div class="table-control components">
         <table>
           <thead>
             <th>Component</th>
@@ -49,6 +51,7 @@
         <a target="_blank" rel="noopener nofollow" href="https://twitter.com/picotorrent">Twitter</a>
         <a target="_blank" rel="noopener nofollow" href="https://discord.gg/tV3dFrv">Discord</a>
       </div>
+
       <h4>License</h4>
       <p>
         Copyright (c) Viktor Elofsson and contributors. PicoTorrent is provided as-is under the MIT license. For more information see 

@@ -1,10 +1,10 @@
 
 // Status bar
 .status-bar {
-  display: flex;
+  display    : flex;
   align-items: stretch;
-  width: 100%;
-  flex-wrap: wrap;
+  width      : 100%;
+  flex-wrap  : wrap;
   @if $ui-backdrop-enable {
     border-bottom: var(--separator);
   } @else {
@@ -19,12 +19,12 @@
     font-size      : .75rem;
     user-select    : none;
     span {
-      font-weight: 500;
+      font-weight : 500;
       margin-right: .35rem;
     }
     @media (max-width: $breakpoint-md) {
-      padding: .5rem;
-      flex: 1;      
+      padding      : .5rem;
+      flex         : 1;
       border-bottom: var(--separator);
     }
     @media (max-width: $breakpoint-md) {
@@ -39,60 +39,58 @@
       margin-right: .5rem;
     }
     .bi {
-      font-size: 125%;
-      line-height: 0;
-      margin-right: .75rem;
+      font-size    : 125%;
+      line-height  : 0;
+      margin-right : .75rem;
       margin-bottom: -2px;
-      transition: all 0.35s ease;
+      transition   : all 0.35s ease;
     }
   }
 
   .graphs {
-    display: flex;
-    flex: 0 1 auto;
-    height: 35px;
-    max-width: 100%;
+    display    : flex;
+    flex       : 0 1 auto;
+    height     : 35px;
+    max-width  : 100%;
     margin-left: auto;
-    overflow: hidden;
+    overflow   : hidden;
+    user-select: none;
     @media (max-width: $breakpoint-md) {
       order: 2;
-      flex: 1 1 100%;
+      flex : 1 1 100%;
     }
     .download,
     .upload {
-      flex: 1 1 0;
-      height: 100%;
+      flex    : 1 1 0;
+      height  : 100%;
       position: relative;
       @media (max-width: $breakpoint-md) {
         flex: 1 1 100%;
       }
       .label {
-        font-size: 10px;
+        font-size  : 10px;
         font-weight: bold;
-        position: absolute;
-        bottom: 3px;
-        left: 4px;
+        position   : absolute;
+        bottom     : 3px;
+        left       : 4px;
+        opacity    : 0.80;
         .down {
-          color: $primary;
-          margin-right: .5rem;
+          color       : $primary;
+          margin-right: 0.5rem;
         }
         .up {
           color: $orange;
         }
       }
       .graph {
-        flex: 1 1 0;
-        height: 100%;
+        flex     : 1 1 0;
+        height   : 100%;
         max-width: 300px;
         @media (max-width: $breakpoint-md) {
-          flex: 1;
+          flex     : 1;
           max-width: 100%;
         }
       }
-    }
-    .download {
-      //border-left: 1px solid rgba(0, 0, 0, 0.1);
-      //border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
     .upload {
       display: none;

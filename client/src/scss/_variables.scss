@@ -172,11 +172,19 @@ $dark-progress-bg      : hsla(0, 0%, 100%, 0.075) !default;
 
 // Form
 // Form: Input: Light
-$light-input-bg   : hsla(0, 0%, 0%, 0.1) !default;
-$light-input-color: var(--body-color) !default;
+$light-input-bg            : 0, 0%, 0% !default;          // HSLA
+$light-input-bg-alpha      : 0.10 !default;
+$light-input-color         : var(--body-color) !default;
+// Form: Input: Light (hover)
+$light-input-hover-color   : var(--body-color-highlight) !default;
+$light-input-hover-bg-alpha: 0.15 !default;
 // Form: Input: Dark
-$dark-input-bg    : hsla(0, 100%, 100%, 0.15) !default;
-$dark-input-color : var(--body-color) !default;
+$dark-input-bg             : 0, 100%, 100% !default;      // HSLA
+$dark-input-bg-alpha       : 0.15 !default;;
+$dark-input-color          : var(--body-color) !default;
+// Form: Input: Dark (hover)
+$dark-input-hover-color    : var(--body-color-highlight) !default;
+$dark-input-hover-bg-alpha : 0.20 !default;
 
 // Colors: Alpha
 $alpha-background-color : 0.85 !default;

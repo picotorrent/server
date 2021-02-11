@@ -2,26 +2,92 @@ input,
 select,
 textarea {
   margin-bottom: 1rem;
-  padding      : 0.35rem 0.75rem;
-  background   : var(--input-bg);
+  padding      : 0.5rem 0.75rem;
+  background   : hsla(var(--input-bg), var(--input-bg-alpha));
   color        : var(--input-color);
   border       : 0;
-  border-radius: .1rem;
+  border-radius: 0.25rem;
   outline      : 0;
-}
-
-.checkbox {
-  display: flex;
-  align-items: center;
-  input {
-    margin: 0 1rem 0 0;
+  transition   : all 0.35s ease;
+  min-width    : 200px;
+  &[type="checkbox"] {
+    min-width: auto;
+  }
+  &:focus {
+    box-shadow: 0 0 0 2px var(--state-color, var(--primary));
+  }
+  &:hover {    
+    color     : var(--input-hover-color);
+    background: hsla(var(--input-bg), var(--input-hover-bg-alpha));
   }
 }
 
-.group {
-  display: flex;
-  flex-direction: column;
-  label {
-    margin-bottom: 0.5rem;
+select {
+  option {
+    color: #000;
+  }
+}
+
+input[type="file"] {
+  &::-webkit-file-upload-button {
+    background: var(--primary);
+    color     : var(--white);
+    border    : 0;
+    margin    : -1rem 0.5rem -1rem -0.5rem;
+    padding   : 0.25rem 0.5rem;
+    outline   : 0;
+  }
+}
+
+.check {
+  display      : flex;
+  align-items  : center;
+  margin-bottom: 0.5rem;
+  input[type="checkbox"] {
+    width                     : 1.25em !important;
+    height                    : 1.25em !important;
+    margin                    : 0 0.5rem 0 0;
+    padding                   : 0;
+    vertical-align            : middle;
+    background-repeat         : no-repeat;
+    background-position       : center;
+    background-size           : contain;
+    -webkit-appearance        : none;
+    -moz-appearance           : none;
+    -webkit-print-color-adjust: exact;
+    appearance                : none;
+    color-adjust              : exact;
+    border                    : 0;
+    border-radius             : 0.25rem;
+    &:checked {
+      background  : var(--primary) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+      border-color: var(--primary);
+    }
+  }
+}
+
+.form {
+  .group {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -1rem;
+    .item {
+      flex: 1;
+      @media (min-width: $breakpoint-sm) {
+        flex: 0 1 auto;
+      }
+      label {
+        font-weight  : 500;
+        margin-bottom: 0.75rem;
+      }
+    }
+  }
+  .item:not(.check) {
+    display       : flex;
+    flex-direction: column;
+    margin        : 0 1rem;
+    label {
+      margin-bottom: 0.5rem;
+    }
   }
 }

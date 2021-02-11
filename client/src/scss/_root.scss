@@ -57,8 +57,11 @@
   --torrents-table-icons:         #{if($torrents-table-icons, 'inline', 'none')};
   --torrents-table-progress-text: #{if($torrents-table-progress-text, 'inline', 'none')};
   // Form: Input
-  --input-bg   : #{$light-input-bg};
-  --input-color: #{$light-input-color};
+  --input-bg            : #{$light-input-bg};
+  --input-bg-alpha      : #{$light-input-bg-alpha};
+  --input-color         : #{$light-input-color};
+  --input-hover-color   : #{$light-input-hover-color};
+  --input-hover-bg-alpha: #{$light-input-hover-bg-alpha};
   // Progress
   --progress-bg           : #{$light-progress-bg};
   --progress-height       : #{$progress-height};
@@ -100,8 +103,11 @@
     // Sidebar
     --sidebar-bg: #{$dark-sidebar-bg};
     // Form: Input
-    --input-bg   : #{$dark-input-bg};
-    --input-color: #{$dark-input-color};
+    --input-bg            : #{$dark-input-bg};
+    --input-bg-alpha      : #{$dark-input-bg-alpha};
+    --input-color         : #{$dark-input-color};
+    --input-hover-color   : #{$dark-input-hover-color};
+    --input-hover-bg-alpha: #{$dark-input-hover-bg-alpha};
     // Progress
     --progress-bg: #{$dark-progress-bg};
     // Toast

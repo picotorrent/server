@@ -29,8 +29,6 @@
         </a>
       </div>
     </div>
-    <div class="content">
-      <router-view />
-    </div>
+    <router-view class="content form" />
   </main>
 </template>

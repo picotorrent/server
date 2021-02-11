@@ -54,6 +54,7 @@ body {
   -ms-overflow-style        : -ms-autohiding-scrollbar;
   table {
     min-width: 750px;
+    // Table: Head and Cell
     th,
     td {
       // Torrent: Number
@@ -78,14 +79,20 @@ body {
           display: var(--torrents-table-progress-text, 'inline');
         }
       }  
+      // Table: Check
+      &.checkbox {
+        width: 30px;
+        .check,
+        input {
+          margin: 0;
+        }
+      }
       // Table: Actions
       &.actions {
-        text-align     : right;
-        justify-content: flex-end;
         button {
           padding: 0.25rem;
           .bi {
-            margin: 0;
+            margin   : 0;
             font-size: .85rem;
           }
         }
@@ -102,10 +109,10 @@ body {
     // Table: Row
     tr {
       border-bottom: 0;
+      transition   : all 0.35s ease;
       @media (min-width: $breakpoint-sm) {
         color: var(--state-color);
       }
-      transition: all 0.35s ease;
       &:hover {
         background: var(--state-color-hover);
       }
@@ -139,28 +146,18 @@ body {
             flex       : 1 0 auto;
             align-items: center;
             // Torrent Number
-            &.id {
+            &.checkbox {
               display: none;
             }
             // Torrent Name
             &.name {
               padding-top: 0;
-              order: 0;
-              flex: 1 1 100%;
-              font-size: 115%;
+              order      : 0;
+              flex       : 1 1 100%;
+              font-size  : 115%;
               font-weight: 600;
-              border: 0;
+              border     : 0;
             }
-            // Torrent Status
-            //&.status {
-            //}
-            // Torrent Download speed
-            //&.download {
-            //}
-            // Torrent Upload speed
-            //&.upload {
-            //  border: 0;
-            //}
             // Torrent Prgoress
             &.progress {
               order : 10;
@@ -215,23 +212,23 @@ body {
     }
   }
   .row {
-    margin: 0 -1rem 2rem;
+    margin   : 0 -1rem 2rem;
     flex-wrap: wrap;
     .col {
-      display: flex;
-      flex: 1 1 100%;
-      max-width: 100%;
+      display      : flex;
+      flex         : 1 1 100%;
+      max-width    : 100%;
       border-bottom: var(--separator);
       @media (min-width: $breakpoint-md) {
-        flex: 1 1 50%;
+        flex     : 1 1 50%;
         max-width: 50%;
       }
       @media (min-width: $breakpoint-lg) {
-        flex: 1 1 33.333%;
+        flex     : 1 1 33.333%;
         max-width: 33.333%;
       }
       @media (min-width: $breakpoint-xl) {
-        flex: 1 1 25%;
+        flex     : 1 1 25%;
         max-width: 25%;
       }
       .label, 
@@ -239,8 +236,8 @@ body {
         padding  : 0.35rem 1rem;
         word-wrap: break-word;
         @media (min-width: $breakpoint-md) {
-          flex: 1 1 50%;
-          max-width: 50%;
+          flex      : 1 1 50%;
+          max-width : 50%;
           max-height: 45px;
         }
         @media (min-width: $breakpoint-md) {
@@ -248,17 +245,17 @@ body {
         }
       }
       .label {
-        flex: 0 0 175px;
-        width   : 175px;
-        font-size: 0.75rem;
+        flex       : 0 0 175px;
+        width      : 175px;
+        font-size  : 0.75rem;
         font-weight: 500;
-        color   : var(--body-color-highlight);
-        overflow: auto;
+        color      : var(--body-color-highlight);
+        overflow   : auto;
       }
       .value {
-        flex: 1 1 100%;
+        flex     : 1 1 100%;
         font-size: 0.8rem;
-        overflow: auto;
+        overflow : auto;
       }
     }
   }
