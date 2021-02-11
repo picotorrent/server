@@ -1,15 +1,19 @@
 <template>
   <main class="add-torrent dialog">
-    <div class="content">
+    <div class="content form">
       <h3>Add torrent</h3>
       <hr>
       <div class="group">
-        <label for="add-torrent-file">File</label>
-        <input id="add-torrent-file" type="file" ref="torrentFile">
+        <div class="item">
+          <label for="add-torrent-file">File</label>
+          <input id="add-torrent-file" type="file" ref="torrentFile">
+        </div>
       </div>
       <div class="group">
-        <label for="add-torrent-path">Save path</label>
-        <input id="add-torrent-path" type="text" v-model="addSavePath">
+        <div class="item">
+          <label for="add-torrent-path">Save path</label>
+          <input id="add-torrent-path" type="text" placeholder="C:\Downloads\Torrents\" v-model="addSavePath">
+        </div>
       </div>
       <button @click="add">Add torrent</button>
     </div>

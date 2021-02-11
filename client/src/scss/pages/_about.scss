@@ -1,26 +1,14 @@
 // Page: About
 main.about {
-  .social {
-    margin-bottom: 1rem;
-  }
-  
-  // Components
+  // Table: Components
   .components {
-    max-width: 500px;
-    width: 100%;
-    margin-bottom: 1rem;
-    border: var(--separator);
-    border-radius: .25rem;
-    table tbody {
-      tr:last-child {
-        border: 0;
-      }
-    }
+    max-width: 600px;
   }
   // Social Links
   .social {
     display    : flex;
     align-items: center;
+    margin-bottom: 1rem;
     a {
       display        : flex;
       align-items    : center;
