@@ -31,10 +31,18 @@ json ProxyCreateCommand::Execute(json& params)
         bool proxyTrackerConnections = params["proxy_tracker_connections"].get<bool>();
 
         std::optional<std::string> username = std::nullopt;
-        if (params.contains("username")) { username = params["username"].get<std::string>(); }
+        if (params.contains("username")
+            && !params["username"].is_null())
+        {
+            username = params["username"].get<std::string>();
+        }
 
         std::optional<std::string> password = std::nullopt;
-        if (params.contains("password")) { password = params["password"].get<std::string>(); }
+        if (params.contains("password")
+            && !params["username"].is_null())
+        {
+            password = params["password"].get<std::string>();
+        }
 
         if (numType < 1 || numType > 6)
         {

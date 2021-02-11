@@ -29,8 +29,26 @@ namespace pt::Server::Data::Models
         static std::shared_ptr<Proxy> GetById(sqlite3* db, int proxyId);
 
         int Id() { return m_id; }
+        std::string Name() { return m_name; }
+        libtorrent::settings_pack::proxy_type_t Type() { return m_type; }
+        std::string Hostname() { return m_hostname; }
+        int Port() { return m_port; }
+        std::optional<std::string> Username() { return m_username; }
+        std::optional<std::string> Password() { return m_password; }
+        bool ProxyHostnames() { return m_proxyHostnames; }
+        bool ProxyPeerConnections() { return m_proxyPeerConnections; }
+        bool ProxyTrackerConnections() { return m_proxyTrackerConnections; }
 
     private:
         int m_id;
+        std::string m_name;
+        libtorrent::settings_pack::proxy_type_t m_type;
+        std::string m_hostname;
+        int m_port;
+        std::optional<std::string> m_username;
+        std::optional<std::string> m_password;
+        bool m_proxyHostnames;
+        bool m_proxyPeerConnections;
+        bool m_proxyTrackerConnections;
     };
 }

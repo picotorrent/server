@@ -79,6 +79,15 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
         if (proxy != nullptr)
         {
             BOOST_LOG_TRIVIAL(info) << "Setting up session proxy";
+
+            pack.set_int(lt::settings_pack::proxy_type,                 proxy->Type());
+            pack.set_str(lt::settings_pack::proxy_hostname,             proxy->Hostname());
+            pack.set_int(lt::settings_pack::proxy_port,                 proxy->Port());
+            pack.set_str(lt::settings_pack::proxy_username,             proxy->Username().value_or(""));
+            pack.set_str(lt::settings_pack::proxy_password,             proxy->Password().value_or(""));
+            pack.set_bool(lt::settings_pack::proxy_hostnames,           proxy->ProxyHostnames());
+            pack.set_bool(lt::settings_pack::proxy_peer_connections,    proxy->ProxyPeerConnections());
+            pack.set_bool(lt::settings_pack::proxy_tracker_connections, proxy->ProxyTrackerConnections());
         }
     }
 

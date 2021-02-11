@@ -43,6 +43,7 @@ add_executable(
 
     # data
     src/data/migrations/0001_initialsetup
+    src/data/statement
     src/data/transaction
     src/data/models/listeninterface
     src/data/models/profile
@@ -63,6 +64,7 @@ add_executable(
     src/rpc/listeninterfacesremove
     src/rpc/profileslist
     src/rpc/proxycreate
+    src/rpc/proxygetall
     src/rpc/sessionaddtorrent
     src/rpc/sessionremovetorrent
     src/rpc/settingspackcreate
