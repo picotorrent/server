@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ namespace pt::Server::Data
         static void ForEach(
             sqlite3* db,
             std::string const& sql,
-            std::function<void(Row const&)> const& cb);
+            std::function<void(Row const&)> const& cb,
+            std::function<void(sqlite3_stmt*)> bind = {});
     };
 }

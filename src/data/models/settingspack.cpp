@@ -189,7 +189,7 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
             "connect_seed_every_n_download,"
             "max_http_recv_buffer_size,"
             "max_retry_port_bind,"
-            "alert_mask,"
+            // "alert_mask,"
             "out_enc_policy,"
             "in_enc_policy,"
             "allowed_enc_level,"
@@ -226,7 +226,7 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
             "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
             "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
             "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,"
-            "?,?,?,?,?,?,?,?,?,?,?,?,?"
+            "?,?,?,?,?,?,?,?,?,?,?,?"
         ");",
         -1,
         &stmt,
@@ -404,35 +404,35 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
     sqlite3_bind_int(stmt, 162, settings.get_int(lt::settings_pack::connect_seed_every_n_download));
     sqlite3_bind_int(stmt, 163, settings.get_int(lt::settings_pack::max_http_recv_buffer_size));
     sqlite3_bind_int(stmt, 164, settings.get_int(lt::settings_pack::max_retry_port_bind));
-    sqlite3_bind_int(stmt, 165, settings.get_int(lt::settings_pack::alert_mask));
-    sqlite3_bind_int(stmt, 166, settings.get_int(lt::settings_pack::out_enc_policy));
-    sqlite3_bind_int(stmt, 167, settings.get_int(lt::settings_pack::in_enc_policy));
-    sqlite3_bind_int(stmt, 168, settings.get_int(lt::settings_pack::allowed_enc_level));
-    sqlite3_bind_int(stmt, 169, settings.get_int(lt::settings_pack::inactive_down_rate));
-    sqlite3_bind_int(stmt, 170, settings.get_int(lt::settings_pack::inactive_up_rate));
-    sqlite3_bind_int(stmt, 171, settings.get_int(lt::settings_pack::urlseed_max_request_bytes));
-    sqlite3_bind_int(stmt, 172, settings.get_int(lt::settings_pack::web_seed_name_lookup_retry));
-    sqlite3_bind_int(stmt, 173, settings.get_int(lt::settings_pack::close_file_interval));
-    sqlite3_bind_int(stmt, 174, settings.get_int(lt::settings_pack::utp_cwnd_reduce_timer));
-    sqlite3_bind_int(stmt, 175, settings.get_int(lt::settings_pack::max_web_seed_connections));
-    sqlite3_bind_int(stmt, 176, settings.get_int(lt::settings_pack::resolver_cache_timeout));
-    sqlite3_bind_int(stmt, 177, settings.get_int(lt::settings_pack::send_not_sent_low_watermark));
-    sqlite3_bind_int(stmt, 178, settings.get_int(lt::settings_pack::rate_choker_initial_threshold));
-    sqlite3_bind_int(stmt, 179, settings.get_int(lt::settings_pack::upnp_lease_duration));
-    sqlite3_bind_int(stmt, 180, settings.get_int(lt::settings_pack::max_concurrent_http_announces));
-    sqlite3_bind_int(stmt, 181, settings.get_int(lt::settings_pack::dht_max_peers_reply));
-    sqlite3_bind_int(stmt, 182, settings.get_int(lt::settings_pack::dht_search_branching));
-    sqlite3_bind_int(stmt, 183, settings.get_int(lt::settings_pack::dht_max_fail_count));
-    sqlite3_bind_int(stmt, 184, settings.get_int(lt::settings_pack::dht_max_torrents));
-    sqlite3_bind_int(stmt, 185, settings.get_int(lt::settings_pack::dht_max_dht_items));
-    sqlite3_bind_int(stmt, 186, settings.get_int(lt::settings_pack::dht_max_peers));
-    sqlite3_bind_int(stmt, 187, settings.get_int(lt::settings_pack::dht_max_torrent_search_reply));
-    sqlite3_bind_int(stmt, 188, settings.get_int(lt::settings_pack::dht_block_timeout));
-    sqlite3_bind_int(stmt, 189, settings.get_int(lt::settings_pack::dht_block_ratelimit));
-    sqlite3_bind_int(stmt, 190, settings.get_int(lt::settings_pack::dht_item_lifetime));
-    sqlite3_bind_int(stmt, 191, settings.get_int(lt::settings_pack::dht_sample_infohashes_interval));
-    sqlite3_bind_int(stmt, 192, settings.get_int(lt::settings_pack::dht_max_infohashes_sample_count));
-    sqlite3_bind_int(stmt, 193, settings.get_int(lt::settings_pack::max_piece_count));
+    // sqlite3_bind_int(stmt, 165, settings.get_int(lt::settings_pack::alert_mask));
+    sqlite3_bind_int(stmt, 165, settings.get_int(lt::settings_pack::out_enc_policy));
+    sqlite3_bind_int(stmt, 166, settings.get_int(lt::settings_pack::in_enc_policy));
+    sqlite3_bind_int(stmt, 167, settings.get_int(lt::settings_pack::allowed_enc_level));
+    sqlite3_bind_int(stmt, 168, settings.get_int(lt::settings_pack::inactive_down_rate));
+    sqlite3_bind_int(stmt, 169, settings.get_int(lt::settings_pack::inactive_up_rate));
+    sqlite3_bind_int(stmt, 170, settings.get_int(lt::settings_pack::urlseed_max_request_bytes));
+    sqlite3_bind_int(stmt, 171, settings.get_int(lt::settings_pack::web_seed_name_lookup_retry));
+    sqlite3_bind_int(stmt, 172, settings.get_int(lt::settings_pack::close_file_interval));
+    sqlite3_bind_int(stmt, 173, settings.get_int(lt::settings_pack::utp_cwnd_reduce_timer));
+    sqlite3_bind_int(stmt, 174, settings.get_int(lt::settings_pack::max_web_seed_connections));
+    sqlite3_bind_int(stmt, 175, settings.get_int(lt::settings_pack::resolver_cache_timeout));
+    sqlite3_bind_int(stmt, 176, settings.get_int(lt::settings_pack::send_not_sent_low_watermark));
+    sqlite3_bind_int(stmt, 177, settings.get_int(lt::settings_pack::rate_choker_initial_threshold));
+    sqlite3_bind_int(stmt, 178, settings.get_int(lt::settings_pack::upnp_lease_duration));
+    sqlite3_bind_int(stmt, 179, settings.get_int(lt::settings_pack::max_concurrent_http_announces));
+    sqlite3_bind_int(stmt, 180, settings.get_int(lt::settings_pack::dht_max_peers_reply));
+    sqlite3_bind_int(stmt, 181, settings.get_int(lt::settings_pack::dht_search_branching));
+    sqlite3_bind_int(stmt, 182, settings.get_int(lt::settings_pack::dht_max_fail_count));
+    sqlite3_bind_int(stmt, 183, settings.get_int(lt::settings_pack::dht_max_torrents));
+    sqlite3_bind_int(stmt, 184, settings.get_int(lt::settings_pack::dht_max_dht_items));
+    sqlite3_bind_int(stmt, 185, settings.get_int(lt::settings_pack::dht_max_peers));
+    sqlite3_bind_int(stmt, 186, settings.get_int(lt::settings_pack::dht_max_torrent_search_reply));
+    sqlite3_bind_int(stmt, 187, settings.get_int(lt::settings_pack::dht_block_timeout));
+    sqlite3_bind_int(stmt, 188, settings.get_int(lt::settings_pack::dht_block_ratelimit));
+    sqlite3_bind_int(stmt, 189, settings.get_int(lt::settings_pack::dht_item_lifetime));
+    sqlite3_bind_int(stmt, 190, settings.get_int(lt::settings_pack::dht_sample_infohashes_interval));
+    sqlite3_bind_int(stmt, 191, settings.get_int(lt::settings_pack::dht_max_infohashes_sample_count));
+    sqlite3_bind_int(stmt, 192, settings.get_int(lt::settings_pack::max_piece_count));
 
     res = sqlite3_step(stmt);
 

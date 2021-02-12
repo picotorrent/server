@@ -8,7 +8,7 @@ using nlohmann::json;
 
 namespace pt::Server::Data::Models
 {
-    void to_json(json& j, const std::shared_ptr<Profile>& p)
+    static void to_json(json& j, const std::shared_ptr<Profile>& p)
     {
         j = {
             { "id",                 p->Id() },

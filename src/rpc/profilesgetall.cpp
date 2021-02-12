@@ -1,4 +1,4 @@
-#include "profileslist.hpp"
+#include "profilesgetall.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -8,14 +8,14 @@
 
 using json = nlohmann::json;
 using pt::Server::Data::Models::Profile;
-using pt::Server::RPC::ProfilesListCommand;
+using pt::Server::RPC::ProfilesGetAllCommand;
 
-ProfilesListCommand::ProfilesListCommand(sqlite3* db)
+ProfilesGetAllCommand::ProfilesGetAllCommand(sqlite3* db)
     : m_db(db)
 {
 }
 
-json ProfilesListCommand::Execute(json& params)
+json ProfilesGetAllCommand::Execute(json& params)
 {
     return Ok(Profile::GetAll(m_db));
 }

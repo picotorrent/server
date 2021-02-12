@@ -36,7 +36,8 @@ bool Statement::Row::IsNull(int col) const
 void Statement::ForEach(
     sqlite3* db,
     std::string const& sql,
-    std::function<void(Statement::Row const&)> const& cb)
+    std::function<void(Statement::Row const&)> const& cb,
+    std::function<void(sqlite3_stmt*)> bind)
 {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
@@ -45,6 +46,11 @@ void Statement::ForEach(
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to prepare statement: " << sqlite3_errmsg(db);
         throw SQLiteException();
+    }
+
+    if (bind)
+    {
+        bind(stmt);
     }
 
     while ((res = sqlite3_step(stmt)) == SQLITE_ROW)

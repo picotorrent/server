@@ -3,7 +3,7 @@
     <h3 class="title">Proxy</h3>
 
     <h5>Proxy configurations</h5>
-    <p>These are the current proxy configurations.</p>
+    <p>These are the current proxy configurations. To change your current proxy configuration, go to <router-link to="/settings/profiles">the Profile settings</router-link>.</p>
     <div class="table-control">
       <table>
         <thead>

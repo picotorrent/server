@@ -17,7 +17,9 @@
 #include "rpc/listeninterfacescreate.hpp"
 #include "rpc/listeninterfacesgetall.hpp"
 #include "rpc/listeninterfacesremove.hpp"
-#include "rpc/profileslist.hpp"
+#include "rpc/profilesgetactive.hpp"
+#include "rpc/profilesgetall.hpp"
+#include "rpc/profilesupdate.hpp"
 #include "rpc/proxycreate.hpp"
 #include "rpc/proxygetall.hpp"
 #include "rpc/sessionaddtorrent.hpp"
@@ -41,7 +43,9 @@ using pt::Server::RPC::ConfigSetCommand;
 using pt::Server::RPC::ListenInterfacesCreateCommand;
 using pt::Server::RPC::ListenInterfacesGetAllCommand;
 using pt::Server::RPC::ListenInterfacesRemoveCommand;
-using pt::Server::RPC::ProfilesListCommand;
+using pt::Server::RPC::ProfilesGetActiveCommand;
+using pt::Server::RPC::ProfilesGetAllCommand;
+using pt::Server::RPC::ProfilesUpdateCommand;
 using pt::Server::RPC::ProxyCreateCommand;
 using pt::Server::RPC::ProxyGetAllCommand;
 using pt::Server::RPC::SessionAddTorrentCommand;
@@ -81,7 +85,9 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
     http->Commands().insert({ "listenInterfaces.create", std::make_shared<ListenInterfacesCreateCommand>(db, sm) });
     http->Commands().insert({ "listenInterfaces.getAll", std::make_shared<ListenInterfacesGetAllCommand>(db) });
     http->Commands().insert({ "listenInterfaces.remove", std::make_shared<ListenInterfacesRemoveCommand>(db, sm) });
-    http->Commands().insert({ "profiles.list",           std::make_shared<ProfilesListCommand>(db) });
+    http->Commands().insert({ "profiles.getActive",      std::make_shared<ProfilesGetActiveCommand>(db) });
+    http->Commands().insert({ "profiles.getAll",         std::make_shared<ProfilesGetAllCommand>(db) });
+    http->Commands().insert({ "profiles.update",         std::make_shared<ProfilesUpdateCommand>(db, sm) });
     http->Commands().insert({ "proxy.create",            std::make_shared<ProxyCreateCommand>(db, sm) });
     http->Commands().insert({ "proxy.getAll",            std::make_shared<ProxyGetAllCommand>(db) });
     http->Commands().insert({ "session.addTorrent",      std::make_shared<SessionAddTorrentCommand>(sm) });

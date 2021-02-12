@@ -186,7 +186,7 @@ int InitialSetup::Migrate(sqlite3* db)
             "connect_seed_every_n_download     INTEGER NOT NULL,"
             "max_http_recv_buffer_size         INTEGER NOT NULL,"
             "max_retry_port_bind               INTEGER NOT NULL,"
-            "alert_mask                        INTEGER NOT NULL,"
+            // "alert_mask                        INTEGER NOT NULL,"
             "out_enc_policy                    INTEGER NOT NULL,"
             "in_enc_policy                     INTEGER NOT NULL,"
             "allowed_enc_level                 INTEGER NOT NULL,"

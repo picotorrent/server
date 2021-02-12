@@ -8,6 +8,8 @@
 #include <libtorrent/settings_pack.hpp>
 #include <sqlite3.h>
 
+#include "../statement.hpp"
+
 namespace pt::Server::Data::Models
 {
     class Proxy
@@ -40,6 +42,8 @@ namespace pt::Server::Data::Models
         bool ProxyTrackerConnections() { return m_proxyTrackerConnections; }
 
     private:
+        static std::shared_ptr<Proxy> Construct(Statement::Row const& row);
+
         int m_id;
         std::string m_name;
         libtorrent::settings_pack::proxy_type_t m_type;

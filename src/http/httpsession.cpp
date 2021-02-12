@@ -75,8 +75,6 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "Incoming HTTP request to " << m_parser->get().target();
-
     if (m_parser->get().target() == "/api/ws" && boost::beast::websocket::is_upgrade(m_parser->get()))
     {
         std::make_shared<WebSocketSession>(
@@ -121,48 +119,16 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return res;
     };
 
-    auto const command_response = [&req](std::string_view content)
-    {
-        http::response<http::string_body> res{http::status::ok, req.version()};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, "application/json");
-        res.keep_alive(req.keep_alive());
-        res.body() = content;
-        res.prepare_payload();
-        return res;
-    };
-
     if (req.method() == http::verb::post
         && req.target() == "/api/jsonrpc")
     {
-        json j;
-
         try
         {
-            j = json::parse(req.body());
-            std::string method = j["method"];
-
-            if (m_commands->find(method) == m_commands->end())
-            {
-                BOOST_LOG_TRIVIAL(warning) << "Unknown JSONRPC method: " << method;
-                m_queue(not_found("Command not found"));
-            }
-            else
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Executing RPC method " << method;
-
-                json response = {
-                    { "jsonrpc", "2.0 "},
-                };
-
-                response.merge_patch(m_commands->at(method)->Execute(j["params"]));
-
-                m_queue(command_response(response.dump()));
-            }
+            HandleJSONRPC(req);
         }
-        catch (std::exception const& ex)
+        catch(const std::exception& e)
         {
-            m_queue(server_error(ex.what()));
+            m_queue(server_error(e.what()));
         }
     }
     else

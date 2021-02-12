@@ -54,6 +54,7 @@ add_executable(
     # http
     src/http/httplistener
     src/http/httpsession
+    src/http/httpsession_handlejsonrpc
     src/http/websocketsession
 
     # rpc
@@ -62,7 +63,9 @@ add_executable(
     src/rpc/listeninterfacescreate
     src/rpc/listeninterfacesgetall
     src/rpc/listeninterfacesremove
-    src/rpc/profileslist
+    src/rpc/profilesgetactive
+    src/rpc/profilesgetall
+    src/rpc/profilesupdate
     src/rpc/proxycreate
     src/rpc/proxygetall
     src/rpc/sessionaddtorrent

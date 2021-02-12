@@ -7,6 +7,10 @@
           <i class="bi bi-star"></i>
           <span>Common</span>
         </router-link>
+        <router-link to="/settings/profiles" active-class="active" class="item">
+          <i class="bi bi-layers"></i>
+          <span>Profiles</span>
+        </router-link>
         <a href="#" class="item">
           <i class="bi bi-grid"></i>
           <span>General</span>

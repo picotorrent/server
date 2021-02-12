@@ -113,6 +113,8 @@ namespace pt::Server::Http
         void Run();
 
     private:
+        void HandleJSONRPC(boost::beast::http::message<true, boost::beast::http::string_body, boost::beast::http::fields>&);
+
         void BeginRead();
         void EndRead(boost::beast::error_code ec, std::size_t bytes_transferred);
         void EndWrite(bool close, boost::beast::error_code ec, std::size_t bytes_transferred);

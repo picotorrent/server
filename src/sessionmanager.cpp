@@ -74,9 +74,7 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
     // Load proxy
     if (profile->ProxyId())
     {
-        auto proxy = Proxy::GetById(db, profile->ProxyId().value());
-
-        if (proxy != nullptr)
+        if (auto proxy = Proxy::GetById(db, profile->ProxyId().value()))
         {
             BOOST_LOG_TRIVIAL(info) << "Setting up session proxy";
 
@@ -88,6 +86,10 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
             pack.set_bool(lt::settings_pack::proxy_hostnames,           proxy->ProxyHostnames());
             pack.set_bool(lt::settings_pack::proxy_peer_connections,    proxy->ProxyPeerConnections());
             pack.set_bool(lt::settings_pack::proxy_tracker_connections, proxy->ProxyTrackerConnections());
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning) << "Proxy not found";
         }
     }
 
@@ -300,6 +302,8 @@ void SessionManager::ForEachTorrent(std::function<bool(libtorrent::torrent_statu
 
 void SessionManager::ReloadSettings()
 {
+    BOOST_LOG_TRIVIAL(info) << "Reloading session settings";
+
     m_session->apply_settings(
         GetSettingsPack(m_db));
 }

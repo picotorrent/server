@@ -58,8 +58,6 @@ void HttpListener::EndAccept(boost::system::error_code ec, boost::asio::ip::tcp:
     }
     else
     {
-        BOOST_LOG_TRIVIAL(debug) << "Incoming HTTP client from " << socket.remote_endpoint();
-
         std::make_shared<HttpSession>(
             std::move(socket),
             m_db,

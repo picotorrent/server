@@ -6,10 +6,10 @@
 
 namespace pt::Server::RPC
 {
-    class ProfilesListCommand : public Command
+    class ProfilesGetAllCommand : public Command
     {
     public:
-        ProfilesListCommand(sqlite3* db);
+        ProfilesGetAllCommand(sqlite3* db);
         nlohmann::json Execute(nlohmann::json&) override;
 
     private:

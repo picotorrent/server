@@ -4,6 +4,7 @@
 
 #include "../datareader.hpp"
 #include "../sqliteexception.hpp"
+#include "../statement.hpp"
 
 using pt::Server::Data::SQLiteException;
 using pt::Server::Data::Models::Proxy;
@@ -129,5 +130,36 @@ std::vector<std::shared_ptr<Proxy>> Proxy::GetAll(sqlite3* db)
 
 std::shared_ptr<Proxy> Proxy::GetById(sqlite3* db, int proxyId)
 {
-    return nullptr;
+    std::shared_ptr<Proxy> proxy = nullptr;
+
+    Statement::ForEach(
+        db,
+        "SELECT id,name,type,hostname,port,username,password,proxy_hostnames,proxy_peer_connections,proxy_tracker_connections "
+        "FROM proxy WHERE id = $1",
+        [&](Statement::Row const& row)
+        {
+            proxy = Construct(row);
+        },
+        [&](sqlite3_stmt* stmt)
+        {
+            sqlite3_bind_int(stmt, 1, proxyId);
+        });
+
+    return std::move(proxy);
+}
+
+std::shared_ptr<Proxy> Proxy::Construct(Statement::Row const& row)
+{
+    auto proxy                       = std::make_shared<Proxy>();
+    proxy->m_id                      = row.GetInt32(0);
+    proxy->m_name                    = row.GetStdString(1);
+    proxy->m_type                    = static_cast<lt::settings_pack::proxy_type_t>(row.GetInt32(2));
+    proxy->m_hostname                = row.GetStdString(3);
+    proxy->m_port                    = row.GetInt32(4);
+    proxy->m_username                = row.IsNull(5) ? std::nullopt : std::optional<std::string>(row.GetStdString(5));
+    proxy->m_password                = row.IsNull(6) ? std::nullopt : std::optional<std::string>(row.GetStdString(6));
+    proxy->m_proxyHostnames          = row.GetBool(7);
+    proxy->m_proxyPeerConnections    = row.GetBool(8);
+    proxy->m_proxyTrackerConnections = row.GetBool(9);
+    return std::move(proxy);
 }

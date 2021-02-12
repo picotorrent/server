@@ -168,7 +168,7 @@ std::unordered_set<std::string>& SettingsPack::Names()
         "connect_seed_every_n_download",
         "max_http_recv_buffer_size",
         "max_retry_port_bind",
-        "alert_mask",
+        // "alert_mask",
         "out_enc_policy",
         "in_enc_policy",
         "allowed_enc_level",
