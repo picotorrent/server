@@ -13,7 +13,7 @@ using pt::Server::Database;
 
 static std::map<std::string, std::function<int(sqlite3*)>> DatabaseMigrations =
 {
-    { "0001_CreateSessionParamsTable", &pt::Server::Data::Migrations::InitialSetup::Migrate },
+    { "0001_InitialSetup", &pt::Server::Data::Migrations::InitialSetup::Migrate },
 };
 
 bool CreateMigrationsTable(sqlite3* db)
