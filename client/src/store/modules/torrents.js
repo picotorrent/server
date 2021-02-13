@@ -35,14 +35,8 @@ const actions = {
 }
 
 const mutations = {
-  ADD_TORRENT(state, infoHash, torrent) {
-      Vue.set(state.torrents, infoHash, torrent);
-  },
-
-  ADD_TORRENTS(state, torrents) {
-    for (const infoHash in torrents) {
-      Vue.set(state.torrents, infoHash, torrents[infoHash]);
-    }
+  ADD_TORRENT(state, torrent) {
+      Vue.set(state.torrents, torrent.info_hash, torrent);
   },
 
   REMOVE_BY_ID(state, infoHash) {

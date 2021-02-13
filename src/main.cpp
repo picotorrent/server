@@ -22,6 +22,7 @@
 #include "rpc/profilesupdate.hpp"
 #include "rpc/proxycreate.hpp"
 #include "rpc/proxygetall.hpp"
+#include "rpc/sessionaddmagnetlink.hpp"
 #include "rpc/sessionaddtorrent.hpp"
 #include "rpc/sessionremovetorrent.hpp"
 #include "rpc/settingspackcreate.hpp"
@@ -48,6 +49,7 @@ using pt::Server::RPC::ProfilesGetAllCommand;
 using pt::Server::RPC::ProfilesUpdateCommand;
 using pt::Server::RPC::ProxyCreateCommand;
 using pt::Server::RPC::ProxyGetAllCommand;
+using pt::Server::RPC::SessionAddMagnetLinkCommand;
 using pt::Server::RPC::SessionAddTorrentCommand;
 using pt::Server::RPC::SessionRemoveTorrentCommand;
 using pt::Server::RPC::SettingsPackCreateCommand;
@@ -90,6 +92,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
     http->Commands().insert({ "profiles.update",         std::make_shared<ProfilesUpdateCommand>(db, sm) });
     http->Commands().insert({ "proxy.create",            std::make_shared<ProxyCreateCommand>(db, sm) });
     http->Commands().insert({ "proxy.getAll",            std::make_shared<ProxyGetAllCommand>(db) });
+    http->Commands().insert({ "session.addMagnetLink",   std::make_shared<SessionAddMagnetLinkCommand>(sm) });
     http->Commands().insert({ "session.addTorrent",      std::make_shared<SessionAddTorrentCommand>(sm) });
     http->Commands().insert({ "session.removeTorrent",   std::make_shared<SessionRemoveTorrentCommand>(sm) });
     http->Commands().insert({ "settingsPack.create",     std::make_shared<SettingsPackCreateCommand>(db) });

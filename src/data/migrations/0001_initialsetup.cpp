@@ -299,8 +299,9 @@ int InitialSetup::Migrate(sqlite3* db)
         "CREATE TABLE torrents ("
             "info_hash      TEXT PRIMARY KEY,"
             "queue_position INTEGER NOT NULL,"
+            "magnet_uri     TEXT NULL,"
             "resume_data    BLOB NULL,"
-            "torrent_data   BLOB NOT NULL"
+            "torrent_data   BLOB NULL"
         ");",
         nullptr,
         nullptr,

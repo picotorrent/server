@@ -1,6 +1,7 @@
 import VueRouter from 'vue-router';
 
 import About from '@/pages/About';
+import AddMagnetLink from '@/pages/AddMagnetLink';
 import AddTorrent from '@/pages/AddTorrent';
 import Home from '@/pages/Home';
 import SettingsCommon from '@/pages/settings/Common';
@@ -18,6 +19,7 @@ export default new VueRouter({
   routes: [
     { path: '/', component: Home },
     { path: '/about', component: About },
+    { path: '/add-magnet-link', component: AddMagnetLink },
     { path: '/add-torrent', component: AddTorrent },
     {
       path: '/settings',

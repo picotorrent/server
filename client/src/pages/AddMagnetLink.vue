@@ -1,14 +1,12 @@
 <template>
   <main class="add-torrent dialog">
     <div class="content form">
-      <h3>Add torrent</h3>
-      <hr>
-      <router-link to="/add-magnet-link">Add a magnet link</router-link>
+      <h3>Add magnet link</h3>
       <hr>
       <div class="group">
         <div class="item">
-          <label for="add-torrent-file">File</label>
-          <input id="add-torrent-file" type="file" ref="torrentFile">
+          <label for="add-torrent-link">Link</label>
+          <input id="add-torrent-link" type="text" v-model="addMagnetUri">
         </div>
       </div>
       <div class="group">
@@ -17,7 +15,7 @@
           <input id="add-torrent-path" type="text" placeholder="C:\Downloads\Torrents\" v-model="addSavePath">
         </div>
       </div>
-      <button @click="add">Add torrent</button>
+      <button @click="add">Add magnet link</button>
     </div>
   </main>
 </template>
@@ -28,6 +26,7 @@ import axios from 'axios';
 export default {
   data () {
     return {
+      addMagnetUri: null,
       addSavePath: null
     }
   },
@@ -42,17 +41,9 @@ export default {
   },
   methods: {
     async add() {
-      const buffer = new Uint8Array(await this.$refs.torrentFile.files[0].arrayBuffer());
-      const tempBuffer = Array.prototype.map.call(buffer, function (ch) {
-        return String.fromCharCode(ch);
-      }).join('');
-
-      await axios.post('/api/jsonrpc', {
-        method: 'session.addTorrent',
-        params: {
-          data: btoa(tempBuffer),
-          save_path: this.addSavePath
-        }
+      await this.$rpc('session.addMagnetLink', {
+        magnet_uri: this.addMagnetUri,
+        save_path: this.addSavePath
       });
 
       this.$router.push('/');

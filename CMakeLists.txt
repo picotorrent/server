@@ -68,6 +68,7 @@ add_executable(
     src/rpc/profilesupdate
     src/rpc/proxycreate
     src/rpc/proxygetall
+    src/rpc/sessionaddmagnetlink
     src/rpc/sessionaddtorrent
     src/rpc/sessionremovetorrent
     src/rpc/settingspackcreate

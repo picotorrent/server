@@ -3,12 +3,14 @@
 #include <boost/log/trivial.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/create_torrent.hpp>
+#include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/read_resume_data.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/session_stats.hpp>
 #include <libtorrent/write_resume_data.hpp>
 #include <nlohmann/json.hpp>
 
+#include "data/datareader.hpp"
 #include "data/models/listeninterface.hpp"
 #include "data/models/profile.hpp"
 #include "data/models/proxy.hpp"
@@ -353,7 +355,7 @@ void SessionManager::Broadcast(json& j)
 void SessionManager::LoadTorrents()
 {
     sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(m_db, "SELECT info_hash, resume_data, torrent_data FROM torrents ORDER BY queue_position ASC", -1, &stmt, nullptr);
+    sqlite3_prepare_v2(m_db, "SELECT info_hash, resume_data, magnet_uri, torrent_data FROM torrents ORDER BY queue_position ASC", -1, &stmt, nullptr);
 
     while (true)
     {
@@ -374,12 +376,14 @@ void SessionManager::LoadTorrents()
         int resume_len = sqlite3_column_bytes(stmt, 1);
         const char* resume_buf = static_cast<const char*>(sqlite3_column_blob(stmt, 1));
 
-        int torrent_len = sqlite3_column_bytes(stmt, 2);
-        const char* torrent_buf = static_cast<const char*>(sqlite3_column_blob(stmt, 2));
+        auto magnetUri = pt_sqlite3_column_std_string(stmt, 2);
+
+        int torrent_len = sqlite3_column_bytes(stmt, 3);
+        const char* torrent_buf = static_cast<const char*>(sqlite3_column_blob(stmt, 3));
 
         lt::error_code ec;
         lt::add_torrent_params params;
-        
+
         if (resume_len > 0)
         {
             params = lt::read_resume_data({ resume_buf, resume_len }, ec);
@@ -391,18 +395,34 @@ void SessionManager::LoadTorrents()
             continue;
         }
 
-        lt::bdecode_node node = lt::bdecode({ torrent_buf, torrent_len }, ec);
-
-        if (ec)
+        if (magnetUri.has_value())
         {
-            BOOST_LOG_TRIVIAL(warning) << "Failed to parse torrent data for torrent: " << ec.message();
-            continue;
+            lt::error_code ec;
+            lt::parse_magnet_uri(magnetUri.value(), params, ec);
+
+            if (ec)
+            {
+                BOOST_LOG_TRIVIAL(warning) << "Failed to parse magnet uri for torrent: " << ec.message();
+                continue;
+            }
+        }
+
+        if (torrent_buf != nullptr)
+        {
+            lt::bdecode_node node = lt::bdecode({ torrent_buf, torrent_len }, ec);
+
+            if (ec)
+            {
+                BOOST_LOG_TRIVIAL(warning) << "Failed to parse torrent data for torrent: " << ec.message();
+                continue;
+            }
+
+            params.ti = std::make_shared<lt::torrent_info>(node);
         }
 
         auto extra = new add_params();
         extra->muted = true;
 
-        params.ti = std::make_shared<lt::torrent_info>(node);
         params.userdata = lt::client_data_t(extra);
 
         m_session->async_add_torrent(params);
@@ -446,23 +466,39 @@ void SessionManager::ReadAlerts()
             {
                 BOOST_LOG_TRIVIAL(info) << "Saving torrent " << to_str(ts.info_hashes) << " in database";
 
-                lt::create_torrent ct(*ata->params.ti.get());
-                std::vector<char> buffer;
-                lt::bencode(std::back_inserter(buffer), ct.generate());
-
                 // store in database
                 sqlite3_stmt* stmt;
-                sqlite3_prepare_v2(m_db, "INSERT INTO torrents (info_hash, queue_position, torrent_data) VALUES($1, $2, $3);", -1, &stmt, nullptr);
+                sqlite3_prepare_v2(
+                    m_db,
+                    "INSERT INTO torrents (info_hash, queue_position, magnet_uri, torrent_data) VALUES($1, $2, $3, $4);",
+                    -1,
+                    &stmt,
+                    nullptr);
+
                 sqlite3_bind_text(stmt, 1, to_str(ts.info_hashes).c_str(), -1, SQLITE_TRANSIENT);
                 sqlite3_bind_int(stmt, 2, static_cast<int>(ts.queue_position));
-                sqlite3_bind_blob(stmt, 3, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-                int res = sqlite3_step(stmt);
 
-                if (res == SQLITE_DONE)
+                if (ata->params.ti)
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Stored torrent in database (" << buffer.size() << " bytes)";
+                    lt::create_torrent ct(*ata->params.ti.get());
+                    std::vector<char> buffer;
+                    lt::bencode(std::back_inserter(buffer), ct.generate());
+
+                    sqlite3_bind_null(stmt, 3);
+                    sqlite3_bind_blob(stmt, 4, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
                 }
                 else
+                {
+                    auto magnetUri = lt::make_magnet_uri(ata->handle);
+
+                    // Store magnet uri
+                    sqlite3_bind_text(stmt, 3, magnetUri.c_str(), static_cast<int>(magnetUri.size()), SQLITE_TRANSIENT);
+                    sqlite3_bind_null(stmt, 4);
+                }
+
+                int res = sqlite3_step(stmt);
+
+                if (res == SQLITE_ERROR)
                 {
                     BOOST_LOG_TRIVIAL(error) << "Failed to insert torrent in database: " << sqlite3_errmsg(m_db);
                 }
@@ -487,6 +523,43 @@ void SessionManager::ReadAlerts()
         case lt::listen_succeeded_alert::alert_type:
         {
             BOOST_LOG_TRIVIAL(info) << alert->message();
+            break;
+        }
+        case lt::metadata_received_alert::alert_type:
+        {
+            lt::metadata_received_alert* mra = lt::alert_cast<lt::metadata_received_alert>(alert);
+
+            lt::create_torrent ct(*mra->handle.torrent_file().get());
+            std::vector<char> buffer;
+            lt::bencode(std::back_inserter(buffer), ct.generate());
+
+            sqlite3_stmt* stmt;
+            int res = sqlite3_prepare_v2(
+                m_db,
+                "UPDATE torrents SET torrent_data = $1 WHERE info_hash = $2",
+                -1,
+                &stmt,
+                nullptr);
+
+            if (res != SQLITE_OK)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Failed to prepare statement: " << sqlite3_errmsg(m_db);
+                continue;
+            }
+
+            sqlite3_bind_blob(stmt, 1, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, to_str(mra->handle.info_hashes()).c_str(), -1, SQLITE_TRANSIENT);
+            res = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+
+            if (res == SQLITE_ERROR)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Failed to execute statement: " << sqlite3_errmsg(m_db);
+                continue;
+            }
+
+            BOOST_LOG_TRIVIAL(info) << "Metadata saved for torrent " << to_str(mra->handle.info_hashes());
+
             break;
         }
         case lt::session_stats_alert::alert_type:

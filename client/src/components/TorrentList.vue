@@ -44,7 +44,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -56,10 +55,7 @@ export default {
   },
   methods: {
     async remove (infoHash) {
-      await axios.post('/api/jsonrpc', {
-        method: 'session.removeTorrent',
-        params: [ infoHash ]
-      });
+      await this.$rpc('session.removeTorrent',[ infoHash ]);
     }
   }
 }
