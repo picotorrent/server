@@ -12,9 +12,6 @@ export default {
   name: 'App',
   components: {
     Header,
-  },
-  mounted () {
-    // navigator.registerProtocolHandler('magnet', 'http://localhost:8080/ting/%s', 'PicoTorrent')
   }
 }
 </script>
