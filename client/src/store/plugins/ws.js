@@ -1,8 +1,10 @@
 export default function createWebSocketPlugin() {
   return store => {
-    const ws = new WebSocket(`ws://${location.host}/api/ws`)
-    ws.onopen = () => {
-    }
+    const scheme = location.protocol === 'http:'
+      ? 'ws:'
+      : 'wss:';
+
+    const ws = new WebSocket(`${scheme}//${location.host}/api/ws`);
 
     ws.onmessage = (ev) => {
       const data = JSON.parse(ev.data);
