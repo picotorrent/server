@@ -1,18 +1,18 @@
 <template>
   <div class="backdrop status-bar">
-    <div class="item">
+    <div class="item torrents">
       <i class="bi bi-file-earmark"></i>
       <span>Torrents</span> {{ torrentsCount }}
     </div>
-    <div class="item">
+    <div class="item download">
       <i class="bi bi-download"></i>
       <span>Download</span> {{ torrentsTotalDl | speed }}
     </div>
-    <div class="item">
+    <div class="item upload">
       <i class="bi bi-upload"></i>
       <span>Upload</span> {{ torrentsTotalUl | speed }}
     </div>
-    <div class="item">
+    <div class="item nodes">
       <i class="bi bi-hdd-network"></i>
       <span>DHT nodes</span> {{ sessionStats('dht.dht_nodes') }}
     </div>

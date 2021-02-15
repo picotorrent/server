@@ -9,7 +9,7 @@ using nlohmann::json;
 
 namespace libtorrent
 {
-    void to_json(json& j, const libtorrent::info_hash_t& ih)
+    static void to_json(json& j, const libtorrent::info_hash_t& ih)
     {
         std::stringstream ss;
         if (ih.has_v2()) { ss << ih.v2; }

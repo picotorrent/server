@@ -1,14 +1,16 @@
 // Components
 // Structure
 @import "header";
-@import "statusbar";
 @import "main";
 @import "footer";
 // UI
 @import "layout";
 @import "typography";
 @import "tooltip";
-@import "scrollbar";
+@import "torrent-list";
+@import "torrent-file";
+@import "status-bar";
+@import "scroll-bar";
 // Form, Inputs, Buttons
 @import "form";
 @import "button";

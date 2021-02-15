@@ -1,0 +1,91 @@
+
+// Torrent File
+.torrent-file {
+  position  : absolute;
+  left      : 0;
+  top       : 0;
+  right     : 0;
+  bottom    : 0;
+  background: var(--backdrop-bg);
+  padding   : 1rem 0.75rem;
+  overflow-y: auto;
+  h2 {
+    font-size: 1.5rem;
+    @media (min-width: $breakpoint-sm) {  
+      font-size: 1.35rem;
+    }
+  }
+  h3 {
+    font-size: 1.25rem;    
+    @media (min-width: $breakpoint-sm) {  
+      font-size: 1.15rem;
+    }
+  }
+  .status-bar {
+    width        : calc(100% + 1.5rem);
+    margin-left  : -0.75rem;
+    margin-bottom: 1rem;
+    border-top   : var(--separator);
+    .item {
+      flex           : 0 0 auto;
+      border-bottom  : 0;
+      justify-content: flex-start;
+      padding        : 0.5rem 0.75rem;
+      min-width      : 100px;
+    }
+  }
+  .row {
+    margin   : 0 -1rem 2rem;
+    flex-wrap: wrap;
+    .col {
+      display      : flex;
+      flex         : 1 1 100%;
+      max-width    : 100%;
+      border-bottom: var(--separator);
+      @media (min-width: $breakpoint-md) {
+        flex     : 1 1 50%;
+        max-width: 50%;
+      }
+      @media (min-width: $breakpoint-lg) {
+        flex     : 1 1 33.333%;
+        max-width: 33.333%;
+      }
+      @media (min-width: $breakpoint-xl) {
+        flex     : 1 1 25%;
+        max-width: 25%;
+      }
+      .label, 
+      .value {
+        padding  : 0.35rem 1rem;
+        word-wrap: break-word;
+        @media (min-width: $breakpoint-md) {
+          flex      : 1 1 50%;
+          max-width : 50%;
+          max-height: 45px;
+        }
+        @media (min-width: $breakpoint-md) {
+          max-height: 50px;
+        }
+      }
+      .label {
+        flex       : 0 0 175px;
+        width      : 175px;
+        font-size  : 0.75rem;
+        font-weight: 500;
+        color      : var(--body-color-highlight);
+        overflow   : auto;
+      }
+      .value {
+        flex     : 1 1 100%;
+        font-size: 0.8rem;
+        overflow : auto;
+      }
+    }
+  }
+  .progress {
+    margin: 1rem 0 2rem;
+  }
+  .tabs {
+    margin: 0 -0.75rem 1rem;
+  }
+}

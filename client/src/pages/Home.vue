@@ -3,7 +3,7 @@
     <StatusBar />
     <TorrentList />
     <!-- WIP -->
-    <File class="hide" />
+    <TorrentFile class="hide" />
     <!-- /WIP -->
   </main>
 </template>
@@ -11,13 +11,13 @@
 <script>
 import StatusBar from '@/components/StatusBar';
 import TorrentList from '@/components/TorrentList';
-import File from '@/components/File';
+import TorrentFile from '@/components/TorrentFile';
 
 export default {
   components: {
     StatusBar,
     TorrentList,
-    File
+    TorrentFile
   }
 }
 </script>

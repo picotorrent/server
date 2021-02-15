@@ -9,7 +9,7 @@ using nlohmann::json;
 
 namespace libtorrent
 {
-    void to_json(json& j, const libtorrent::torrent_status& ts)
+    static void to_json(json& j, const libtorrent::torrent_status& ts)
     {
         j = json {
             { "info_hash",    ts.info_hashes },

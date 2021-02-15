@@ -5,7 +5,9 @@
   // Color
   @each $name, $color in $colors {
     --#{$name}: #{$color};
-    --#{$name}-hover: #{rgba($color, 0.2)};
+    --#{$name}-hover: #{rgba($color, 0.75)};
+    --#{$name}-focus: #{rgba($color, 0.50)};
+    --#{$name}-outline: #{rgba($color, 0.40)};
   }
   // Gradient
   --gradient-x: #{$gradient-x};
@@ -78,7 +80,8 @@
     // Colors
     @each $name, $color in $colors {
       --#{$name}: #{darken(desaturate($color, $color-desaturation-amount), $color-darken-amount)};
-      --#{$name}-hover: #{rgba($color, 0.15)};
+      --#{$name}-hover: #{rgba($color, 0.50)};
+      --#{$name}-focus: #{rgba($color, 0.35)};
     }
     // Backdrop
     --backdrop-bg:     #{$dark-ui-backdrop-bg};

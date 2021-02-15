@@ -6,6 +6,7 @@
 #include <libtorrent/torrent_status.hpp>
 #include <nlohmann/json.hpp>
 
+#include "../json/torrentstatus.hpp"
 #include "../sessionmanager.hpp"
 
 using json = nlohmann::json;
@@ -36,23 +37,13 @@ void WebSocketSession::BeginAccept(boost::system::error_code ec)
     j["torrents"] = json::object();
 
     m_session->ForEachTorrent(
-        [&j](auto const& ts)
+        [&j](lt::torrent_status const& ts)
         {
             std::stringstream ss;
             if (ts.info_hashes.has_v2()) { ss << ts.info_hashes.v2; }
             else { ss << ts.info_hashes.v1; }
 
-            json torrent;
-            torrent["name"] = ts.name;
-            torrent["progress"] = ts.progress;
-            torrent["save_path"] = ts.save_path;
-            torrent["size_wanted"] = ts.total_wanted;
-            torrent["state"] = ts.state;
-            torrent["dl"] = ts.download_payload_rate;
-            torrent["ul"] = ts.upload_payload_rate;
-            torrent["info_hash"] = ss.str();
-
-            j["torrents"][ss.str()] = torrent;
+            j["torrents"][ss.str()] = ts;
 
             return true;
         });

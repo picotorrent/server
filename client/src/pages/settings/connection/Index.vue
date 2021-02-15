@@ -1,64 +1,64 @@
 <template>
   <div>
-    <h5>Listen interfaces</h5>
-    <div>
-      <p>These are the listen interfaces that PicoTorrent Server will bind to.</p>
-      <div class="table-control">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Host</th>
-              <th scope="col">Port</th>
-              <th scope="col" class="actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="li in listenInterfaces" :key="li.id">
-              <td>{{ li.host }}</td>
-              <td>{{ li.port }}</td>
-              <td class="actions">
-                <button class="remove" title="Remove" @click="remove(li.id)"><i class="bi bi-trash"></i></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <h5 class="mt-2">Listen interfaces</h5>
 
-      <router-link to="/settings/connection/add-listen-interface" custom v-slot="{ navigate }">
-        <button @click="navigate"><i class="bi bi-plus-square"></i> Add listen interface</button>
-      </router-link>
+    <p>These are the listen interfaces that PicoTorrent Server will bind to.</p>
+    <div class="table-control">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Host</th>
+            <th scope="col">Port</th>
+            <th scope="col" class="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="li in listenInterfaces" :key="li.id">
+            <td>{{ li.host }}</td>
+            <td>{{ li.port }}</td>
+            <td class="actions">
+              <button class="remove" title="Remove" @click="remove(li.id)"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <router-link to="/settings/connection/add-listen-interface" custom v-slot="{ navigate }">
+      <button class="icon" @click="navigate">
+        <i class="bi bi-plus-square"></i>
+        Add listen interface
+      </button>
+    </router-link>
+
 
     <h5>Protocols</h5>
-    <div>
-      <p>Enable/disable uTP or TCP. Adjust uTP parameters.</p>
 
-      <div class="check">
-        <input type="checkbox" id="enableIncomingTcp" v-model="enableIncomingTcp">
-        <label for="enableIncomingTcp">Incoming TCP enabled</label>
-      </div>
+    <p>Enable/disable uTP or TCP. Adjust uTP parameters.</p>
 
-      <div class="check">
-        <input type="checkbox" id="enableIncomingUtp" v-model="enableIncomingUtp">
-        <label for="enableIncomingUtp">Incoming uTP enabled</label>
-      </div>
-
-      <div class="check">
-        <input type="checkbox" id="enableOutgoingTcp" v-model="enableOutgoingTcp">
-        <label for="enableOutgoingTcp">Outgoing TCP enabled</label>
-      </div>
-
-      <div class="check">
-        <input type="checkbox" id="enableOutgoingUtp" v-model="enableOutgoingUtp">
-        <label for="enableOutgoingUtp">Outgoing uTP enabled</label>
-      </div>
-
-      <div class="group">
-        <div class="item">
-          <button @click="save">Save</button>
-        </div>
-      </div>
+    <div class="check">
+      <input type="checkbox" id="enableIncomingTcp" v-model="enableIncomingTcp">
+      <label for="enableIncomingTcp">Incoming TCP enabled</label>
     </div>
+
+    <div class="check">
+      <input type="checkbox" id="enableIncomingUtp" v-model="enableIncomingUtp">
+      <label for="enableIncomingUtp">Incoming uTP enabled</label>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="enableOutgoingTcp" v-model="enableOutgoingTcp">
+      <label for="enableOutgoingTcp">Outgoing TCP enabled</label>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="enableOutgoingUtp" v-model="enableOutgoingUtp">
+      <label for="enableOutgoingUtp">Outgoing uTP enabled</label>
+    </div>
+
+    <button class="mt-1" @click="save">
+      Save settings
+    </button>
   </div>
 </template>
 
