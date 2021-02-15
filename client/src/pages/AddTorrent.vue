@@ -21,8 +21,6 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   data () {
     return {
@@ -30,13 +28,11 @@ export default {
     }
   },
   async mounted () {
-    const res = await axios.post('/api/jsonrpc', {
-      jsonrpc: '2.0',
-      method: 'config.get',
-      params: [ 'default_save_path' ]
-    });
+    const {
+      default_save_path
+    } = await this.$rpc('config.get', [ 'default_save_path' ]);
 
-    this.addSavePath = res.data.result.default_save_path;
+    this.addSavePath = default_save_path
   },
   methods: {
     async add() {
@@ -45,12 +41,9 @@ export default {
         return String.fromCharCode(ch);
       }).join('');
 
-      await axios.post('/api/jsonrpc', {
-        method: 'session.addTorrent',
-        params: {
-          data: btoa(tempBuffer),
-          save_path: this.addSavePath
-        }
+      await this.$rpc('session.addTorrent', {
+        data: btoa(tempBuffer),
+        save_path: this.addSavePath
       });
 
       this.$router.push('/');
