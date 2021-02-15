@@ -17,7 +17,7 @@ header {
     max-width      : 35px;
     height         : 100%;
     padding        : 0;
-    margin         : 0 0.5rem;
+    margin         : 0 0.65rem;
     color          : var(--header-color);
     transition     : all 0.35s ease;
     svg,
@@ -69,12 +69,10 @@ header {
     background     : transparent;
     border         : 0;
     flex           : 0 0 auto;
+    font-size: 0.85rem;
     &.control {
-      padding-left : 0.5rem;
-      padding-right: 0.5rem;
-      .bi {
-        font-size  : 150%;
-      }
+      padding-left : 0.65rem;
+      padding-right: 0.65rem;
     }
     &:hover {      
       color     : $white;
@@ -105,9 +103,8 @@ header {
 
   // Icons
   .bi {
-    font-size  : 125%;
+    font-size  : 20px;
     line-height: 0;
-    margin-top : -1px;
     transition : all 0.35s ease;
   }
 
@@ -153,6 +150,7 @@ header {
       padding-top   : 0.50rem;
       padding-bottom: 0.50rem;
       color         : var(--header-filter-color);
+      box-shadow    : none;
       &::placeholder {
         color: var(--header-filter-color);
       }

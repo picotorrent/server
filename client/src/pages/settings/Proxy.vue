@@ -35,8 +35,6 @@
         <label for="friendlyName">Friendly name</label>
         <input type="text" id="friendlyName" v-model="addModel.name" placeholder="Mullvad">
       </div>
-    </div>
-    <div class="group">
       <div class="item">
         <label for="type">Type</label>
         <select id="type" v-model.number="addModel.type">
@@ -80,7 +78,8 @@
       <input type="checkbox" id="local" v-model="addModel.proxy_tracker_connections">
       <label for="local">Proxy tracker connections?</label>
     </div>
-    <button class="mt-1" @click="add">
+    <button class="mt-1 icon" @click="add">
+      <i class="bi bi-plus-square"></i>
       Add new proxy
     </button>
   </div>

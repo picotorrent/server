@@ -12,6 +12,11 @@
     padding      : 2rem 1.5rem;
     background   : rgba($dark, 0.25);
     border-radius: .75rem;
+    .title {
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+    }
     .icon {
       display      : block;
       font-size    : 4rem;

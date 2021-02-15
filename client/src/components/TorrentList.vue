@@ -1,5 +1,5 @@
 <template>
-  <div class="backdrop torrents">
+  <div class="backdrop torrent-list">
     <table v-if="torrents">
       <thead>
         <tr>
