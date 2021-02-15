@@ -17,7 +17,7 @@ export default function createWebSocketPlugin() {
           break;
 
         case 'torrent.added':
-          store.commit('torrents/ADD', data.torrent);
+          store.commit('torrents/ADD_TORRENT', data.torrent);
           break;
 
         case 'torrent.removed':

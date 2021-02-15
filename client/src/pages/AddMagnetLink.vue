@@ -38,6 +38,12 @@ export default {
     });
 
     this.addSavePath = res.data.result.default_save_path;
+
+    const { uri } = this.$route.query;
+
+    if (uri) {
+      this.addMagnetUri = uri;
+    }
   },
   methods: {
     async add() {
