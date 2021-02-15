@@ -1,6 +1,6 @@
 <template>
   <div class="settings-common">
-    <h3 class="title">General</h3>
+    <h3 class="title">Common settings</h3>
 
     <h4>User Interface</h4>
 

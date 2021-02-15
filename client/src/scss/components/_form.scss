@@ -13,12 +13,12 @@ textarea {
   &[type="checkbox"] {
     min-width: auto;
   }
-  &:focus {
-    box-shadow: 0 0 0 2px var(--state-color, var(--primary));
-  }
   &:hover {    
     color     : var(--input-hover-color);
     background: hsla(var(--input-bg), var(--input-hover-bg-alpha));
+  }
+  &:focus {
+    box-shadow: 0 0 0 2px var(--state-color, var(--primary-outline));
   }
 }
 

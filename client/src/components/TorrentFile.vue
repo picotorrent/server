@@ -1,5 +1,5 @@
 <template>
-  <div class="backdrop file">
+  <div class="backdrop torrent-file">
       <!-- File: Name -->
       <h2>CentOS-7-x86_64-DVD-2020</h2>
       <!-- File: Status-bar -->
@@ -143,6 +143,6 @@
 
 <script>
 export default {
-  name: 'File'
+  name: 'TorrentFile'
 }
 </script>

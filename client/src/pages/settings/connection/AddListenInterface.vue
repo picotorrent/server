@@ -25,9 +25,12 @@
       <label for="local">Is local?</label>
     </div>
 
-    <button class="mt-1" @click="add" :disabled="!addEnabled">
+    <button class="mt-1 mr-1" @click="add" :disabled="!addEnabled">
       Add new listen interface
     </button>
+    <router-link class="mt-1 link" to="/settings/connection/" tag="button">
+      Go back
+    </router-link>
   </div>
 </template>
 
