@@ -60,46 +60,47 @@
 .info,
 .seeding {
   --state-color: var(--blue);
-  --state-color-hover: var(--blue-hover);
+  --state-color-hover: hsla(var(--blue-hsl), var(--alpha-hover));
 }
 // State: Primary / Downloading
 .is-primary,
 .downloading {
+  --state-hsla: hsla(var(--primary-hsl), var(--alpha, 0.10));
   --state-color: var(--primary);
-  --state-color-hover: var(--primary-hover);
+  --state-color-hover: hsla(var(--primary-hsl), var(--alpha-hover));
 }
 // State: Green / Success / Completed
 .is-green,
 .success,
 .completed {
   --state-color: var(--green);
-  --state-color-hover: var(--green-hover);
+  --state-color-hover: hsla(var(--green-hsl), var(--alpha-hover));
 }
 // State: Yellow / Warning / Paused
 .is-yellow,
 .warning,
 .paused {
   --state-color: var(--yellow);
-  --state-color-hover: var(--yellow-hover);
+  --state-color-hover: hsla(var(--yellow-hsl), var(--alpha-hover));
 }
 // State: Orange / Stopped
 .is-orange,
 .stopped {
   --state-color: var(--orange); 
-  --state-color-hover: var(--orange-hover); 
+  --state-color-hover: hsla(var(--orange-hsl), var(--alpha-hover));
 }
 // State: Red / Danger / Error
 .is-red,
 .danger,
 .error {
   --state-color: var(--red); 
-  --state-color-hover: var(--red-hover); 
+  --state-color-hover: hsla(var(--red-hsl), var(--alpha-hover));
 }
 // State: Gray / Waiting
 .is-gray,
 .waiting {
   --state-color: var(--gray);
-  --state-color-hover: var(--gray-hover);
+  --state-color-hover: hsla(var(--gray-hsl), var(--alpha-hover));
 }
 
 // Badge
@@ -115,7 +116,7 @@
 
 // Backdrop
 .backdrop {
-  @if $ui-backdrop-enable {
+  @if $ui-enable-backdrop {
     background     : var(--backdrop-bg);
     backdrop-filter: var(--backdrop-filter);
   }
@@ -124,11 +125,6 @@
 // Hide
 .hide {
   display: none;
-}
-
-// Visibility-hidden [WIP]
-.aria-label {
-  visibility: hidden;
 }
 
 // Separator
@@ -147,8 +143,7 @@ hr {
 }
 
 // ARIA
-.aria, 
-.aria-focusable:not(:focus):not(:focus-within) {
+@mixin aria-ready() {
   position: absolute!important;
   width: 1px!important;
   height: 1px!important;
@@ -158,4 +153,21 @@ hr {
   clip: rect(0,0,0,0)!important;
   white-space: nowrap!important;
   border: 0!important;
+}
+
+.aria, 
+.aria-focusable:not(:focus):not(:focus-within) {
+  @include aria-ready();
+}
+
+.item-aria {
+  position: relative;
+  .item-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 0;
+  }
 }

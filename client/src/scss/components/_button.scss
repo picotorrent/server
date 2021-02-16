@@ -15,10 +15,10 @@ button {
     }
   }
   &:hover {
-    background: var(--primary-hover);
+    background: hsla(var(--primary-hsl), var(--alpha-hover));
   }
   &:focus {
-    box-shadow: 0 0 0 3px var(--primary-outline);
+    box-shadow: 0 0 0 3px hsla(var(--primary-hsl), var(--alpha-outline));
   }
   &.link {
     padding-left: 0.5rem;
@@ -35,7 +35,10 @@ button {
       background: var(--#{$name});
       color: color-yiq($color);
       &:hover {
-        background: var(--#{$name}-hover);
+        background: hsla(var(--#{$name}-hsl), var(--alpha-hover));
+      }
+      &:focus {
+        box-shadow: 0 0 0 3px hsla(var(--#{$name}-hsl), var(--alpha-outline));
       }
     }
   }

@@ -5,7 +5,7 @@
   align-items: stretch;
   width      : 100%;
   flex-wrap  : wrap;
-  @if $ui-backdrop-enable {
+  @if $ui-enable-backdrop {
     border-bottom: var(--separator);
   } @else {
     box-shadow: 0 0.05rem 0.25rem hsla(0, 0%, 0%, 0.10);
@@ -15,9 +15,8 @@
     flex           : 0 0 auto;
     align-items    : center;
     justify-content: center;
-    padding        : .5rem 1rem;
+    padding        : .60rem 1rem;
     font-size      : .75rem;
-    user-select    : none;
     span {
       font-weight : 500;
       margin-right: .35rem;
@@ -29,7 +28,7 @@
     }
     @media (max-width: $breakpoint-md) {
       span {
-        display: none;
+        @include aria-ready();
       }
     }
     &:first-child {
@@ -53,7 +52,8 @@
   .graphs {
     display    : flex;
     flex       : 0 1 auto;
-    height     : 35px;
+    height     : 100%;
+    max-height : 40px;
     max-width  : 100%;
     margin-left: auto;
     overflow   : hidden;
@@ -62,6 +62,7 @@
       order: 2;
       flex : 1 1 100%;
     }
+    .both,
     .download,
     .upload {
       flex    : 1 1 0;
@@ -71,19 +72,29 @@
         flex: 1 1 100%;
       }
       .label {
+        display: flex;
+        align-items: center;
         font-size  : 10px;
         font-weight: bold;
         position   : absolute;
-        bottom     : 3px;
-        left       : 4px;
+        bottom     : 0;
+        left       : 0;
         opacity    : 0.80;
-        .down {
-          color       : $primary;
-          margin-right: 0.5rem;
+        padding: 5px 0;
+        div {
+          display: flex;
+          align-items: center;
+          .bi {
+            line-height: 0;
+            margin: 0 5px;
+          }
         }
-        .up {
-          color: $orange;
-        }
+      }
+      .dl {
+        color: $primary;
+      }
+      .ul {
+        color: $blue;
       }
       .graph {
         flex     : 1 1 0;
@@ -93,10 +104,11 @@
           flex     : 1;
           max-width: 100%;
         }
+        canvas {
+          width: 100% !important;
+          height: 100% !important;
+        }
       }
-    }
-    .upload {
-      display: none;
     }
   }
 }

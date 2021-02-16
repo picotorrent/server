@@ -54,7 +54,7 @@
 
       <h4>License</h4>
       <p>
-        Copyright (c) Viktor Elofsson and contributors. PicoTorrent is provided as-is under the MIT license. For more information see 
+        Copyright &copy; Viktor Elofsson and contributors. PicoTorrent is provided as-is under the MIT license. For more information see 
         <a target="_blank" rel="noopener nofollow" href="https://github.com/picotorrent/picotorrent/blob/master/LICENSE">LICENSE</a>.
       </p>
       <hr>

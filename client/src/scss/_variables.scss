@@ -1,3 +1,53 @@
+// UI
+//
+// General UI settings
+$ui-enable-darkscheme     : true !default;                            // Boolean True / False
+$ui-enable-backdrop       : true !default;                            // Boolean True / False
+$ui-enable-bg             : true !default;                            // Boolean True / False
+$ui-torrents-icons        : true !default;                            // Display property: true (inline) / false (done)
+$ui-torrents-progress-text: true !default;                            // Display property: true (inline) / false (done)
+$ui-torrents-height       : 100% !default;                            // Height property: 100% / Auto
+$ui-bg-img                : null !default;
+
+// Alpha
+// Alpha: Light
+$light-ui-alpha-hover    : 0.75 !default;
+$light-ui-alpha-focus    : 0.50 !default;
+$light-ui-alpha-outline  : 0.45 !default;
+// Alpha: Dark
+$dark-ui-alpha-hover     : 0.75 !default;
+$dark-ui-alpha-focus     : 0.45 !default;
+$dark-ui-alpha-outline   : 0.40 !default;
+
+// UI: Backdrop
+//
+// Fluend Design style for backdrop styling
+// Backdrop: Light
+$light-ui-backdrop-bg    : hsla(0, 0%, 88%, 0.75) !default;
+$light-ui-backdrop-filter: blur(10px) !default;
+// Backdrop: Dark
+$dark-ui-backdrop-bg     : hsla(0, 0%, 08%, 0.9) !default;
+$dark-ui-backdrop-filter : blur(10px) !default;
+
+// Torrents status
+$checking_files          : '\f340' !default;  // bi-file-earmark-check
+$downloading_metadata    : '\f336' !default;  // bi-file-earmark-arrow-down
+$downloading             : '\f2ea' !default;  // bi-download
+$finished                : '\f272' !default;  // bi-check2
+$seeding                 : '\f5c9' !default;  // bi-upload
+$paused                  : '\f49d' !default;  // bi-pause
+$checking_resume_dat     : '\f26f' !default;  // bi-check2-all
+// Torrents status: Map
+$torrent-list-status: (
+  'checking_files'      : $checking_files,
+  'downloading_metadata': $downloading_metadata,
+  'downloading'         : $downloading,
+  'finished'            : $finished,
+  'seeding'             : $seeding,
+  'paused'              : $paused,
+  'checking_resume_dat' : $checking_resume_dat
+) !default;
+
 // Colors
 // Colors: Primary Palette
 $primary      : hsl(199, 81%, 47%) !default;
@@ -18,11 +68,12 @@ $black        : hsl(  0,  0%, 05%) !default;
 
 // Color modifier
 // This modifies the color when dark mode/scheme is used
-$color-darken-amount:       7.5% !default;
+$color-darken-amount:       07.5% !default;
 $color-desaturation-amount: 17.5% !default;
 
 // Colors: Map
 $colors: (
+  // Colors: Primary Palette
   'primary'  : $primary,
   'secondary': $secondary,
   // Colors: General
@@ -46,41 +97,22 @@ $gradient-x: linear-gradient(90deg, var(--primary), var(--secondary)) !default;
 
 // Scrollbar
 // Scrollbar: Light
-$light-scrollbar-thumb-bg      : rgba(0, 0, 0, 0.150) !default;
-$light-scrollbar-thumb-hover-bg: rgba(0, 0, 0, 0.250) !default;
-$light-scrollbar-track-bg      : rgba(0, 0, 0, 0.075) !default;
+$light-scrollbar-thumb-bg      : hsla(0, 0%, 00%, 0.150) !default;
+$light-scrollbar-thumb-hover-bg: hsla(0, 0%, 00%, 0.250) !default;
+$light-scrollbar-track-bg      : hsla(0, 0%, 00%, 0.075) !default;
 // Scrollbar: Dark
-$dark-scrollbar-thumb-bg       : rgba(255, 255, 255, 0.05) !default;
-$dark-scrollbar-thumb-hover-bg : rgba(255, 255, 255, 0.07) !default;
-$dark-scrollbar-track-bg       : rgba(255, 255, 255, 0.035) !default;
+$dark-scrollbar-thumb-bg       : hsla(0, 0%, 95%, 0.050) !default;
+$dark-scrollbar-thumb-hover-bg : hsla(0, 0%, 95%, 0.070) !default;
+$dark-scrollbar-track-bg       : hsla(0, 0%, 95%, 0.035) !default;
 
 // Separator
 $separator-width      : 1px !default;
 $separator-style      : solid !default;
-$separator-white-color: rgba(255, 255, 255, 0.15) !default;
+$separator-white-color: hsla(0, 0%, 95%, 0.15) !default;
 // Separator: Light
-$light-separator-color: rgba(0, 0, 0, 0.10) !default;
+$light-separator-color: hsla(0, 0%, 00%, 0.10) !default;
 // Separator: Dark
-$dark-separator-color : rgba(255, 255, 255, 0.05) !default;
-
-// UI
-//
-// General UI settings
-$ui-darkscheme-enable: true !default;                                                                                                                // Boolean True / False
-$ui-backdrop-enable  : true !default;                                                                                                                 // Boolean True / False
-$ui-bg-enable        : true !default;                                                                                                                 // Boolean True / False
-$ui-bg-img           : null !default;
-$ui-pt-icon          : url('./assets/brand/icon.svg') !default;
-$ui-torrents-height  : 100% !default;                                                                                                                 // Height property: 100% / Auto
-// UI: Backdrop
-//
-// Fluend Design style for backdrop styling
-// Backdrop: Light
-$light-ui-backdrop-bg    : rgba(225,225,225,0.75) !default;
-$light-ui-backdrop-filter: blur(10px) !default;
-// Backdrop: Dark
-$dark-ui-backdrop-bg     : rgba(20, 20, 20, 0.90) !default;
-$dark-ui-backdrop-filter : blur(10px) !default;
+$dark-separator-color : hsla(0, 0%, 95%, 0.05) !default;
 
 // Body
 //
@@ -88,11 +120,11 @@ $dark-ui-backdrop-filter : blur(10px) !default;
 $body-text-align    : null !default;
 $body-bg-img        : $ui-bg-img !default;
 // Body: Light
-$light-body-bg-color: #F3F3F3 !default;
-$light-body-color   : #333 !default;
+$light-body-bg-color: hsla(0, 0%, 95%, 1) !default;
+$light-body-color   : hsla(0, 0%, 20%, 1) !default;
 // Body: Dark
-$dark-body-bg-color : #121212 !default;
-$dark-body-color    : #999 !default;
+$dark-body-bg-color : hsla(0, 0%, 07%, 1) !default;
+$dark-body-color    : hsla(0, 0%, 60%, 1) !default;
 
 // Breakpoint
 $breakpoint-sm: 768px !default;
@@ -155,8 +187,8 @@ $dark-sidebar-bg : hsla(0, 0%, 100%, 0) !default;
 
 // Torrents Table
 $torrents-table-height       : $ui-torrents-height !default;
-$torrents-table-icons        : true !default;                 // Display property: true (inline) / false (done)
-$torrents-table-progress-text: true !default;                 // Display property: true (inline) / false (done)
+$torrents-table-icons        : $ui-torrents-icons !default;
+$torrents-table-progress-text: $ui-torrents-progress-text !default;
 
 // Progress
 $progress-height       : 13px !default;
@@ -201,7 +233,7 @@ $toast-zindex              : 9999;
 // Toast: Light
 $light-toast-bg            : rgba($light, $alpha-background-color) !default;
 $light-toast-color         : var(--body-color) !default;
-$light-toast-box-shadow    : 0 0.25rem 1rem -0.15rem rgba(0, 0, 0, 0.15) !default;
+$light-toast-box-shadow    : 0 0.25rem 1rem -0.15rem hsla(0, 0%, 0%, 0.15) !default;
 // Toast: Dark
 $dark-toast-bg             : rgba($dark, $alpha-background-color) !default;
 $dark-toast-color          : var(--body-color) !default;
