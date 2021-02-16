@@ -450,8 +450,6 @@ void SessionManager::ReadAlerts()
                 return;
             }
 
-            BOOST_LOG_TRIVIAL(info) << "Torrent " << to_str(ata->handle.info_hashes()) << " added";
-
             lt::torrent_status ts = ata->handle.status();
             m_torrents.insert({ ts.info_hashes, ts });
 
@@ -464,7 +462,7 @@ void SessionManager::ReadAlerts()
 
             if (!extra->muted)
             {
-                BOOST_LOG_TRIVIAL(info) << "Saving torrent " << to_str(ts.info_hashes) << " in database";
+                BOOST_LOG_TRIVIAL(debug) << "Saving torrent " << to_str(ts.info_hashes) << " in database";
 
                 // store in database
                 sqlite3_stmt* stmt;
@@ -504,6 +502,8 @@ void SessionManager::ReadAlerts()
                 }
 
                 sqlite3_finalize(stmt);
+
+                BOOST_LOG_TRIVIAL(info) << "Torrent " << to_str(ata->handle.info_hashes()) << " added";
             }
 
             json j;
