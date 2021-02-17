@@ -43,12 +43,20 @@ export default {
   },
   methods: {
     async add() {
+      if (this.addSavePath == null){
+        if (Math.floor(Math.random() * 1000) == 69){
+          alert("pwease pwovide a save path uwu"); // replace with toast notifications
+        } else{
+          alert("You must provide a save path.");  // replace with toast notifications
+        }
+      } else{
       await this.$rpc('session.addMagnetLink', {
         magnet_uri: this.addMagnetUri,
         save_path: this.addSavePath
       });
 
       this.$router.push('/');
+      }
     }
   }
 }
