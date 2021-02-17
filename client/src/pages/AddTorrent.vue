@@ -36,6 +36,13 @@ export default {
   },
   methods: {
     async add() {
+      if (this.addSavePath == null){
+        if (Math.floor(Math.random() * 1000) == 69){
+          alert("pwease pwovide a save path uwu"); // replace with toast notifications
+        } else{
+          alert("You must provide a save path.");  // replace with toast notifications
+        }
+      } else{
       const buffer = new Uint8Array(await this.$refs.torrentFile.files[0].arrayBuffer());
       const tempBuffer = Array.prototype.map.call(buffer, function (ch) {
         return String.fromCharCode(ch);
@@ -47,6 +54,7 @@ export default {
       });
 
       this.$router.push('/');
+      }
     }
   }
 }
