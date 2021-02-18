@@ -65,11 +65,50 @@
     tr {
       border-bottom: 0;
       transition   : all 0.35s ease;
-      @media (min-width: $breakpoint-sm) {
-        color: var(--state-color);
+    }
+    // Table Body
+    tbody tr {
+      --alpha: 0.10;
+      @media (max-width: $breakpoint-sm) {
+        background: var(--state-hsla, transparent);
+      }
+      td {
+        &.name {
+          .icon-status {
+            @media (min-width: $breakpoint-sm) {
+              display: none;
+            }
+          }
+        }
+        .icon-status {
+          display: inline-block;
+          font-family: bootstrap-icons !important;
+          font-style: normal;
+          font-weight: normal !important;
+          font-variant: normal;
+          text-transform: none;
+          line-height: 1;
+          vertical-align: text-bottom;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          &::before {
+            content: "\f4de";
+          }
+        }
       }
       &:hover {
-        background: var(--state-color-hover);
+        --alpha: 0.15;
+        background: var(--state-hsla, var(--separator-color));
+      }
+      // Torrent status
+      @each $status, $icon in $torrent-list-status {
+        &.#{$status} .icon-status::before {
+          content: "#{$icon}";
+        }
+      }
+      // For bigger than mobile
+      @media (min-width: $breakpoint-sm) {
+        color: var(--state-color);
       }
     }
     // Bar
@@ -94,7 +133,7 @@
         tr {
           display      : flex;
           flex-wrap    : wrap;
-          padding      : .5rem .25rem;
+          padding      : 0.5rem 0;
           border-bottom: var(--separator);
           td {
             display    : flex;

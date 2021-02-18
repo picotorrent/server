@@ -5,52 +5,54 @@ main.settings {
     flex-direction: row;
   }
   .sidebar {
-    display: flex;
+    display       : flex;
     flex-direction: column;
-    padding: 1rem 1rem 0;
-    flex: 0 0 auto;
-    background: var(--sidebar-bg);
+    padding       : 1rem 1rem 0;
+    flex          : 0 0 auto;
+    background    : var(--sidebar-bg);
     @media (min-width: $breakpoint-sm) {
-      padding: 1rem;
-      flex: 1 1 175px;
+      padding  : 1rem;
+      flex     : 1 1 175px;
       max-width: 200px;
     }
     .title {
-      order: 1;
-      margin: 1rem 0 0;
+      order  : 1;
+      margin : 1rem 0 0;
       display: none;
       @media (min-width: $breakpoint-sm) {   
-        display: block;     
+        display  : block;
         font-size: 1.35rem;
-        order: 0;
-        margin: 0 0 1rem;
+        order    : 0;
+        margin   : 0 0 1rem;
       }
     }
     .menu {
-      display: flex;
-      flex-direction: row;
+      display        : flex;
+      flex-direction : row;
+      flex-wrap      : wrap;
       justify-content: space-between;
-      order: 0;
+      order          : 0;
       @media (min-width: $breakpoint-sm) {
         flex-direction: column;
-        order: 1;
+        order         : 1;
       }
       .item {
-        margin: 0 0.25rem;
-        padding: 0.75rem 1rem;
-        display: flex;
-        align-items: center;
+        margin         : 0 0.25rem;
+        padding        : 0.75rem 1rem;
+        display        : flex;
+        align-items    : center;
         justify-content: center;
-        font-size: 110%;
-        font-weight: 500;
+        font-size      : 110%;
+        font-weight    : 500;
         text-decoration: none;
-        color: var(--body-color);
-        flex: 1;
-        border-radius: .25rem;
-        position: relative;
+        color          : var(--body-color);
+        flex           : 1;
+        border-radius  : .25rem;
+        position       : relative;
         @media (min-width: $breakpoint-sm) {
-          border-radius: 0rem;
-          margin: 0 0 0.5rem;
+          flex           : 1;
+          border-radius  : 0rem;
+          margin         : 0 0 0.5rem;
           justify-content: flex-start;
         }
         &:first-child {
@@ -145,11 +147,12 @@ main.settings {
       }
     }
   }
+  .settings-common, 
   .settings-downloads {
     .group {
       .item {
         flex: 1;
-        max-width: 500px;
+        max-width: 450px
       }
     }
   }

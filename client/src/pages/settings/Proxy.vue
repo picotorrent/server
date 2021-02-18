@@ -22,7 +22,7 @@
             <td>{{ proxy.hostname }}</td>
             <td>{{ proxy.port }}</td>
             <td class="actions">
-              <button class="remove" title="Remove" @click="remove(li.id)"><i class="bi bi-trash"></i></button>
+              <button class="remove red" title="Remove" @click="remove(li.id)"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
         </tbody>

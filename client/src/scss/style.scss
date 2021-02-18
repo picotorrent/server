@@ -28,7 +28,7 @@ body {
   color                      : var(--body-color);
   text-align                 : var(--body-text-align);
   background-color           : var(--body-bg-color);
-  background-image           : if($ui-bg-enable, var(--body-bg-img), 'none');
+  background-image           : if($ui-enable-bg, var(--body-bg-img), 'none');
   background-repeat          : no-repeat;
   background-size            : auto 100%;
   background-position        : center;

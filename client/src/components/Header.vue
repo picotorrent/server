@@ -12,15 +12,15 @@
         <span>Add torrent</span>
         <span class="title">Add torrent</span>
       </router-link>
-      <button class="item control tooltip" title="Resume">
+      <button class="item control tooltip" title="Resume" aria-label="Resume">
         <i class="bi bi-play"></i>
         <span class="title">Resume</span>
       </button>
-      <button class="item control tooltip" title="Pause">
+      <button class="item control tooltip" title="Pause" aria-label="Pause">
         <i class="bi bi-pause"></i>
         <span class="title">Pause</span>
       </button>
-      <button class="item control tooltip" title="Stop">
+      <button class="item control tooltip" title="Stop" aria-label="Stop">
         <i class="bi bi-stop"></i>
         <span class="title">Stop</span>
       </button>
