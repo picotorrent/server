@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_policy(SET CMP0092 NEW) # don't add /W3 as default
+cmake_policy(SET CMP0115 OLD) # Source file extensions must be explicit.
+
+set(VCPKG_OVERLAY_PORTS    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg-overlays/ports)
+set(CMAKE_TOOLCHAIN_FILE   ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(PicoTorrentServer)
 
@@ -6,32 +11,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-# if we run OSX, set the OPENSSL_ROOT_DIR to the one where homebrew installed
-# openssl, otherwise CMake will throw an err.
-if(APPLE)
-    set(OPENSSL_ROOT_DIR "/usr/local/opt/openssl")
-endif()
-
-# set(Boost_USE_STATIC_LIBS ON)
-set(CMAKE_CXX_STANDARD 17)
-# set(OPENSSL_USE_STATIC_LIBS TRUE)
-
-find_package(Boost REQUIRED COMPONENTS system log)
-find_package(OpenSSL REQUIRED)
-find_package(SQLite3 REQUIRED)
-
-# --------- libtorrent options
-option(BUILD_SHARED_LIBS    "" off)
-option(deprecated-functions "" off)
-# ----------------------------
-
-# --------- nlohmann-json options
-option(JSON_BuildTests "enables tests" OFF)
-set(JSON_BuildTests OFF)
-# -------------------------------
-
-add_subdirectory(vendor/libtorrent)
-add_subdirectory(vendor/nlohmann-json)
+find_package(Boost                      REQUIRED COMPONENTS log system)
+find_package(LibtorrentRasterbar CONFIG REQUIRED)
+find_package(nlohmann_json       CONFIG REQUIRED)
+find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_executable(
     PicoTorrentServer
@@ -87,16 +70,15 @@ target_compile_definitions(
     -DTORRENT_USE_OPENSSL
 )
 
-target_include_directories(
-    PicoTorrentServer
-    PRIVATE
-    vendor/libtorrent
-)
-
 target_link_libraries(
     PicoTorrentServer
-    ${Boost_LIBRARIES}
+
+    Boost::boost
+    Boost::log
+    
     nlohmann_json::nlohmann_json
-    sqlite3
-    "torrent-rasterbar"
+
+    LibtorrentRasterbar::torrent-rasterbar
+
+    unofficial::sqlite3::sqlite3
 )

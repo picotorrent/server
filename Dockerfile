@@ -10,17 +10,17 @@ COPY ./client .
 
 RUN npm run build
 
-FROM alpine:3.12 AS build-env
+FROM alpine:3.14 AS build-env
 
 WORKDIR /app
 
-RUN apk update --no-cache && apk add g++ ninja cmake boost-dev openssl-dev sqlite-dev
+RUN apk update --no-cache && apk add curl g++ ninja cmake
 
 COPY . .
 
 RUN mkdir build && cd build && cmake --version && cmake -G Ninja .. && ninja
 
-FROM alpine:3.12
+FROM alpine:3.14
 
 RUN apk update --no-cache && apk add boost openssl
 

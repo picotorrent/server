@@ -2,3 +2,7 @@
 build/
 client/dist
 client/node_modules
+vendor/vcpkg/buildtrees
+vendor/vcpkg/downloads
+vendor/vcpkg/packages
+vendor/vcpkg/vcpkg

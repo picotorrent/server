@@ -1,6 +1,3 @@
-[submodule "vendor/libtorrent"]
-	path = vendor/libtorrent
-	url = https://github.com/arvidn/libtorrent
-[submodule "vendor/nlohmann-json"]
-	path = vendor/nlohmann-json
-	url = https://github.com/nlohmann/json
+[submodule "vendor/vcpkg"]
+	path = vendor/vcpkg
+	url = https://github.com/microsoft/vcpkg
