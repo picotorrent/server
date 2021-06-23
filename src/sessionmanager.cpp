@@ -15,6 +15,7 @@
 #include "data/models/profile.hpp"
 #include "data/models/proxy.hpp"
 #include "data/models/settingspack.hpp"
+#include "json/infohash.hpp"
 #include "json/torrentstatus.hpp"
 
 namespace lt = libtorrent;
@@ -626,7 +627,7 @@ void SessionManager::ReadAlerts()
 
             json j;
             j["type"] = "torrent.removed";
-            j["info_hash"] = to_str(tra->info_hashes);
+            j["info_hash"] = tra->info_hashes;
 
             Broadcast(j);
 

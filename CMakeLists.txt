@@ -75,10 +75,7 @@ target_link_libraries(
 
     Boost::boost
     Boost::log
-    
     nlohmann_json::nlohmann_json
-
     LibtorrentRasterbar::torrent-rasterbar
-
     unofficial::sqlite3::sqlite3
 )

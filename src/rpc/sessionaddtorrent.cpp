@@ -5,6 +5,7 @@
 #include <libtorrent/bdecode.hpp>
 #include <libtorrent/torrent_info.hpp>
 
+#include "../json/infohash.hpp"
 #include "../sessionmanager.hpp"
 
 std::string Base64Decode(const std::string_view in)
@@ -48,6 +49,16 @@ SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<SessionManage
 
 json SessionAddTorrentCommand::Execute(json& j)
 {
+    if (!j.contains("data"))
+    {
+        return Error(1, "Missing 'data' field");
+    }
+
+    if (!j.contains("save_path"))
+    {
+        return Error(1, "Missing 'save_path' field");
+    }
+
     std::string const& data = Base64Decode(
         j["data"].get<std::string>());
 
@@ -57,20 +68,16 @@ json SessionAddTorrentCommand::Execute(json& j)
     if (ec)
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec;
-        throw std::runtime_error(ec.message().c_str());
+        return Error(1, ec.message());
     }
 
     lt::add_torrent_params p;
+    p.save_path = j["save_path"].get<std::string>();
     p.ti = std::make_shared<lt::torrent_info>(node);
-
-    if (j.contains("save_path"))
-    {
-        p.save_path = j["save_path"];
-    }
 
     m_session->AddTorrent(p);
 
     return Ok({
-        { "info_hash", "asdf" }
+        { "info_hash", p.ti->info_hashes() }
     });
 }

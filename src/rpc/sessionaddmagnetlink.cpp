@@ -18,11 +18,19 @@ SessionAddMagnetLinkCommand::SessionAddMagnetLinkCommand(std::shared_ptr<Session
 
 json SessionAddMagnetLinkCommand::Execute(json& j)
 {
-    std::string magnetUri = j["magnet_uri"].get<std::string>();
+    if (!j.contains("magnet_uri"))
+    {
+        return Error(1, "Missing 'magnet_uri' field");
+    }
+
+    if (!j.contains("save_path"))
+    {
+        return Error(1, "Missing 'save_path' field");
+    }
 
     lt::error_code ec;
     lt::add_torrent_params p = lt::parse_magnet_uri(
-        magnetUri,
+        j["magnet_uri"].get<std::string>(),
         ec);
 
     if (ec)
@@ -30,10 +38,7 @@ json SessionAddMagnetLinkCommand::Execute(json& j)
         return Error(1, ec.message());
     }
 
-    if (j.contains("save_path"))
-    {
-        p.save_path = j["save_path"];
-    }
+    p.save_path = j["save_path"].get<std::string>();
 
     m_session->AddTorrent(p);
 

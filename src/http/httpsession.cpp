@@ -1,15 +1,18 @@
 #include "httpsession.hpp"
 
+#include <filesystem>
+
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
 
-#include "mime_type.hpp"
-#include "path_cat.hpp"
+#include "mimetype.hpp"
 #include "websocketsession.hpp"
 #include "../rpc/command.hpp"
 
+namespace fs = std::filesystem;
 using json = nlohmann::json;
 using pt::Server::Http::HttpSession;
+using pt::Server::Http::MimeType;
 using pt::Server::SessionManager;
 
 HttpSession::HttpSession(
@@ -141,35 +144,43 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         }
         else
         {
-            std::string path = path_cat(*m_docroot, req.target());
-            if(req.target().back() == '/') { path.append("index.html"); }
-
-            boost::beast::error_code ec;
-            http::file_body::value_type body;
-            body.open(path.c_str(), boost::beast::file_mode::scan, ec);
-
-            if(ec == boost::beast::errc::no_such_file_or_directory)
+            if (!m_docroot)
             {
+                BOOST_LOG_TRIVIAL(debug) << "No doc root set";
                 m_queue(not_found(req.target()));
-            }
-            else if (ec)
-            {
-                m_queue(server_error(ec.message()));
             }
             else
             {
-                auto const size = body.size();
+                std::string path = fs::path(*m_docroot).concat(req.target().to_string());
+                if(req.target().back() == '/') { path.append("index.html"); }
 
-                http::response<http::file_body> res{
-                    std::piecewise_construct,
-                    std::make_tuple(std::move(body)),
-                    std::make_tuple(http::status::ok, req.version())};
-                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                res.set(http::field::content_type, mime_type(path));
-                res.content_length(size);
-                res.keep_alive(req.keep_alive());
+                boost::beast::error_code ec;
+                http::file_body::value_type body;
+                body.open(path.c_str(), boost::beast::file_mode::scan, ec);
 
-                m_queue(std::move(res));
+                if(ec == boost::beast::errc::no_such_file_or_directory)
+                {
+                    m_queue(not_found(req.target()));
+                }
+                else if (ec)
+                {
+                    m_queue(server_error(ec.message()));
+                }
+                else
+                {
+                    auto const size = body.size();
+
+                    http::response<http::file_body> res{
+                        std::piecewise_construct,
+                        std::make_tuple(std::move(body)),
+                        std::make_tuple(http::status::ok, req.version())};
+                    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+                    res.set(http::field::content_type, MimeType(path));
+                    res.content_length(size);
+                    res.keep_alive(req.keep_alive());
+
+                    m_queue(std::move(res));
+                }
             }
         }
     }

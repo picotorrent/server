@@ -1,9 +1,8 @@
 #include "sessionremovetorrent.hpp"
 
-#include <boost/log/trivial.hpp>
-#include <libtorrent/hex.hpp>
 #include <libtorrent/info_hash.hpp>
 
+#include "../json/infohash.hpp"
 #include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
@@ -20,15 +19,9 @@ json SessionRemoveTorrentCommand::Execute(json& j)
 {
     if (j.is_array())
     {
-        for (std::string const& hash : j)
+        for (lt::info_hash_t const& hash : j)
         {
-            lt::sha1_hash sha;
-            lt::aux::from_hex(
-                { hash.c_str(), 40 },
-                sha.data());
-
-            m_session->RemoveTorrent(
-                lt::info_hash_t(sha));
+            m_session->RemoveTorrent(hash);
         }
     }
 
