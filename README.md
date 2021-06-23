@@ -10,3 +10,27 @@ and ease of use is key.
    v1, v2 and v1+v2 hybrid torrents.
  * A simple, clean, embedded web UI for management.
  * All data is stored in a SQLite database which makes backups trivial.
+
+ ## Setting up for development
+
+ Build PicoTorrent Server then run it.
+
+```sh
+$ mkdir build && cd build
+$ cmake -G Ninja
+$ ninja
+$ ./PicoTorrentServer
+```
+
+Then start the Vue client.
+
+```sh
+$ cd client
+$ npm i
+$ npm run serve
+```
+
+Open `http://localhost:8080` in your browser. All API requests are forwarded to
+the server process with the help of the Vue proxy.
+
+In production scenarios, the Vue client is hosted by PicoTorrent itself.
