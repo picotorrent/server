@@ -13,6 +13,13 @@ Statement::Row::Row(sqlite3_stmt* stmt)
 {
 }
 
+std::vector<char> Statement::Row::GetBlob(int col) const
+{
+    int len = sqlite3_column_bytes(m_stmt, col);
+    const char* buf = static_cast<const char*>(sqlite3_column_blob(m_stmt, col));
+    return std::vector<char>(buf, buf + len);
+}
+
 bool Statement::Row::GetBool(int col) const
 {
     return sqlite3_column_int(m_stmt, col) == 1 ? true : false;

@@ -11,7 +11,7 @@ using pt::Server::Log;
 
 namespace expr = boost::log::expressions;
 
-void Log::Setup()
+void Log::Setup(boost::log::trivial::severity_level level)
 {
     auto psink = boost::log::add_console_log(
         std::cout,
@@ -26,4 +26,5 @@ void Log::Setup()
 
     boost::log::add_common_attributes();
     boost::log::core::get()->add_global_attribute("Uptime", boost::log::attributes::timer());
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= level);
 }

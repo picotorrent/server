@@ -5,6 +5,7 @@
   "dependencies": [
     "boost-beast",
     "boost-log",
+    "boost-program-options",
     "boost-system",
     "libtorrent",
     "nlohmann-json",

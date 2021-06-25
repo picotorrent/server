@@ -299,9 +299,26 @@ int InitialSetup::Migrate(sqlite3* db)
         "CREATE TABLE torrents ("
             "info_hash      TEXT PRIMARY KEY,"
             "queue_position INTEGER NOT NULL,"
-            "magnet_uri     TEXT NULL,"
             "resume_data    BLOB NULL,"
-            "torrent_data   BLOB NULL"
+            "torrent_data   BLOB NULL,"
+            "timestamp      INTEGER NOT NULL DEFAULT (strftime('%s'))"
+        ");",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
+    BOOST_LOG_TRIVIAL(info) << "Creating magnet links table";
+
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE magnet_uris ("
+            "info_hash TEXT PRIMARY KEY,"
+            "save_path TEXT NOT NULL,"
+            "uri       TEXT NOT NULL,"
+            "timestamp INTEGER NOT NULL DEFAULT (strftime('%s')),"
+            "FOREIGN KEY(info_hash) REFERENCES torrents(info_hash) ON DELETE CASCADE"
         ");",
         nullptr,
         nullptr,

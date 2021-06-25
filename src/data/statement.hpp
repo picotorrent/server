@@ -16,10 +16,11 @@ namespace pt::Server::Data
         {
             friend class Statement;
 
-            bool        GetBool(int col)      const;
-            int         GetInt32(int col)     const;
-            std::string GetStdString(int col) const;
-            bool        IsNull(int col)       const;
+            std::vector<char> GetBlob(int col)      const;
+            bool              GetBool(int col)      const;
+            int               GetInt32(int col)     const;
+            std::string       GetStdString(int col) const;
+            bool              IsNull(int col)       const;
 
         private:
             Row(sqlite3_stmt* stmt);

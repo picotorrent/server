@@ -108,10 +108,12 @@ void Run(sqlite3* db, std::shared_ptr<Options> options)
 
 int main(int argc, char* argv[])
 {
-    Log::Setup();
-    BOOST_LOG_TRIVIAL(info) << "PicoTorrent Server starting up...";
-
     auto options = Options::Load(argc, argv);
+    if (!options) { return 1; }
+
+    Log::Setup(options->LogLevel());
+
+    BOOST_LOG_TRIVIAL(info) << "PicoTorrent Server starting up...";
     BOOST_LOG_TRIVIAL(info) << "Opening database from " << options->DatabaseFilePath();
 
     sqlite3* db = nullptr;
