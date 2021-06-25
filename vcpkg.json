@@ -7,6 +7,7 @@
     "boost-log",
     "boost-program-options",
     "boost-system",
+    "catch2",
     "libtorrent",
     "nlohmann-json",
     "sqlite3"

@@ -12,15 +12,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 find_package(Boost                      REQUIRED COMPONENTS log program_options system)
+find_package(Catch2              CONFIG REQUIRED)
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
-add_executable(
-    PicoTorrentServer
+add_library(
+    PicoTorrentCore
+    STATIC
+
     src/database
     src/log
-    src/main
     src/options
     src/sessionmanager
 
@@ -63,7 +65,7 @@ add_executable(
 )
 
 target_compile_definitions(
-    PicoTorrentServer
+    PicoTorrentCore
     PRIVATE
     -DTORRENT_NO_DEPRECATE
     -DTORRENT_USE_LIBCRYPTO
@@ -71,12 +73,32 @@ target_compile_definitions(
 )
 
 target_link_libraries(
-    PicoTorrentServer
-
+    PicoTorrentCore
     Boost::boost
     Boost::log
     Boost::program_options
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3
+)
+
+add_executable(
+    PicoTorrentServer
+    src/main
+)
+
+target_link_libraries(
+    PicoTorrentServer
+    PicoTorrentCore
+)
+
+add_executable(
+    PicoTorrentTests
+    tests/main
+    tests/data/models
+)
+
+target_link_libraries(
+    PicoTorrentTests
+    PicoTorrentCore
 )
