@@ -1,39 +1,29 @@
+# build js client
 FROM node:16 AS client-build-env
-
 WORKDIR /app
-
 COPY ./client/package*.json ./
-
 RUN npm install
-
 COPY ./client .
-
 RUN npm run build
 
-FROM alpine:3.14 AS build-env
-
+# build server
+FROM debian:bookworm-slim AS build-env
 WORKDIR /app
-
-RUN apk update --no-cache && apk add curl g++ samurai cmake
-
 COPY . .
+RUN apt-get update \
+    && apt-get install -y build-essential cmake zip unzip curl git ninja-build pkg-config \
+    && mkdir build \
+    && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DVCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja .. \
+    && ninja \
+    && ./PicoTorrentTests
 
-RUN mkdir build && cd build && cmake --version && cmake -G Ninja .. && ninja
-
-FROM alpine:3.14
-
-RUN apk update --no-cache && apk add boost openssl
-
+# production layer
+FROM debian:bookworm-slim
 WORKDIR /app
-
 RUN mkdir client
-
 COPY --from=client-build-env /app/dist /app/client
-
-COPY --from=build-env /app/build/PicoTorrentServer /usr/bin
-
+COPY --from=build-env /app/build/PicoTorrentServer /app
 ENV PICOTORRENT_HTTP_HOST=0.0.0.0
-
 ENV PICOTORRENT_WEBROOT_PATH=/app/client
-
-ENTRYPOINT [ "PicoTorrentServer" ]
+ENTRYPOINT [ "./PicoTorrentServer" ]
