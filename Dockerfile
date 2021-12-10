@@ -1,4 +1,4 @@
-FROM node:15 AS client-build-env
+FROM node:16 AS client-build-env
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ FROM alpine:3.14 AS build-env
 
 WORKDIR /app
 
-RUN apk update --no-cache && apk add curl g++ ninja cmake
+RUN apk update --no-cache && apk add curl g++ samurai cmake
 
 COPY . .
 

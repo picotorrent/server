@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <sqlite3.h>
 
 namespace pt::Server::Data::Migrations

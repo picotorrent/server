@@ -40,7 +40,7 @@ static std::string to_str(lt::info_hash_t hash)
 
 struct Scope
 {
-    Scope(std::string const& name)
+    explicit Scope(std::string const& name)
         : m_name(name)
     {
         BOOST_LOG_TRIVIAL(debug) << "> " << m_name;
@@ -85,12 +85,12 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
         }
     }
 
-    if (incoming.str().size() > 0)
+    if (!incoming.str().empty())
     {
         pack.set_str(lt::settings_pack::listen_interfaces, incoming.str().substr(1));
     }
 
-    if (outgoing.str().size() > 0)
+    if (!outgoing.str().empty())
     {
         pack.set_str(lt::settings_pack::outgoing_interfaces, outgoing.str().substr(1));
     }
@@ -155,9 +155,11 @@ std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io
     BOOST_LOG_TRIVIAL(info) << "Loading session settings";
     params.settings = GetSettingsPack(db);
 
-    auto session = std::make_unique<lt::session>(params);
     auto sm = std::shared_ptr<SessionManager>(
-        new SessionManager(io, db, std::move(session)));
+        new SessionManager(
+                io,
+                db,
+                std::make_unique<lt::session>(params)));
     sm->LoadTorrents();
 
     return std::move(sm);
@@ -176,17 +178,12 @@ SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::un
     m_session->set_alert_notify(
         [this]()
         {
-            boost::asio::post(
-                m_io,
-                std::bind(
-                    &SessionManager::ReadAlerts,
-                    this));
+            boost::asio::post(m_io, [this] { ReadAlerts(); });
         });
 
     boost::system::error_code ec;
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
-    m_timer.async_wait(
-        std::bind(&SessionManager::PostUpdates, this, std::placeholders::_1));
+    m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
 }
 
 SessionManager::~SessionManager()
@@ -213,7 +210,7 @@ SessionManager::~SessionManager()
                 sqlite3_bind_blob(stmt, 1, stateBuffer.data(), static_cast<int>(stateBuffer.size()), SQLITE_TRANSIENT);
             });
     }
-    catch (SQLiteException)
+    catch (SQLiteException&)
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to save session params";
     }
@@ -257,7 +254,7 @@ SessionManager::~SessionManager()
 
         for (lt::alert* a : alerts)
         {
-            lt::torrent_paused_alert* tp = lt::alert_cast<lt::torrent_paused_alert>(a);
+            auto* tp = lt::alert_cast<lt::torrent_paused_alert>(a);
 
             if (tp)
             {
@@ -272,7 +269,7 @@ SessionManager::~SessionManager()
                 continue;
             }
 
-            lt::save_resume_data_alert* rd = lt::alert_cast<lt::save_resume_data_alert>(a);
+            auto* rd = lt::alert_cast<lt::save_resume_data_alert>(a);
             if (!rd) { continue; }
             --num_outstanding_resume;
 
@@ -321,7 +318,7 @@ bool SessionManager::FindTorrent(lt::info_hash_t const& hash, lt::torrent_status
     return true;
 }
 
-void SessionManager::ForEachTorrent(std::function<bool(libtorrent::torrent_status const& ts)> const& iteree)
+void SessionManager::ForEachTorrent(std::function<bool(lt::torrent_status const& ts)> const& iteree)
 {
     Scope s("SessionManager::ForEachTorrent");
 
@@ -345,8 +342,14 @@ void SessionManager::RemoveTorrent(lt::info_hash_t const& hash, bool remove_file
 {
     Scope s("SessionManager::RemoveTorrent");
 
-    m_session->remove_torrent(
-        m_torrents.at(hash).handle);
+    lt::remove_flags_t flags = {};
+
+    if (remove_files)
+    {
+        flags = lt::session::delete_files;
+    }
+
+    m_session->remove_torrent(m_torrents.at(hash).handle, flags);
 }
 
 std::shared_ptr<void> SessionManager::Subscribe(std::function<void(nlohmann::json&)> sub)
@@ -378,7 +381,7 @@ void SessionManager::Broadcast(json& j)
 
     auto tmp = m_subscribers;
 
-    for (auto pf : tmp)
+    for (auto& pf : tmp)
     {
         if (auto s = pf.lock())
         {
@@ -499,7 +502,7 @@ void SessionManager::ReadAlerts()
         {
             Scope s("SessionManager::ReadAlerts::add_torrent_alert");
 
-            lt::add_torrent_alert* ata = lt::alert_cast<lt::add_torrent_alert>(alert);
+            auto* ata = lt::alert_cast<lt::add_torrent_alert>(alert);
 
             if (ata->error)
             {
@@ -507,7 +510,7 @@ void SessionManager::ReadAlerts()
                 return;
             }
 
-            add_params* extra = ata->params.userdata.get<add_params>();
+            auto* extra = ata->params.userdata.get<add_params>();
 
             if (extra == nullptr)
             {
@@ -538,7 +541,7 @@ void SessionManager::ReadAlerts()
 
                         if (ata->params.ti)
                         {
-                            lt::create_torrent ct(*ata->params.ti.get());
+                            lt::create_torrent ct(*ata->params.ti);
                             std::vector<char> buffer;
                             lt::bencode(std::back_inserter(buffer), ct.generate());
 
@@ -590,9 +593,9 @@ void SessionManager::ReadAlerts()
         {
             Scope s("SessionManager::ReadAlerts::metadata_received_alert");
 
-            lt::metadata_received_alert* mra = lt::alert_cast<lt::metadata_received_alert>(alert);
+            auto* mra = lt::alert_cast<lt::metadata_received_alert>(alert);
 
-            lt::create_torrent ct(*mra->handle.torrent_file().get());
+            lt::create_torrent ct(*mra->handle.torrent_file());
             std::vector<char> buffer;
             lt::bencode(std::back_inserter(buffer), ct.generate());
 
@@ -625,7 +628,7 @@ void SessionManager::ReadAlerts()
         }
         case lt::session_stats_alert::alert_type:
         {
-            lt::session_stats_alert* ssa = lt::alert_cast<lt::session_stats_alert>(alert);
+            auto* ssa = lt::alert_cast<lt::session_stats_alert>(alert);
             auto counters = ssa->counters();
 
             json j;
@@ -643,7 +646,7 @@ void SessionManager::ReadAlerts()
         }
         case lt::state_update_alert::alert_type:
         {
-            lt::state_update_alert* sua = lt::alert_cast<lt::state_update_alert>(alert);
+            auto* sua = lt::alert_cast<lt::state_update_alert>(alert);
 
             json j;
             j["type"] = "torrent.updated";
@@ -655,7 +658,7 @@ void SessionManager::ReadAlerts()
                 j["torrents"][to_str(status.info_hashes)] = status;
             }
 
-            if (sua->status.size() > 0)
+            if (!sua->status.empty())
             {
                 Broadcast(j);
             }
@@ -666,7 +669,7 @@ void SessionManager::ReadAlerts()
         {
             Scope s("SessionManager::ReadAlerts::torrent_removed_alert");
 
-            lt::torrent_removed_alert* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
+            auto* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
             std::string hash = to_str(tra->info_hashes);
 
             m_torrents.erase(tra->info_hashes);
@@ -707,6 +710,5 @@ void SessionManager::PostUpdates(boost::system::error_code ec)
     m_session->post_torrent_updates();
 
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
-    m_timer.async_wait(
-        std::bind(&SessionManager::PostUpdates, this, std::placeholders::_1));
+    m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
 }

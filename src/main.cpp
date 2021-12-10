@@ -3,7 +3,6 @@
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/log/trivial.hpp>
-#include <libtorrent/session.hpp>
 #include <sqlite3.h>
 
 #include "database.hpp"
@@ -60,7 +59,7 @@ using pt::Server::RPC::TorrentsPauseCommand;
 using pt::Server::RPC::TorrentsResumeCommand;
 using pt::Server::SessionManager;
 
-void Run(sqlite3* db, std::shared_ptr<Options> options)
+void Run(sqlite3* db, std::shared_ptr<Options> const& options)
 {
     boost::asio::io_context io;
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);

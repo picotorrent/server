@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <libtorrent/fwd.hpp>
+#include <libtorrent/session.hpp>
 #include <nlohmann/json.hpp>
 #include <sqlite3.h>
 
@@ -24,9 +24,9 @@ namespace pt::Server
         void ReloadSettings();
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false);
         std::shared_ptr<void> Subscribe(std::function<void(nlohmann::json&)>);
+        SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);
 
     private:
-        SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);
 
         void Broadcast(nlohmann::json&);
         void LoadTorrents();

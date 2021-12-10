@@ -1,15 +1,13 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+
 cmake_policy(SET CMP0092 NEW) # don't add /W3 as default
-cmake_policy(SET CMP0115 OLD) # Source file extensions must be explicit.
 
 set(VCPKG_OVERLAY_PORTS    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg-overlays/ports)
 set(CMAKE_TOOLCHAIN_FILE   ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(PicoTorrentServer)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Boost                      REQUIRED COMPONENTS log program_options system)
 find_package(Catch2              CONFIG REQUIRED)
@@ -21,56 +19,49 @@ add_library(
     PicoTorrentCore
     STATIC
 
-    src/database
-    src/log
-    src/options
-    src/sessionmanager
+    src/database.cpp
+    src/log.cpp
+    src/options.cpp
+    src/sessionmanager.cpp
 
     # data
-    src/data/migrations/0001_initialsetup
-    src/data/statement
-    src/data/transaction
-    src/data/models/listeninterface
-    src/data/models/profile
-    src/data/models/proxy
-    src/data/models/settingspack
-    src/data/models/settingspacknames
+    src/data/migrations/0001_initialsetup.cpp
+    src/data/statement.cpp
+    src/data/transaction.cpp
+    src/data/models/listeninterface.cpp
+    src/data/models/profile.cpp
+    src/data/models/proxy.cpp
+    src/data/models/settingspack.cpp
+    src/data/models/settingspacknames.cpp
 
     # http
-    src/http/httplistener
-    src/http/httpsession
-    src/http/httpsession_handlejsonrpc
-    src/http/websocketsession
+    src/http/httplistener.cpp
+    src/http/httpsession.cpp
+    src/http/httpsession_handlejsonrpc.cpp
+    src/http/websocketsession.cpp
 
     # rpc
-    src/rpc/configget
-    src/rpc/configset
-    src/rpc/listeninterfacescreate
-    src/rpc/listeninterfacesgetall
-    src/rpc/listeninterfacesremove
-    src/rpc/profilesgetactive
-    src/rpc/profilesgetall
-    src/rpc/profilesupdate
-    src/rpc/proxycreate
-    src/rpc/proxygetall
-    src/rpc/sessionaddmagnetlink
-    src/rpc/sessionaddtorrent
-    src/rpc/sessionremovetorrent
-    src/rpc/settingspackcreate
-    src/rpc/settingspackgetbyid
-    src/rpc/settingspackupdate
-    src/rpc/settingspacklist
-    src/rpc/torrentspause
-    src/rpc/torrentsresume
+    src/rpc/configget.cpp
+    src/rpc/configset.cpp
+    src/rpc/listeninterfacescreate.cpp
+    src/rpc/listeninterfacesgetall.cpp
+    src/rpc/listeninterfacesremove.cpp
+    src/rpc/profilesgetactive.cpp
+    src/rpc/profilesgetall.cpp
+    src/rpc/profilesupdate.cpp
+    src/rpc/proxycreate.cpp
+    src/rpc/proxygetall.cpp
+    src/rpc/sessionaddmagnetlink.cpp
+    src/rpc/sessionaddtorrent.cpp
+    src/rpc/sessionremovetorrent.cpp
+    src/rpc/settingspackcreate.cpp
+    src/rpc/settingspackgetbyid.cpp
+    src/rpc/settingspackupdate.cpp
+    src/rpc/settingspacklist.cpp
+    src/rpc/torrentspause.cpp
+    src/rpc/torrentsresume.cpp
 )
 
-target_compile_definitions(
-    PicoTorrentCore
-    PRIVATE
-    -DTORRENT_NO_DEPRECATE
-    -DTORRENT_USE_LIBCRYPTO
-    -DTORRENT_USE_OPENSSL
-)
 
 target_link_libraries(
     PicoTorrentCore
@@ -84,7 +75,7 @@ target_link_libraries(
 
 add_executable(
     PicoTorrentServer
-    src/main
+    src/main.cpp
 )
 
 target_link_libraries(
@@ -94,8 +85,8 @@ target_link_libraries(
 
 add_executable(
     PicoTorrentTests
-    tests/main
-    tests/data/models
+    tests/main.cpp
+    tests/data/models.cpp
 )
 
 target_link_libraries(
