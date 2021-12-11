@@ -1,5 +1,3 @@
-#include <filesystem>
-
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/log/trivial.hpp>
@@ -30,6 +28,9 @@
 #include "rpc/settingspackupdate.hpp"
 #include "rpc/torrentspause.hpp"
 #include "rpc/torrentsresume.hpp"
+
+#include "tsdb/influxdb.hpp"
+#include "tsdb/timeseriesdatabase.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
@@ -69,7 +70,22 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
             io.stop();
         });
 
-    auto sm = SessionManager::Load(io, db);
+    std::unique_ptr<pt::Server::TSDB::TimeSeriesDatabase> tsdb = nullptr;
+
+    if (options->IsValidInfluxDbConfig())
+    {
+        BOOST_LOG_TRIVIAL(info) << "InfluxDb configuration seems legit. Configuring reporter...";
+
+        tsdb = std::make_unique<pt::Server::TSDB::InfluxDb>(
+            io,
+            options->InfluxDbHost().value(),
+            options->InfluxDbPort().value(),
+            options->InfluxDbOrganization().value(),
+            options->InfluxDbBucket().value(),
+            options->InfluxDbToken().value());
+    }
+
+    auto sm = SessionManager::Load(io, db, std::move(tsdb));
     auto http = std::make_shared<HttpListener>(
         io,
         boost::asio::ip::tcp::endpoint

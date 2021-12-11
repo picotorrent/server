@@ -19,6 +19,7 @@
 #include "data/statement.hpp"
 #include "json/infohash.hpp"
 #include "json/torrentstatus.hpp"
+#include "tsdb/influxdb.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
@@ -40,8 +41,8 @@ static std::string to_str(lt::info_hash_t hash)
 
 struct Scope
 {
-    explicit Scope(std::string const& name)
-        : m_name(name)
+    explicit Scope(std::string name)
+        : m_name(std::move(name))
     {
         BOOST_LOG_TRIVIAL(debug) << "> " << m_name;
     }
@@ -123,7 +124,7 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
     return pack;
 }
 
-std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db)
+std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
@@ -159,20 +160,22 @@ std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io
         new SessionManager(
                 io,
                 db,
-                std::make_unique<lt::session>(params)));
+                std::make_unique<lt::session>(params),
+                std::move(tsdb)));
+
     sm->LoadTorrents();
 
     return std::move(sm);
 }
 
-SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session)
+SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
     : m_io(io),
     m_db(db),
     m_session(std::move(session)),
     m_torrents(),
     m_timer(io),
-    m_reportingTimer(io),
-    m_stats(lt::session_stats_metrics())
+    m_stats(lt::session_stats_metrics()),
+    m_tsdb(std::move(tsdb))
 {
     Scope s("SessionManager::SessionManager");
 
@@ -185,9 +188,6 @@ SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::un
     boost::system::error_code ec;
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
     m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
-
-    m_reportingTimer.expires_from_now(boost::posix_time::seconds(5));
-    m_reportingTimer.async_wait([this](auto && PH1) { ReportStats(std::forward<decltype(PH1)>(PH1)); });
 }
 
 SessionManager::~SessionManager()
@@ -639,20 +639,23 @@ void SessionManager::ReadAlerts()
             j["type"] = "session.stats";
             j["stats"] = json::object();
 
-            SessionStatsItem ssi;
-            ssi.timestamp = ssa->timestamp();
+            std::map<std::string, int64_t> tsdata;
 
             for (auto const& stats : m_stats)
             {
                 j["stats"][stats.name] = counters[stats.value_index];
-                ssi.counters.insert({ stats.name, counters[stats.value_index] });
+                tsdata.insert({ stats.name, counters[stats.value_index] });
+            }
+
+            if (m_tsdb)
+            {
+                m_tsdb->WriteMetrics(
+                    tsdata,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()));
             }
 
             Broadcast(j);
-
-            // If stats reporting is enabled, add this to a queue of items to be reported
-
-            m_statsItems.push_back(ssi);
 
             break;
         }
@@ -723,58 +726,4 @@ void SessionManager::PostUpdates(boost::system::error_code ec)
 
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
     m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
-}
-
-#include <boost/beast.hpp>
-#include <regex>
-
-void SessionManager::ReportStats(boost::system::error_code ec)
-{
-    if (ec)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Error in reporting timer: " << ec;
-        return;
-    }
-
-    std::stringstream measurements;
-
-    for (auto const& item : m_statsItems)
-    {
-        measurements << "session ";
-
-        for (auto const& metric : item.counters)
-        {
-            measurements << metric.first << "=" << metric.second << ",";
-        }
-
-        measurements << "f_f=0 ";
-        measurements << lt::duration_cast<std::chrono::nanoseconds>(item.timestamp.time_since_epoch()).count() << "\n";
-    }
-
-    boost::asio::ip::tcp::resolver r(m_io);
-    boost::beast::tcp_stream stream(m_io);
-
-    auto const results = r.resolve("localhost", "8086");
-    stream.connect(results);
-
-    boost::beast::http::request<boost::beast::http::string_body> req{boost::beast::http::verb::post, "/api/v2/write?bucket=picotorrent&org=picotorrent&precision=ns", 11};
-    req.set(boost::beast::http::field::host, "localhost");
-    req.set("Authorization", "Token zmIwRc-q0_Kz-jvezXFNZLTH2gPFc52bYn-_PPErK79t5ntu1QyFRKIMPYBSQmqiC0_yVrveZXg2fB1aA9dbLg==");
-    req.set("Content-Length", std::to_string(measurements.str().size()));
-    req.set("Content-Type", "text/plain; charset=utf-8");
-    req.set("Accept", "application/json");
-    req.body() = measurements.str();
-    boost::beast::http::write(stream, req);
-
-    // read response
-    boost::beast::flat_buffer buffer;
-    boost::beast::http::response<boost::beast::http::dynamic_body> res;
-    boost::beast::http::read(stream, buffer, res);
-
-    stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-
-    m_statsItems.clear();
-
-    m_reportingTimer.expires_from_now(boost::posix_time::seconds(5), ec);
-    m_reportingTimer.async_wait([this](auto && PH1) { ReportStats(std::forward<decltype(PH1)>(PH1)); });
 }
