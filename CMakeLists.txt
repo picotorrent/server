@@ -61,6 +61,10 @@ add_library(
     src/rpc/settingspacklist.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
+
+    # tsdb
+    src/tsdb/influxdb.cpp
+    src/tsdb/influxdb.hpp
 )
 
 

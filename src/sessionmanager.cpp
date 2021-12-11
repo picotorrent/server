@@ -19,6 +19,7 @@
 #include "data/statement.hpp"
 #include "json/infohash.hpp"
 #include "json/torrentstatus.hpp"
+#include "tsdb/influxdb.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
@@ -40,8 +41,8 @@ static std::string to_str(lt::info_hash_t hash)
 
 struct Scope
 {
-    explicit Scope(std::string const& name)
-        : m_name(name)
+    explicit Scope(std::string name)
+        : m_name(std::move(name))
     {
         BOOST_LOG_TRIVIAL(debug) << "> " << m_name;
     }
@@ -123,7 +124,7 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
     return pack;
 }
 
-std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db)
+std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
@@ -159,19 +160,22 @@ std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io
         new SessionManager(
                 io,
                 db,
-                std::make_unique<lt::session>(params)));
+                std::make_unique<lt::session>(params),
+                std::move(tsdb)));
+
     sm->LoadTorrents();
 
     return std::move(sm);
 }
 
-SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session)
+SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
     : m_io(io),
     m_db(db),
     m_session(std::move(session)),
     m_torrents(),
     m_timer(io),
-    m_stats(lt::session_stats_metrics())
+    m_stats(lt::session_stats_metrics()),
+    m_tsdb(std::move(tsdb))
 {
     Scope s("SessionManager::SessionManager");
 
@@ -635,9 +639,20 @@ void SessionManager::ReadAlerts()
             j["type"] = "session.stats";
             j["stats"] = json::object();
 
+            std::map<std::string, int64_t> tsdata;
+
             for (auto const& stats : m_stats)
             {
                 j["stats"][stats.name] = counters[stats.value_index];
+                tsdata.insert({ stats.name, counters[stats.value_index] });
+            }
+
+            if (m_tsdb)
+            {
+                m_tsdb->WriteMetrics(
+                    tsdata,
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()));
             }
 
             Broadcast(j);
