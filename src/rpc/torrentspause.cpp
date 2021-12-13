@@ -17,15 +17,15 @@ using pt::Server::RPC::TorrentsPauseCommand;
 using pt::Server::SessionManager;
 
 TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<SessionManager> session)
-    : m_session(session)
+    : m_session(std::move(session))
 {
 }
 
-json TorrentsPauseCommand::Execute(json& j)
+json TorrentsPauseCommand::Execute(const json& j)
 {
     if (j.is_array())
     {
-        for (lt::info_hash_t const& hash : j)
+        for (lt::info_hash_t const& hash : j.get<std::vector<lt::info_hash_t>>())
         {
             lt::torrent_status status;
 
@@ -45,5 +45,5 @@ json TorrentsPauseCommand::Execute(json& j)
         }
     }
 
-    return Ok();
+    return Error(1, "'params' not a string or array of strings");
 }

@@ -1,6 +1,4 @@
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
-#include <catch2/catch.hpp>
+#include <gtest/gtest.h>
 #include <sqlite3.h>
 
 #include "../../src/database.hpp"
@@ -9,34 +7,34 @@
 using pt::Server::Database;
 using pt::Server::Data::Models::ListenInterface;
 
-void DisableLoggingOutput()
+class ListenInterfaceTests : public testing::Test
 {
-    boost::log::core::get()->set_filter(boost::log::trivial::severity > boost::log::trivial::fatal);
-}
+protected:
+    void SetUp() override
+    {
+        sqlite3_open(":memory:", &db);
+        EXPECT_TRUE(pt::Server::Database::Migrate(db));
+    }
 
-TEST_CASE("ListenInterface")
-{
-    DisableLoggingOutput();
+    void TearDown() override
+    {
+        sqlite3_close(db);
+    }
 
     sqlite3* db;
-    sqlite3_open(":memory:", &db);
+};
 
-    REQUIRE(pt::Server::Database::Migrate(db));
+TEST_F(ListenInterfaceTests, Create)
+{
+    ListenInterface::Create(db, "127.0.0.1", 6881, true, true, true);
+    auto all = ListenInterface::GetAll(db);
 
-    SECTION("Create")
-    {
-        ListenInterface::Create(db, "127.0.0.1", 6881, true, true, true);
-        auto all = ListenInterface::GetAll(db);
+    EXPECT_EQ(all.back()->Host(), "127.0.0.1");
+}
 
-        REQUIRE(all.back()->Host() == "127.0.0.1");
-    }
-
-    SECTION("GetAll")
-    {
-        auto all = ListenInterface::GetAll(db);
-        REQUIRE(all[0]->Host() == "0.0.0.0");
-        REQUIRE(all[1]->Host() == "[::]");
-    }
-
-    sqlite3_close(db);
+TEST_F(ListenInterfaceTests, GetAll)
+{
+    auto all = ListenInterface::GetAll(db);
+    EXPECT_EQ(all[0]->Host(), "0.0.0.0");
+    EXPECT_EQ(all[1]->Host(), "[::]");
 }

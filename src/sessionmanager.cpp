@@ -299,6 +299,47 @@ SessionManager::~SessionManager()
     BOOST_LOG_TRIVIAL(info) << "Session state saved";
 }
 
+class TorrentHandleActor : public pt::Server::ITorrentHandleActor
+{
+public:
+    explicit TorrentHandleActor(lt::torrent_status& status)
+        : m_status(status)
+    {
+    }
+
+    virtual ~TorrentHandleActor() {}
+
+    bool IsValid() override
+    {
+        return m_status.handle.is_valid();
+    }
+
+    void Pause() override
+    {
+        m_status.handle.pause();
+    }
+
+    void Resume() override
+    {
+        m_status.handle.resume();
+    }
+
+private:
+    lt::torrent_status m_status;
+};
+
+std::shared_ptr<pt::Server::ITorrentHandleActor> SessionManager::Find(const lt::info_hash_t& hash)
+{
+    auto status = m_torrents.find(hash);
+
+    if (status == m_torrents.end())
+    {
+        return nullptr;
+    }
+
+    return std::make_shared<TorrentHandleActor>(status->second);
+}
+
 lt::info_hash_t SessionManager::AddTorrent(lt::add_torrent_params& params)
 {
     Scope s("SessionManager::AddTorrent");

@@ -13,7 +13,7 @@ namespace pt::Server::RPC
     {
     public:
         TorrentsPauseCommand(std::shared_ptr<SessionManager>);
-        nlohmann::json Execute(nlohmann::json&) override;
+        nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
         std::shared_ptr<SessionManager> m_session;

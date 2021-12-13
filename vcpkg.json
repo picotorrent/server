@@ -8,6 +8,7 @@
     "boost-program-options",
     "boost-system",
     "catch2",
+    "gtest",
     "libtorrent",
     "nlohmann-json",
     "sqlite3"

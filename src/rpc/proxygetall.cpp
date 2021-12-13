@@ -13,7 +13,7 @@ ProxyGetAllCommand::ProxyGetAllCommand(sqlite3* db)
 {
 }
 
-json ProxyGetAllCommand::Execute(json& params)
+json ProxyGetAllCommand::Execute(const json& params)
 {
     return Ok(Proxy::GetAll(m_db));
 }

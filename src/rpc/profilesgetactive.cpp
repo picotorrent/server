@@ -14,7 +14,7 @@ ProfilesGetActiveCommand::ProfilesGetActiveCommand(sqlite3* db)
 {
 }
 
-json ProfilesGetActiveCommand::Execute(json& params)
+json ProfilesGetActiveCommand::Execute(const json& params)
 {
     return Ok(Profile::GetActive(m_db));
 }

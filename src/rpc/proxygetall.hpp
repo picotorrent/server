@@ -10,7 +10,7 @@ namespace pt::Server::RPC
     {
     public:
         ProxyGetAllCommand(sqlite3* db);
-        nlohmann::json Execute(nlohmann::json&) override;
+        nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
         sqlite3* m_db;

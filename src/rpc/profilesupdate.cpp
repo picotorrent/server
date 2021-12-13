@@ -17,45 +17,45 @@ ProfilesUpdateCommand::ProfilesUpdateCommand(sqlite3* db, std::shared_ptr<Sessio
 {
 }
 
-json ProfilesUpdateCommand::Execute(json& params)
+json ProfilesUpdateCommand::Execute(const json& params)
 {
-    if (params.is_object())
+    if (!params.is_object())
     {
-        if (!params.contains("id"))
-        {
-            return Error(1, "missing 'id' key");
-        }
-
-        auto profile = Profile::GetById(m_db, params["id"].get<int>());
-
-        if (profile == nullptr)
-        {
-            return Error(1, "No profile found with given id");
-        }
-
-        if (params.contains("proxy_id"))
-        {
-            if (params["proxy_id"].is_null())
-            {
-                profile->ProxyId(std::nullopt);
-            }
-            else
-            {
-                profile->ProxyId(params["proxy_id"].get<int>());
-            }
-        }
-
-        Profile::Update(
-            m_db,
-            profile);
-
-        if (profile->IsActive())
-        {
-            m_session->ReloadSettings();
-        }
-
-        return Ok(true);
+        return Error(1, "params not an object");
     }
 
-    return Error(1, "params not an object");
+    if (!params.contains("id"))
+    {
+        return Error(1, "missing 'id' key");
+    }
+
+    auto profile = Profile::GetById(m_db, params["id"].get<int>());
+
+    if (profile == nullptr)
+    {
+        return Error(1, "No profile found with given id");
+    }
+
+    if (params.contains("proxy_id"))
+    {
+        if (params["proxy_id"].is_null())
+        {
+            profile->ProxyId(std::nullopt);
+        }
+        else
+        {
+            profile->ProxyId(params["proxy_id"].get<int>());
+        }
+    }
+
+    Profile::Update(
+        m_db,
+        profile);
+
+    if (profile->IsActive())
+    {
+        m_session->ReloadSettings();
+    }
+
+    return Ok(true);
 }

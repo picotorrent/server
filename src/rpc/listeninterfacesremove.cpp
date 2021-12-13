@@ -15,7 +15,7 @@ ListenInterfacesRemoveCommand::ListenInterfacesRemoveCommand(sqlite3* db, std::s
 {
 }
 
-json ListenInterfacesRemoveCommand::Execute(json& params)
+json ListenInterfacesRemoveCommand::Execute(const json& params)
 {
     if (params.is_array())
     {

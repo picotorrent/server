@@ -12,7 +12,7 @@ ConfigGetCommand::ConfigGetCommand(sqlite3* db)
 {
 }
 
-json ConfigGetCommand::Execute(json& params)
+json ConfigGetCommand::Execute(const json& params)
 {
     if (params.is_array())
     {

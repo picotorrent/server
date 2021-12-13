@@ -18,7 +18,7 @@ SettingsPackCreateCommand::SettingsPackCreateCommand(sqlite3* db)
 {
 }
 
-json SettingsPackCreateCommand::Execute(json& params)
+json SettingsPackCreateCommand::Execute(const json& params)
 {
     return Error(-1, "not implemented");
 }

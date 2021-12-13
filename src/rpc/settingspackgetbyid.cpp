@@ -18,7 +18,7 @@ SettingsPackGetByIdCommand::SettingsPackGetByIdCommand(sqlite3* db)
 {
 }
 
-json SettingsPackGetByIdCommand::Execute(json& params)
+json SettingsPackGetByIdCommand::Execute(const json& params)
 {
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(m_db, "SELECT sp.id,sp.description,sp.name, * FROM settings_pack sp WHERE id = $1", -1, &stmt, nullptr);
