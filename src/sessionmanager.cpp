@@ -598,8 +598,17 @@ void SessionManager::ReadAlerts()
                         }
                     });
 
-                if (!ata->params.ti)
+                if (ata->params.ti)
                 {
+                    // If we have a torrent file, we save resume data here
+                    // to get the save path stored.
+
+                    ata->handle.save_resume_data();
+                }
+                else
+                {
+                    // No torrent file. Store the magnet uri with data in the database.
+
                     BOOST_LOG_TRIVIAL(debug) << "... also saving magnet uri in database";
 
                     Statement::ForEach(
@@ -668,6 +677,26 @@ void SessionManager::ReadAlerts()
                 });
 
             BOOST_LOG_TRIVIAL(info) << "Metadata saved for torrent " << to_str(mra->handle.info_hashes());
+
+            break;
+        }
+        case lt::save_resume_data_alert::alert_type:
+        {
+            auto* srda = lt::alert_cast<lt::save_resume_data_alert>(alert);
+
+            std::vector<char> buffer = lt::write_resume_data_buf(srda->params);
+            std::string info_hash = to_str(srda->handle.info_hashes());
+
+            Statement::ForEach(
+                m_db,
+                "UPDATE torrents SET queue_position = $1, resume_data = $2 WHERE info_hash = $3",
+                [](auto&&){},
+                [&](sqlite3_stmt* stmt)
+                {
+                    sqlite3_bind_int(stmt, 1, static_cast<int>(srda->handle.status().queue_position));
+                    sqlite3_bind_blob(stmt, 2, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
+                    sqlite3_bind_text(stmt, 3, info_hash.c_str(), -1, SQLITE_TRANSIENT);
+                });
 
             break;
         }
