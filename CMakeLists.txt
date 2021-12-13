@@ -92,6 +92,7 @@ add_executable(
     PicoTorrentTests
     tests/main.cpp
     tests/data/models.cpp
+    tests/rpc/torrentspause.cpp
     tests/rpc/torrentsresume.cpp
 )
 

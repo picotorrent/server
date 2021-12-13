@@ -12,12 +12,12 @@ namespace libtorrent
 {
     static void from_json(const json& j, libtorrent::info_hash_t& ih)
     {
-        lt::sha1_hash sha;
-        lt::aux::from_hex(
-            { j.get<std::string>().c_str(), 40 },
-            sha.data());
+        auto str = j.get<std::string>();
 
-        ih = lt::info_hash_t(sha);
+        if (str.size() == 40)
+        {
+            ih = lt::info_hash_t(lt::sha1_hash(str));
+        }
     }
 
     static void to_json(json& j, const libtorrent::info_hash_t& ih)

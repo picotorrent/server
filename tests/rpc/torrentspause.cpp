@@ -6,24 +6,24 @@
 
 #include "../mocks.hpp"
 #include "../../src/json/infohash.hpp"
-#include "../../src/rpc/torrentsresume.hpp"
+#include "../../src/rpc/torrentspause.hpp"
 
-using pt::Server::RPC::TorrentsResumeCommand;
+using pt::Server::RPC::TorrentsPauseCommand;
 
-class TorrentsResumeCommandTests : public ::testing::Test
+class TorrentsPauseCommandTests : public ::testing::Test
 {
 protected:
     void SetUp() override
     {
         finder = std::make_shared<MockTorrentHandleFinder>();
-        cmd = std::make_unique<TorrentsResumeCommand>(finder);
+        cmd = std::make_unique<TorrentsPauseCommand>(finder);
     }
 
-    std::unique_ptr<TorrentsResumeCommand> cmd;
+    std::unique_ptr<TorrentsPauseCommand> cmd;
     std::shared_ptr<MockTorrentHandleFinder> finder;
 };
 
-TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
+TEST_F(TorrentsPauseCommandTests, Execute_WithInvalidParams_ReturnsError)
 {
     auto result = cmd->Execute(1);
 
@@ -31,7 +31,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
     EXPECT_EQ(result["error"]["code"], 1);
 }
 
-TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
+TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHash_PausesTorrent)
 {
     lt::info_hash_t ih(lt::sha1_hash("0101010101010101010101010101010101010101"));
 
@@ -45,7 +45,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
         .Times(1)
         .WillOnce(::testing::Return(true));
 
-    EXPECT_CALL(*handle, Resume())
+    EXPECT_CALL(*handle, Pause())
         .Times(1);
 
     auto result = cmd->Execute("0101010101010101010101010101010101010101");
@@ -53,7 +53,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
     EXPECT_TRUE(result.is_object());
 }
 
-TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrents)
+TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHashArray_PausesTorrents)
 {
     struct F
     {
@@ -78,7 +78,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
                 .Times(1)
                 .WillOnce(::testing::Return(true));
 
-        EXPECT_CALL(*itm.handle, Resume())
+        EXPECT_CALL(*itm.handle, Pause())
                 .Times(1);
     }
 
