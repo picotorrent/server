@@ -13,7 +13,7 @@ namespace pt::Server::RPC
     {
     public:
         SettingsPackUpdateCommand(sqlite3* db, std::shared_ptr<pt::Server::SessionManager> const& session);
-        nlohmann::json Execute(nlohmann::json&) override;
+        nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
         sqlite3* m_db;

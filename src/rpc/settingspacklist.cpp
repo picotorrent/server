@@ -18,7 +18,7 @@ SettingsPackList::SettingsPackList(sqlite3* db)
 {
 }
 
-json SettingsPackList::Execute(json& params)
+json SettingsPackList::Execute(const json& params)
 {
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(m_db, "SELECT id,name,description FROM settings_pack ORDER BY name ASC", -1, &stmt, nullptr);

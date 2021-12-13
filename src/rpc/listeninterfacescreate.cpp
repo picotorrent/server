@@ -17,7 +17,7 @@ ListenInterfacesCreateCommand::ListenInterfacesCreateCommand(sqlite3* db, std::s
 {
 }
 
-json ListenInterfacesCreateCommand::Execute(json& params)
+json ListenInterfacesCreateCommand::Execute(const json& params)
 {
     if (params.is_object())
     {

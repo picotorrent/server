@@ -11,7 +11,7 @@ project(PicoTorrentServer)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(Boost                      REQUIRED COMPONENTS log program_options system)
-find_package(Catch2              CONFIG REQUIRED)
+find_package(GTest               CONFIG REQUIRED)
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
@@ -92,9 +92,13 @@ add_executable(
     PicoTorrentTests
     tests/main.cpp
     tests/data/models.cpp
+    tests/rpc/torrentspause.cpp
+    tests/rpc/torrentsresume.cpp
 )
 
 target_link_libraries(
     PicoTorrentTests
+    PRIVATE
     PicoTorrentCore
+    GTest::gmock GTest::gtest GTest::gmock_main
 )

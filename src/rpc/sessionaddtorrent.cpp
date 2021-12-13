@@ -8,7 +8,7 @@
 #include "../json/infohash.hpp"
 #include "../sessionmanager.hpp"
 
-std::string Base64Decode(const std::string_view in)
+static std::string Base64Decode(const std::string_view in)
 {
     // table from '+' to 'z'
     const uint8_t lookup[] = {
@@ -43,11 +43,11 @@ using pt::Server::SessionManager;
 using pt::Server::RPC::SessionAddTorrentCommand;
 
 SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<SessionManager> session)
-    : m_session(session)
+    : m_session(std::move(session))
 {
 }
 
-json SessionAddTorrentCommand::Execute(json& j)
+json SessionAddTorrentCommand::Execute(const json& j)
 {
     if (!j.contains("data"))
     {
@@ -67,7 +67,7 @@ json SessionAddTorrentCommand::Execute(json& j)
 
     if (ec)
     {
-        BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec;
+        BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec.message();
         return Error(1, ec.message());
     }
 
@@ -75,9 +75,7 @@ json SessionAddTorrentCommand::Execute(json& j)
     p.save_path = j["save_path"].get<std::string>();
     p.ti = std::make_shared<lt::torrent_info>(node);
 
-    m_session->AddTorrent(p);
-
     return Ok({
-        { "info_hash", p.ti->info_hashes() }
+        { "info_hash", m_session->AddTorrent(p) }
     });
 }

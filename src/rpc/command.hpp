@@ -8,7 +8,7 @@ namespace pt::Server::RPC
     {
     public:
         virtual ~Command() {}
-        virtual nlohmann::json Execute(nlohmann::json&) = 0;
+        virtual nlohmann::json Execute(const nlohmann::json&) = 0;
 
         nlohmann::json Error(int code, std::string const& message, nlohmann::json data = {})
         {

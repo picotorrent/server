@@ -15,7 +15,7 @@ ProfilesGetAllCommand::ProfilesGetAllCommand(sqlite3* db)
 {
 }
 
-json ProfilesGetAllCommand::Execute(json& params)
+json ProfilesGetAllCommand::Execute(const json& params)
 {
     return Ok(Profile::GetAll(m_db));
 }

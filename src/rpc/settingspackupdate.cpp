@@ -19,7 +19,7 @@ SettingsPackUpdateCommand::SettingsPackUpdateCommand(
 {
 }
 
-json SettingsPackUpdateCommand::Execute(json& params)
+json SettingsPackUpdateCommand::Execute(const json& params)
 {
     Data::Transaction tx(m_db);
 

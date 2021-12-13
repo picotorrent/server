@@ -18,7 +18,7 @@ ProxyCreateCommand::ProxyCreateCommand(sqlite3* db, std::shared_ptr<SessionManag
 {
 }
 
-json ProxyCreateCommand::Execute(json& params)
+json ProxyCreateCommand::Execute(const json& params)
 {
     if (params.is_object())
     {

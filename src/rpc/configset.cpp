@@ -12,7 +12,7 @@ ConfigSetCommand::ConfigSetCommand(sqlite3* db)
 {
 }
 
-json ConfigSetCommand::Execute(json& params)
+json ConfigSetCommand::Execute(const json& params)
 {
     json result = json::object();
 

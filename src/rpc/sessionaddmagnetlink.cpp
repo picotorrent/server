@@ -4,6 +4,7 @@
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/magnet_uri.hpp>
 
+#include "../json/infohash.hpp"
 #include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
@@ -16,7 +17,7 @@ SessionAddMagnetLinkCommand::SessionAddMagnetLinkCommand(std::shared_ptr<Session
 {
 }
 
-json SessionAddMagnetLinkCommand::Execute(json& j)
+json SessionAddMagnetLinkCommand::Execute(const json& j)
 {
     if (!j.contains("magnet_uri"))
     {
@@ -35,14 +36,13 @@ json SessionAddMagnetLinkCommand::Execute(json& j)
 
     if (ec)
     {
+        BOOST_LOG_TRIVIAL(error) << "Failed to parse magnet uri: " << ec.message();
         return Error(1, ec.message());
     }
 
     p.save_path = j["save_path"].get<std::string>();
 
-    m_session->AddTorrent(p);
-
     return Ok({
-        { "info_hash", "asdf" }
+        { "info_hash", m_session->AddTorrent(p) }
     });
 }

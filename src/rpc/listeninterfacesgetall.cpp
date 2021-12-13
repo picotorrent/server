@@ -12,7 +12,7 @@ ListenInterfacesGetAllCommand::ListenInterfacesGetAllCommand(sqlite3* db)
 {
 }
 
-json ListenInterfacesGetAllCommand::Execute(json& params)
+json ListenInterfacesGetAllCommand::Execute(const json& params)
 {
     return Ok(ListenInterface::GetAll(m_db));
 }

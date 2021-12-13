@@ -14,36 +14,48 @@ namespace lt = libtorrent;
 
 using json = nlohmann::json;
 using pt::Server::RPC::TorrentsResumeCommand;
-using pt::Server::SessionManager;
+using pt::Server::ITorrentHandleFinder;
 
-TorrentsResumeCommand::TorrentsResumeCommand(std::shared_ptr<SessionManager> session)
-    : m_session(session)
+TorrentsResumeCommand::TorrentsResumeCommand(std::shared_ptr<ITorrentHandleFinder> finder)
+    : m_finder(std::move(finder))
 {
 }
 
-json TorrentsResumeCommand::Execute(json& j)
+json TorrentsResumeCommand::Execute(const json& j)
 {
+    auto resume = [this](const lt::info_hash_t& hash)
+    {
+        auto handle = m_finder->Find(hash);
+
+        if (handle == nullptr)
+        {
+            BOOST_LOG_TRIVIAL(warning) << "Failed to find torrent with info hash " << hash;
+            return;
+        }
+
+        if (!handle->IsValid())
+        {
+            BOOST_LOG_TRIVIAL(warning) << "Found torrent handle which is not valid";
+            return;
+        }
+
+        handle->Resume();
+    };
+
     if (j.is_array())
     {
-        for (lt::info_hash_t const& hash : j)
+        for (lt::info_hash_t const& hash : j.get<std::vector<lt::info_hash_t>>())
         {
-            lt::torrent_status status;
-
-            if (!m_session->FindTorrent(hash, status))
-            {
-                BOOST_LOG_TRIVIAL(warning) << "Failed to find torrent with info hash " << hash;
-                continue;
-            }
-
-            if (!status.handle.is_valid())
-            {
-                BOOST_LOG_TRIVIAL(warning) << "Found torrent handle which is not valid";
-                continue;
-            }
-
-            status.handle.resume();
+            resume(hash);
         }
+
+        return Ok();
+    }
+    else if (j.is_string())
+    {
+        resume(j.get<lt::info_hash_t>());
+        return Ok();
     }
 
-    return Ok();
+    return Error(1, "'params' not a string or array of strings");
 }
