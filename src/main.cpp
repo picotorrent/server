@@ -60,8 +60,10 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
             options->InfluxDbBucket().value(),
             options->InfluxDbToken().value());
     }
-    else
+    else if (options->PrometheusExporterEnabled())
     {
+        BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
+
         auto prometheus = std::make_shared<pt::Server::TSDB::Prometheus>();
         http->AddHandler("GET", "/metrics", prometheus);
         tsdb = prometheus;
