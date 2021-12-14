@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <sqlite3.h>
 
+#include "../helpers.hpp"
 #include "../mocks.hpp"
 #include "../../src/json/infohash.hpp"
 #include "../../src/rpc/torrentsresume.hpp"
@@ -33,11 +34,10 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
 
 TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
 {
-    lt::info_hash_t ih(lt::sha1_hash("0101010101010101010101010101010101010101"));
-
+    auto hash = pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924");
     auto handle = std::make_shared<MockTorrentHandleActor>();
 
-    EXPECT_CALL(*finder, Find(ih))
+    EXPECT_CALL(*finder, Find(hash))
         .Times(1)
         .WillOnce(::testing::Return(handle));
 
@@ -48,7 +48,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
     EXPECT_CALL(*handle, Resume())
         .Times(1);
 
-    auto result = cmd->Execute("0101010101010101010101010101010101010101");
+    auto result = cmd->Execute("7cf55428325617fdde910fe55b79ab72be937924");
 
     EXPECT_TRUE(result.is_object());
 }
@@ -62,9 +62,9 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
     };
 
     std::vector<F> items;
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0101010101010101010101010101010101010101")), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0202020202020202020202020202020202020202")), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0303030303030303030303030303030303030303")), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandleActor>() });
 
     auto handle = std::make_shared<MockTorrentHandleActor>();
 
@@ -83,7 +83,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
     }
 
     auto result = cmd->Execute(
-        { "0101010101010101010101010101010101010101",
+        { "7cf55428325617fdde910fe55b79ab72be937924",
           "0202020202020202020202020202020202020202",
           "0303030303030303030303030303030303030303" });
 

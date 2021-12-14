@@ -18,8 +18,12 @@ namespace pt::Server::RPC { class Command; }
 
 namespace pt::Server::Http
 {
+    class HttpRequestHandler;
+
     class HttpSession : public std::enable_shared_from_this<HttpSession>
     {
+        class DefaultContext;
+
         class Queue
         {
             enum
@@ -105,16 +109,12 @@ namespace pt::Server::Http
     public:
         HttpSession(
             boost::asio::ip::tcp::socket&& socket,
-            sqlite3* db,
-            std::shared_ptr<SessionManager> const& session,
-            std::shared_ptr<std::string const> const& docroot,
-            std::shared_ptr<std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>>> const& commands);
+            std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>  handlers,
+            std::shared_ptr<std::string const>  docroot);
 
         void Run();
 
     private:
-        void HandleJSONRPC(boost::beast::http::message<true, boost::beast::http::string_body, boost::beast::http::fields>&);
-
         void BeginRead();
         void EndRead(boost::beast::error_code ec, std::size_t bytes_transferred);
         void EndWrite(bool close, boost::beast::error_code ec, std::size_t bytes_transferred);
@@ -122,11 +122,9 @@ namespace pt::Server::Http
 
         boost::beast::tcp_stream m_stream;
         boost::beast::flat_buffer m_buffer;
-        sqlite3* m_db;
-        std::shared_ptr<SessionManager> m_session;
         std::shared_ptr<std::string const> m_docroot;
-        std::shared_ptr<std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>>> m_commands;
-        // std::map<std::string, std::shared_ptr<command>> m_commands;
+        std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
+
         Queue m_queue;
 
         // The parser is stored in an optional container so we can

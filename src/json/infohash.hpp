@@ -16,7 +16,9 @@ namespace libtorrent
 
         if (str.size() == 40)
         {
-            ih = lt::info_hash_t(lt::sha1_hash(str));
+            lt::sha1_hash hash;
+            lt::aux::from_hex({ str.c_str(), 40 }, hash.data());
+            ih = lt::info_hash_t(hash);
         }
     }
 

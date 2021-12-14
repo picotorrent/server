@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <sqlite3.h>
 
+#include "../helpers.hpp"
 #include "../mocks.hpp"
 #include "../../src/json/infohash.hpp"
 #include "../../src/rpc/torrentspause.hpp"
@@ -33,7 +34,7 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithInvalidParams_ReturnsError)
 
 TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHash_PausesTorrent)
 {
-    lt::info_hash_t ih(lt::sha1_hash("0101010101010101010101010101010101010101"));
+    lt::info_hash_t ih = pt::InfoHashFromString("0101010101010101010101010101010101010101");
 
     auto handle = std::make_shared<MockTorrentHandleActor>();
 
@@ -62,9 +63,9 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHashArray_PausesTorrents)
     };
 
     std::vector<F> items;
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0101010101010101010101010101010101010101")), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0202020202020202020202020202020202020202")), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ lt::info_hash_t(lt::sha1_hash("0303030303030303030303030303030303030303")), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0101010101010101010101010101010101010101"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandleActor>() });
 
     auto handle = std::make_shared<MockTorrentHandleActor>();
 

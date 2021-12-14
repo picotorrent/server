@@ -1,25 +1,21 @@
 #include "httplistener.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <utility>
 
 #include "httpsession.hpp"
-#include "../sessionmanager.hpp"
 
-using pt::Server::SessionManager;
 using pt::Server::Http::HttpListener;
+using pt::Server::Http::HttpRequestHandler;
 
 HttpListener::HttpListener(
     boost::asio::io_context& ioc,
-    boost::asio::ip::tcp::endpoint endpoint,
-    sqlite3* db,
-    std::shared_ptr<SessionManager> const& session,
-    std::shared_ptr<std::string const> const& docroot)
+    const boost::asio::ip::tcp::endpoint& endpoint,
+    std::shared_ptr<std::string const>  docroot)
     : m_io(ioc)
     , m_acceptor(boost::asio::make_strand(ioc))
-    , m_db(db)
-    , m_session(session)
-    , m_docroot(docroot)
-    , m_commands(std::make_shared<std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>>>())
+    , m_docroot(std::move(docroot))
+    , m_handlers(std::make_shared<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>())
 {
     m_acceptor.open(endpoint.protocol());
     m_acceptor.set_option(boost::asio::socket_base::reuse_address(true));
@@ -27,9 +23,12 @@ HttpListener::HttpListener(
     m_acceptor.listen(boost::asio::socket_base::max_listen_connections);
 }
 
-std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>>& HttpListener::Commands()
+void HttpListener::AddHandler(
+    const std::string& method,
+    const std::string& path,
+    const std::shared_ptr<HttpRequestHandler>& handler)
 {
-    return *m_commands;
+    m_handlers->insert({ { method, path }, handler });
 }
 
 void HttpListener::Run()
@@ -60,10 +59,8 @@ void HttpListener::EndAccept(boost::system::error_code ec, boost::asio::ip::tcp:
     {
         std::make_shared<HttpSession>(
             std::move(socket),
-            m_db,
-            m_session,
-            m_docroot,
-            m_commands)->Run();
+            m_handlers,
+            m_docroot)->Run();
     }
 
     BeginAccept();
