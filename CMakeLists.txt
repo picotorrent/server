@@ -38,8 +38,12 @@ add_library(
     # http
     src/http/httplistener.cpp
     src/http/httpsession.cpp
-    src/http/httpsession_handlejsonrpc.cpp
-    src/http/websocketsession.cpp
+
+    # http handlers
+    src/http/handlers/jsonrpchandler.cpp
+    src/http/handlers/jsonrpchandler.hpp
+    src/http/handlers/websockethandler.cpp
+    src/http/handlers/websockethandler.hpp
 
     # rpc
     src/rpc/configget.cpp
@@ -65,6 +69,8 @@ add_library(
     # tsdb
     src/tsdb/influxdb.cpp
     src/tsdb/influxdb.hpp
+    src/tsdb/prometheus.cpp
+    src/tsdb/prometheus.hpp
 )
 
 

@@ -19,11 +19,11 @@ json SessionRemoveTorrentCommand::Execute(const json& j)
 {
     if (j.is_array())
     {
-        for (lt::info_hash_t const& hash : j)
+        for (lt::info_hash_t const& hash : j.get<std::vector<lt::info_hash_t>>())
         {
             m_session->RemoveTorrent(hash);
         }
     }
 
-    return Ok(true);
+    return Ok();
 }

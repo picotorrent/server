@@ -19,6 +19,8 @@ namespace pt::Server
         uint16_t Port() { return m_port; }
         std::shared_ptr<std::string> WebRoot() { return m_webRoot; }
 
+        bool PrometheusExporterEnabled() { return m_prometheusEnabled; }
+
         // InfluxDb options
         std::optional<std::string> InfluxDbHost() { return m_influxHost; }
         std::optional<uint16_t> InfluxDbPort() { return m_influxPort; }
@@ -41,6 +43,8 @@ namespace pt::Server
         std::string m_host;
         uint16_t m_port;
         std::shared_ptr<std::string> m_webRoot;
+
+        bool m_prometheusEnabled;
 
         std::optional<std::string> m_influxHost;
         std::optional<uint16_t> m_influxPort;

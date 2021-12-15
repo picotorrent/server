@@ -2,30 +2,60 @@
 
 #include <filesystem>
 
+#include <memory>
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
+#include <utility>
 
+#include "httprequesthandler.hpp"
 #include "mimetype.hpp"
-#include "websocketsession.hpp"
 #include "../rpc/command.hpp"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
+using pt::Server::Http::HttpRequestHandler;
 using pt::Server::Http::HttpSession;
 using pt::Server::Http::MimeType;
 using pt::Server::SessionManager;
 
+using BasicHttpRequest = boost::beast::http::request<boost::beast::http::string_body>;
+
+class HttpSession::DefaultContext : public pt::Server::Http::HttpRequestHandler::Context
+{
+public:
+    explicit DefaultContext(std::shared_ptr<HttpSession> session, BasicHttpRequest request)
+        : m_session(std::move(session)),
+        m_req(std::move(request))
+    {
+    }
+
+    BasicHttpRequest& Request() override
+    {
+        return m_req;
+    }
+
+    boost::beast::tcp_stream& Stream() override
+    {
+        return m_session->m_stream;
+    }
+
+    void Write(boost::beast::http::response<boost::beast::http::string_body> res) override
+    {
+        m_session->m_queue(std::move(res));
+    }
+
+private:
+    std::shared_ptr<HttpSession> m_session;
+    BasicHttpRequest m_req;
+};
+
 HttpSession::HttpSession(
     boost::asio::ip::tcp::socket&& socket,
-    sqlite3* db,
-    std::shared_ptr<SessionManager> const& session,
-    std::shared_ptr<std::string const> const& docroot,
-    std::shared_ptr<std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>>> const& commands)
+    std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>  handlers,
+    std::shared_ptr<std::string const> docroot)
     : m_stream(std::move(socket))
-    , m_db(db)
-    , m_session(session)
-    , m_docroot(docroot)
-    , m_commands(commands)
+    , m_handlers(std::move(handlers))
+    , m_docroot(std::move(docroot))
     , m_queue(*this)
 {
 }
@@ -78,16 +108,20 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return;
     }
 
-    if (m_parser->get().target() == "/api/ws" && boost::beast::websocket::is_upgrade(m_parser->get()))
+    // Check for matching handler
+    auto req = m_parser->release();
+    auto method = req.method_string();
+    auto path = req.target();
+    auto handler = m_handlers->find({ method.to_string(), path.to_string() });
+
+    if (handler != m_handlers->end())
     {
-        std::make_shared<WebSocketSession>(
-            m_stream.release_socket(),
-            m_db,
-            m_session)->Run(m_parser->release());
+        handler->second->Execute(
+            std::make_shared<DefaultContext>(
+                shared_from_this(),
+                std::move(req)));
         return;
     }
-
-    auto req = m_parser->release();
 
     auto const bad_request = [&req](boost::beast::string_view why)
     {
@@ -122,65 +156,50 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return res;
     };
 
-    if (req.method() == http::verb::post
-        && req.target() == "/api/jsonrpc")
+    if (req.target().empty() ||
+        req.target()[0] != '/' ||
+        req.target().find("..") != boost::beast::string_view::npos)
     {
-        try
-        {
-            HandleJSONRPC(req);
-        }
-        catch(const std::exception& e)
-        {
-            m_queue(server_error(e.what()));
-        }
+        m_queue(bad_request("Illegal request-target"));
     }
     else
     {
-        if (req.target().empty() ||
-            req.target()[0] != '/' ||
-            req.target().find("..") != boost::beast::string_view::npos)
+        if (!m_docroot)
         {
-            m_queue(bad_request("Illegal request-target"));
+            BOOST_LOG_TRIVIAL(debug) << "No doc root set";
+            m_queue(not_found(req.target()));
         }
         else
         {
-            if (!m_docroot)
+            std::string path = fs::path(*m_docroot).concat(req.target().to_string());
+            if(req.target().back() == '/') { path.append("index.html"); }
+
+            boost::beast::error_code ec;
+            http::file_body::value_type body;
+            body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+
+            if(ec == boost::beast::errc::no_such_file_or_directory)
             {
-                BOOST_LOG_TRIVIAL(debug) << "No doc root set";
                 m_queue(not_found(req.target()));
+            }
+            else if (ec)
+            {
+                m_queue(server_error(ec.message()));
             }
             else
             {
-                std::string path = fs::path(*m_docroot).concat(req.target().to_string());
-                if(req.target().back() == '/') { path.append("index.html"); }
+                auto const size = body.size();
 
-                boost::beast::error_code ec;
-                http::file_body::value_type body;
-                body.open(path.c_str(), boost::beast::file_mode::scan, ec);
+                http::response<http::file_body> res{
+                    std::piecewise_construct,
+                    std::make_tuple(std::move(body)),
+                    std::make_tuple(http::status::ok, req.version())};
+                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+                res.set(http::field::content_type, MimeType(path));
+                res.content_length(size);
+                res.keep_alive(req.keep_alive());
 
-                if(ec == boost::beast::errc::no_such_file_or_directory)
-                {
-                    m_queue(not_found(req.target()));
-                }
-                else if (ec)
-                {
-                    m_queue(server_error(ec.message()));
-                }
-                else
-                {
-                    auto const size = body.size();
-
-                    http::response<http::file_body> res{
-                        std::piecewise_construct,
-                        std::make_tuple(std::move(body)),
-                        std::make_tuple(http::status::ok, req.version())};
-                    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(http::field::content_type, MimeType(path));
-                    res.content_length(size);
-                    res.keep_alive(req.keep_alive());
-
-                    m_queue(std::move(res));
-                }
+                m_queue(std::move(res));
             }
         }
     }

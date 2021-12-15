@@ -20,6 +20,8 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         ("influxdb-bucket", po::value<std::string>(), "set the InfluxDb bucket")
         ("influxdb-org", po::value<std::string>(), "set the InfluxDb organization")
         ("influxdb-token", po::value<std::string>(), "set the InfluxDb auth. token")
+        // Prometheus options
+        ("prometheus-exporter", "enable the Prometheus metrics exporter")
         ;
 
     po::variables_map vm;
@@ -79,6 +81,9 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     if (vm.count("influxdb-bucket")) { opts->m_influxBucket = vm["influxdb-bucket"].as<std::string>(); }
     if (vm.count("influxdb-org")) { opts->m_influxOrg = vm["influxdb-org"].as<std::string>(); }
     if (vm.count("influxdb-token")) { opts->m_influxToken = vm["influxdb-token"].as<std::string>(); }
+
+    if (std::getenv("PICOTORRENT_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
+    if (vm.count("prometheus-exporter")) { opts->m_prometheusEnabled = true; }
 
     return opts;
 }

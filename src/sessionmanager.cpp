@@ -124,7 +124,7 @@ static lt::settings_pack GetSettingsPack(sqlite3* db)
     return pack;
 }
 
-std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
+std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io, sqlite3* db, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
@@ -168,7 +168,7 @@ std::shared_ptr<SessionManager> SessionManager::Load(boost::asio::io_context& io
     return std::move(sm);
 }
 
-SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb)
+SessionManager::SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb)
     : m_io(io),
     m_db(db),
     m_session(std::move(session)),
@@ -394,7 +394,21 @@ void SessionManager::RemoveTorrent(lt::info_hash_t const& hash, bool remove_file
         flags = lt::session::delete_files;
     }
 
-    m_session->remove_torrent(m_torrents.at(hash).handle, flags);
+    auto find = m_torrents.find(hash);
+
+    if (find == m_torrents.end())
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Torrent not found: " << to_str(hash);
+        return;
+    }
+
+    if (!find->second.handle.is_valid())
+    {
+        BOOST_LOG_TRIVIAL(warning) << "Torrent handle not valid: " << to_str(hash);
+        return;
+    }
+
+    m_session->remove_torrent(find->second.handle, flags);
 }
 
 std::shared_ptr<void> SessionManager::Subscribe(std::function<void(nlohmann::json&)> sub)

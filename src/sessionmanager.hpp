@@ -36,7 +36,7 @@ namespace pt::Server
     class SessionManager : public ITorrentHandleFinder
     {
     public:
-        static std::shared_ptr<SessionManager> Load(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb);
+        static std::shared_ptr<SessionManager> Load(boost::asio::io_context& io, sqlite3* db, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb);
 
         ~SessionManager();
 
@@ -50,7 +50,7 @@ namespace pt::Server
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false);
         std::shared_ptr<void> Subscribe(std::function<void(nlohmann::json&)>);
 
-        SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session, std::unique_ptr<TSDB::TimeSeriesDatabase> tsdb);
+        SessionManager(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb);
 
     private:
         void Broadcast(nlohmann::json&);
@@ -66,6 +66,6 @@ namespace pt::Server
         std::map<libtorrent::info_hash_t, libtorrent::torrent_status> m_torrents;
         std::vector<std::weak_ptr<std::function<void(nlohmann::json&)>>> m_subscribers;
         std::vector<libtorrent::stats_metric> m_stats;
-        std::unique_ptr<TSDB::TimeSeriesDatabase> m_tsdb;
+        std::shared_ptr<TSDB::TimeSeriesDatabase> m_tsdb;
     };
 }
