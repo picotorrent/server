@@ -1,8 +1,5 @@
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <sqlite3.h>
 
 #include "../helpers.hpp"
 #include "../mocks.hpp"

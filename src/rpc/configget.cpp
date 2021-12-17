@@ -3,8 +3,10 @@
 #include <boost/log/trivial.hpp>
 
 #include "../data/datareader.hpp"
+#include "../data/statement.hpp"
 
 using json = nlohmann::json;
+using pt::Server::Data::Statement;
 using pt::Server::RPC::ConfigGetCommand;
 
 ConfigGetCommand::ConfigGetCommand(sqlite3* db)
@@ -47,6 +49,25 @@ json ConfigGetCommand::Execute(const json& params)
         }
 
         sqlite3_finalize(stmt);
+
+        return Ok(result);
+    }
+    else if (params.is_string())
+    {
+        json result = {};
+
+        Statement::ForEach(
+            m_db,
+            "SELECT value FROM config WHERE key = $1",
+            [&result](const auto& row)
+            {
+                result = json::parse(row.GetStdString(0));
+            },
+            [&params](auto stmt)
+            {
+                auto key = params.get<std::string>();
+                sqlite3_bind_text(stmt, 1, key.data(), -1, SQLITE_TRANSIENT);
+            });
 
         return Ok(result);
     }

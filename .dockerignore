@@ -2,6 +2,7 @@
 build/
 client/dist
 client/node_modules
+cmake-build-*
 vendor/vcpkg/buildtrees
 vendor/vcpkg/downloads
 vendor/vcpkg/packages
