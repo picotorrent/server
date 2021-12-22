@@ -29,6 +29,7 @@ add_library(
     src/data/migrations/0001_initialsetup.cpp
     src/data/statement.cpp
     src/data/transaction.cpp
+    src/data/models/config.cpp
     src/data/models/listeninterface.cpp
     src/data/models/profile.cpp
     src/data/models/proxy.cpp
@@ -99,6 +100,7 @@ add_executable(
     tests/main.cpp
     tests/data/models.cpp
     tests/rpc/configget.cpp
+    tests/rpc/configset.cpp
     tests/rpc/torrentspause.cpp
     tests/rpc/torrentsresume.cpp
 )
