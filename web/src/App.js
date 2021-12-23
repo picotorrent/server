@@ -1,6 +1,7 @@
-import { Box, Button, Flex, IconButton, Input, InputGroup, InputLeftElement, Menu, MenuButton } from "@chakra-ui/react";
-import { AddIcon, ChevronDownIcon, SearchIcon, SettingsIcon } from "@chakra-ui/icons";
-import useSWR from 'swr'
+import { Box, Button, Checkbox, Flex, Input, InputGroup, InputLeftElement, Progress, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import { SearchIcon, SettingsIcon } from "@chakra-ui/icons";
+import filesize from 'filesize';
+import useSWR from 'swr';
 
 import AddTorrentModal from './components/AddTorrentModal';
 import { ReactComponent as Logo } from './logo.svg';
@@ -19,44 +20,74 @@ const rpcFetcher = method => fetch(
     if (r.error) {
       throw new Error(r.error.message);
     }
-    return r.result;
+    return r.result || [];
   })
 
 function App() {
-  const { torrents, error } = useSWR('session.getTorrents', rpcFetcher);
+  const { data, error } = useSWR('session.getTorrents', rpcFetcher, { refreshInterval: 1000 });
 
   return (
     <>
-      <Flex justifyContent='center'>
-        <Box w='580px'>
-          <Flex alignItems='center' borderBottom='1px' borderColor='#ccc' py='2'>
-            <Box w='24px'><Logo /></Box>
-            <Box flex='1' mx='2'>
-              <InputGroup size='sm'>
-                <InputLeftElement
-                  pointerEvents='none'
-                  children={<SearchIcon />}
-                />
-                <Input size='sm' placeholder='Filter torrents...' />
-              </InputGroup>
-            </Box>
-            <Flex>
-              <AddTorrentModal />
-
-              <Menu>
-                <MenuButton size='xs' as={Button} rightIcon={<ChevronDownIcon />}>
+      <Box>
+        <Flex justifyContent="center" borderBottom='1px' borderColor='#ccc'>
+          <Box flex="1" maxWidth="580px" mx="2">
+            <Flex alignItems='center' py='2'>
+              <Box w='24px'><Logo /></Box>
+              <Box flex='1' mx='2'>
+                <InputGroup size='sm'>
+                  <InputLeftElement
+                    pointerEvents='none'
+                    children={<SearchIcon />}
+                  />
+                  <Input size='sm' placeholder='Filter torrents...' />
+                </InputGroup>
+              </Box>
+              <Flex>
+                <AddTorrentModal />
+                <Button size="xs">
                   <SettingsIcon />
-                </MenuButton>
-              </Menu>
+                </Button>
+              </Flex>
             </Flex>
-          </Flex>
-          <Box>
-            { !!error && <span>{error.toString()} </span> }
-
-            { torrents && torrents.map(() => <div>ehj</div>)}
           </Box>
+        </Flex>
+
+        <Box mt="1">
+          { !!error && <span>{error.toString()} </span> }
+          <Table size="sm">
+            <Thead>
+              <Tr>
+                <Th w="16px"><Checkbox /></Th>
+                <Th>Name</Th>
+                <Th isNumeric>Size</Th>
+                <Th isNumeric>DL</Th>
+                <Th isNumeric>UL</Th>
+                <Th>State</Th>
+                <Th>Progress</Th>
+                <Th></Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              { !!data && data.map(torrent =>
+              <Tr key={torrent.info_hash}>
+                <Td><Checkbox /></Td>
+                <Td>{torrent.name}</Td>
+                <Td isNumeric>{filesize(torrent.total_wanted)}</Td>
+                <Td isNumeric>{torrent.dl > 1024 ? filesize(torrent.dl) + "/s" : "-"}</Td>
+                <Td isNumeric>{torrent.ul > 1024 ? filesize(torrent.ul) + "/s" : "-"}</Td>
+                <Td>{torrent.state}</Td>
+                <Td>
+                  <Progress value={torrent.progress*100} minWidth="100px" />
+                </Td>
+                <Td>
+
+                </Td>
+              </Tr>
+              )}
+            </Tbody>
+          </Table>
         </Box>
-      </Flex>
+      </Box>
     </>
   );
 }
