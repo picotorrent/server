@@ -15,6 +15,7 @@
 #include "../../rpc/proxygetall.hpp"
 #include "../../rpc/sessionaddmagnetlink.hpp"
 #include "../../rpc/sessionaddtorrent.hpp"
+#include "../../rpc/sessiongettorrents.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
 #include "../../rpc/settingspackcreate.hpp"
 #include "../../rpc/settingspackgetbyid.hpp"
@@ -63,6 +64,7 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::Se
     m_commands.insert({ "proxy.getAll",            std::make_shared<pt::Server::RPC::ProxyGetAllCommand>(db) });
     m_commands.insert({ "session.addMagnetLink",   std::make_shared<pt::Server::RPC::SessionAddMagnetLinkCommand>(sm) });
     m_commands.insert({ "session.addTorrent",      std::make_shared<pt::Server::RPC::SessionAddTorrentCommand>(sm) });
+    m_commands.insert({ "session.getTorrents",     std::make_shared<pt::Server::RPC::SessionGetTorrentsCommand>(sm) });
     m_commands.insert({ "session.removeTorrent",   std::make_shared<pt::Server::RPC::SessionRemoveTorrentCommand>(sm) });
     m_commands.insert({ "settingsPack.create",     std::make_shared<pt::Server::RPC::SettingsPackCreateCommand>(db) });
     m_commands.insert({ "settingsPack.getById",    std::make_shared<pt::Server::RPC::SettingsPackGetByIdCommand>(db) });

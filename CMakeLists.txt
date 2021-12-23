@@ -59,6 +59,7 @@ add_library(
     src/rpc/proxygetall.cpp
     src/rpc/sessionaddmagnetlink.cpp
     src/rpc/sessionaddtorrent.cpp
+    src/rpc/sessiongettorrents.cpp
     src/rpc/sessionremovetorrent.cpp
     src/rpc/settingspackcreate.cpp
     src/rpc/settingspackgetbyid.cpp
