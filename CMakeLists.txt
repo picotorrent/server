@@ -17,6 +17,23 @@ find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
+    QuickJS
+    STATIC
+    vendor/quickjs/cutils.c
+    vendor/quickjs/libbf.c
+    vendor/quickjs/libregexp.c
+    vendor/quickjs/libunicode.c
+    vendor/quickjs/quickjs.c
+    vendor/quickjs/quickjs-libc.c
+)
+
+target_compile_definitions(
+    QuickJS
+    PRIVATE
+    CONFIG_VERSION="2021-03-27"
+)
+
+add_library(
     PicoTorrentCore
     STATIC
 
@@ -46,6 +63,9 @@ add_library(
     src/http/handlers/websockethandler.cpp
     src/http/handlers/websockethandler.hpp
 
+    # io
+    src/io/file.cpp
+
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
@@ -67,6 +87,9 @@ add_library(
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
 
+    # scripting
+    src/scripting/scripthost.cpp
+
     # tsdb
     src/tsdb/influxdb.cpp
     src/tsdb/influxdb.hpp
@@ -83,6 +106,7 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3
+    QuickJS
 )
 
 add_executable(

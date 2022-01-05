@@ -11,7 +11,7 @@
 #include "http/handlers/jsonrpchandler.hpp"
 #include "http/handlers/websockethandler.hpp"
 #include "http/httplistener.hpp"
-#include "http/httprequesthandler.hpp"
+#include "scripting/scripthost.hpp"
 #include "tsdb/influxdb.hpp"
 #include "tsdb/prometheus.hpp"
 #include "tsdb/timeseriesdatabase.hpp"
@@ -25,6 +25,7 @@ using pt::Server::Http::Handlers::WebSocketHandler;
 using pt::Server::Http::HttpListener;
 using pt::Server::Log;
 using pt::Server::Options;
+using pt::Server::Scripting::ScriptHost;
 using pt::Server::SessionManager;
 
 void Run(sqlite3* db, std::shared_ptr<Options> const& options)

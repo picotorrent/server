@@ -1,3 +1,6 @@
 [submodule "vendor/vcpkg"]
 	path = vendor/vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "vendor/quickjs"]
+	path = vendor/quickjs
+	url = https://github.com/bellard/quickjs
