@@ -26,6 +26,25 @@ const rpcFetcher = method => fetch(
 function App() {
   const { data, error } = useSWR('session.getTorrents', rpcFetcher, { refreshInterval: 1000 });
 
+  function torrentStatus(state) {
+    switch (state) {
+      case 1:
+        return 'Checking files';
+      case 2:
+        return 'Downloading metadata';
+      case 3:
+        return 'Downloading';
+      case 4:
+        return 'Finished';
+      case 5:
+        return 'Seeding';
+      case 7:
+        return 'Checking resume data';
+      default:
+        return 'Unknown';
+    }
+  }
+
   return (
     <>
       <Box>
@@ -72,10 +91,10 @@ function App() {
               <Tr key={torrent.info_hash}>
                 <Td><Checkbox /></Td>
                 <Td>{torrent.name}</Td>
-                <Td isNumeric>{filesize(torrent.total_wanted)}</Td>
+                <Td isNumeric>{torrent.total_wanted > 0 ? filesize(torrent.total_wanted) : "-"}</Td>
                 <Td isNumeric>{torrent.dl > 1024 ? filesize(torrent.dl) + "/s" : "-"}</Td>
                 <Td isNumeric>{torrent.ul > 1024 ? filesize(torrent.ul) + "/s" : "-"}</Td>
-                <Td>{torrent.state}</Td>
+                <Td>{torrentStatus(torrent.state)}</Td>
                 <Td>
                   <Progress value={torrent.progress*100} minWidth="100px" />
                 </Td>
