@@ -7,6 +7,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "data/migrations/0001_initialsetup.hpp"
+#include "data/migrations/0002_simplify.hpp"
 #include "data/transaction.hpp"
 
 using pt::Server::Database;
@@ -14,6 +15,7 @@ using pt::Server::Database;
 static std::map<std::string, std::function<int(sqlite3*)>> DatabaseMigrations =
 {
     { "0001_InitialSetup", &pt::Server::Data::Migrations::InitialSetup::Migrate },
+    { "0002_Simplify", &pt::Server::Data::Migrations::Simplify::Migrate }
 };
 
 bool CreateMigrationsTable(sqlite3* db)

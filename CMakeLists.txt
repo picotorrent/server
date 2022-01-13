@@ -27,6 +27,7 @@ add_library(
 
     # data
     src/data/migrations/0001_initialsetup.cpp
+    src/data/migrations/0002_simplify.cpp
     src/data/statement.cpp
     src/data/transaction.cpp
     src/data/models/config.cpp
