@@ -4,7 +4,7 @@
 
 namespace pt::Server
 {
-    class SessionManager;
+    class ISessionManager;
 }
 
 namespace pt::Server::Http::Handlers
@@ -12,11 +12,11 @@ namespace pt::Server::Http::Handlers
     class WebSocketHandler : public HttpRequestHandler
     {
     public:
-        explicit WebSocketHandler(std::shared_ptr<pt::Server::SessionManager>  sm);
+        explicit WebSocketHandler(std::shared_ptr<pt::Server::ISessionManager>  sm);
 
         void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
 
     private:
-        std::shared_ptr<pt::Server::SessionManager> m_sm;
+        std::shared_ptr<pt::Server::ISessionManager> m_sm;
     };
 }

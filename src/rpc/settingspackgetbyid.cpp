@@ -31,26 +31,19 @@ json SettingsPackGetByIdCommand::Execute(const json& params)
     {
     case SQLITE_ROW:
     {
-        result["id"]          = sqlite3_column_int(stmt, 0);
-        result["description"] = pt_sqlite3_column_std_string(stmt, 1).value_or("");
-        result["name"]        = pt_sqlite3_column_std_string(stmt, 2).value_or("");
+        result["id"] = sqlite3_column_int(stmt, 0);
 
-        for (int i = 0; i < sqlite3_column_count(stmt); i++)
+        for (int i = 1; i < sqlite3_column_count(stmt); i++)
         {
             std::string columnName = sqlite3_column_name(stmt, i);
+            int setting = lt::setting_by_name(columnName);
 
-            if (SettingsPack::Names().find(columnName) == SettingsPack::Names().end())
+            if (setting < 0)
             {
+                BOOST_LOG_TRIVIAL(warning) << "Unknown setting: " << columnName;
                 continue;
             }
 
-            int setting = lt::setting_by_name(columnName);
-
-            if (setting == -1)
-            {
-                BOOST_LOG_TRIVIAL(warning) << "Unknown setting: " << columnName;
-            }
-            
             if (setting >= lt::settings_pack::string_type_base
                 && setting < lt::settings_pack::max_string_setting_internal)
             {
@@ -60,7 +53,7 @@ json SettingsPackGetByIdCommand::Execute(const json& params)
             if (setting >= lt::settings_pack::bool_type_base
                 && setting < lt::settings_pack::max_bool_setting_internal)
             {
-                result["settings"][columnName] = sqlite3_column_int(stmt, i) == 1 ? true : false;
+                result["settings"][columnName] = sqlite3_column_int(stmt, i) == 1;
             }
 
             if (setting >= lt::settings_pack::int_type_base

@@ -5,14 +5,6 @@
 
 #include "../../rpc/configget.hpp"
 #include "../../rpc/configset.hpp"
-#include "../../rpc/listeninterfacescreate.hpp"
-#include "../../rpc/listeninterfacesgetall.hpp"
-#include "../../rpc/listeninterfacesremove.hpp"
-#include "../../rpc/profilesgetactive.hpp"
-#include "../../rpc/profilesgetall.hpp"
-#include "../../rpc/profilesupdate.hpp"
-#include "../../rpc/proxycreate.hpp"
-#include "../../rpc/proxygetall.hpp"
 #include "../../rpc/sessionaddmagnetlink.hpp"
 #include "../../rpc/sessionaddtorrent.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
@@ -22,6 +14,7 @@
 #include "../../rpc/settingspackupdate.hpp"
 #include "../../rpc/torrentspause.hpp"
 #include "../../rpc/torrentsresume.hpp"
+#include "../../sessionmanager.hpp"
 
 using json = nlohmann::json;
 using pt::Server::Http::Handlers::JsonRpcHandler;
@@ -49,18 +42,10 @@ static bool IsValidRequestObject(json const& req, std::string& errorMessage)
     return true;
 }
 
-JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::SessionManager>& sm)
+JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::ISessionManager>& sm)
 {
     m_commands.insert({ "config.get",              std::make_shared<pt::Server::RPC::ConfigGetCommand>(db) });
     m_commands.insert({ "config.set",              std::make_shared<pt::Server::RPC::ConfigSetCommand>(db) });
-    m_commands.insert({ "listenInterfaces.create", std::make_shared<pt::Server::RPC::ListenInterfacesCreateCommand>(db, sm) });
-    m_commands.insert({ "listenInterfaces.getAll", std::make_shared<pt::Server::RPC::ListenInterfacesGetAllCommand>(db) });
-    m_commands.insert({ "listenInterfaces.remove", std::make_shared<pt::Server::RPC::ListenInterfacesRemoveCommand>(db, sm) });
-    m_commands.insert({ "profiles.getActive",      std::make_shared<pt::Server::RPC::ProfilesGetActiveCommand>(db) });
-    m_commands.insert({ "profiles.getAll",         std::make_shared<pt::Server::RPC::ProfilesGetAllCommand>(db) });
-    m_commands.insert({ "profiles.update",         std::make_shared<pt::Server::RPC::ProfilesUpdateCommand>(db, sm) });
-    m_commands.insert({ "proxy.create",            std::make_shared<pt::Server::RPC::ProxyCreateCommand>(db, sm) });
-    m_commands.insert({ "proxy.getAll",            std::make_shared<pt::Server::RPC::ProxyGetAllCommand>(db) });
     m_commands.insert({ "session.addMagnetLink",   std::make_shared<pt::Server::RPC::SessionAddMagnetLinkCommand>(sm) });
     m_commands.insert({ "session.addTorrent",      std::make_shared<pt::Server::RPC::SessionAddTorrentCommand>(sm) });
     m_commands.insert({ "session.removeTorrent",   std::make_shared<pt::Server::RPC::SessionRemoveTorrentCommand>(sm) });

@@ -8,24 +8,26 @@
 #include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
+#include "../session.hpp"
 #include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
+using pt::Server::ISession;
+using pt::Server::ISessionManager;
 using pt::Server::RPC::TorrentsPauseCommand;
-using pt::Server::ITorrentHandleFinder;
 
-TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<ITorrentHandleFinder> finder)
-    : m_finder(std::move(finder))
+TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<ISessionManager> sessions)
+    : m_sessions(std::move(sessions))
 {
 }
 
 json TorrentsPauseCommand::Execute(const json& j)
 {
-    auto pause = [this](const lt::info_hash_t& hash)
+    auto pause = [this](const std::shared_ptr<ISession>& session, const lt::info_hash_t& hash)
     {
-        auto handle = m_finder->Find(hash);
+        auto handle = session->FindTorrent(hash);
 
         if (handle == nullptr)
         {
@@ -46,14 +48,14 @@ json TorrentsPauseCommand::Execute(const json& j)
     {
         for (lt::info_hash_t const& hash : j.get<std::vector<lt::info_hash_t>>())
         {
-            pause(hash);
+            // pause(hash);
         }
 
         return Ok();
     }
     else if (j.is_string())
     {
-        pause(j.get<lt::info_hash_t>());
+        // pause(j.get<lt::info_hash_t>());
         return Ok();
     }
 

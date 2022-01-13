@@ -23,6 +23,7 @@ add_library(
     src/database.cpp
     src/log.cpp
     src/options.cpp
+    src/session.cpp
     src/sessionmanager.cpp
 
     # data
@@ -31,11 +32,7 @@ add_library(
     src/data/statement.cpp
     src/data/transaction.cpp
     src/data/models/config.cpp
-    src/data/models/listeninterface.cpp
-    src/data/models/profile.cpp
-    src/data/models/proxy.cpp
     src/data/models/settingspack.cpp
-    src/data/models/settingspacknames.cpp
 
     # http
     src/http/httplistener.cpp
@@ -50,14 +47,6 @@ add_library(
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
-    src/rpc/listeninterfacescreate.cpp
-    src/rpc/listeninterfacesgetall.cpp
-    src/rpc/listeninterfacesremove.cpp
-    src/rpc/profilesgetactive.cpp
-    src/rpc/profilesgetall.cpp
-    src/rpc/profilesupdate.cpp
-    src/rpc/proxycreate.cpp
-    src/rpc/proxygetall.cpp
     src/rpc/sessionaddmagnetlink.cpp
     src/rpc/sessionaddtorrent.cpp
     src/rpc/sessionremovetorrent.cpp

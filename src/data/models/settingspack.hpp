@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include <libtorrent/settings_pack.hpp>
+#include <utility>
 #include <sqlite3.h>
 
 namespace pt::Server::Data
@@ -14,35 +15,31 @@ namespace pt::Server::Data
     public:
         static std::shared_ptr<SettingsPack> Create(
             sqlite3* db,
-            std::string_view const& name,
-            std::string_view const& desc,
-            libtorrent::settings_pack settings = libtorrent::default_settings());
+            int sessionId,
+            const libtorrent::settings_pack& settings = libtorrent::default_settings());
 
         static std::shared_ptr<SettingsPack> GetById(sqlite3* db, int id);
-
-        static std::unordered_set<std::string>& Names();
+        static std::shared_ptr<SettingsPack> GetBySessionId(sqlite3* db, int sessionId);
 
         int Id() { return m_id; }
-        std::string& Name() { return m_name; }
-        std::string& Description() { return m_desc; }
+        int SessionId() { return m_sessionId; }
         libtorrent::settings_pack& Settings() { return m_settings; }
 
     private:
         SettingsPack(
             int id,
-            std::string_view const& name,
-            std::string_view const& desc,
-            libtorrent::settings_pack const& settings)
+            int sessionId,
+            libtorrent::settings_pack settings)
             : m_id(id),
-            m_name(name),
-            m_desc(desc),
-            m_settings(settings)
+            m_sessionId(sessionId),
+            m_settings(std::move(settings))
         {
         }
 
+        static std::shared_ptr<SettingsPack> BuildFromStatement(sqlite3* db, sqlite3_stmt* stmt);
+
         int m_id;
-        std::string m_name;
-        std::string m_desc;
+        int m_sessionId;
         libtorrent::settings_pack m_settings;
     };
 }

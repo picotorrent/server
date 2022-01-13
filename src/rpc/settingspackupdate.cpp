@@ -1,21 +1,21 @@
 #include "settingspackupdate.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <utility>
 
 #include "../data/transaction.hpp"
-#include "../data/models/profile.hpp"
 #include "../data/models/settingspack.hpp"
 #include "../sessionmanager.hpp"
 
 using json = nlohmann::json;
 using pt::Server::RPC::SettingsPackUpdateCommand;
-using pt::Server::SessionManager;
+using pt::Server::ISessionManager;
 
 SettingsPackUpdateCommand::SettingsPackUpdateCommand(
     sqlite3* db,
-    std::shared_ptr<SessionManager> const& session)
+    std::shared_ptr<ISessionManager>  session)
     : m_db(db),
-    m_session(session)
+    m_session(std::move(session))
 {
 }
 
@@ -28,42 +28,12 @@ json SettingsPackUpdateCommand::Execute(const json& params)
         int id = params[0];
         bool updated_settings = false;
 
-        if (params[1].contains("name"))
-        {
-            auto name = params[1]["name"].get<std::string>();
-
-            sqlite3_stmt* stmt;
-            sqlite3_prepare_v2(m_db, "UPDATE settings_pack SET name = $1 where id = $2", -1, &stmt, nullptr);
-            sqlite3_bind_text(stmt, 1, name.c_str(), static_cast<int>(name.size()), SQLITE_TRANSIENT);
-            sqlite3_bind_int(stmt, 2, id);
-            sqlite3_step(stmt);
-            sqlite3_finalize(stmt);
-        }
-
-        if (params[1].contains("description"))
-        {
-            auto desc = params[1]["description"].get<std::string>();
-
-            sqlite3_stmt* stmt;
-            sqlite3_prepare_v2(m_db, "UPDATE settings_pack SET description = $1 where id = $2", -1, &stmt, nullptr);
-            sqlite3_bind_text(stmt, 1, desc.c_str(), static_cast<int>(desc.size()), SQLITE_TRANSIENT);
-            sqlite3_bind_int(stmt, 2, id);
-            sqlite3_step(stmt);
-            sqlite3_finalize(stmt);
-        }
-
         if (params[1].contains("settings"))
         {
             auto settings = params[1]["settings"];
 
             for (auto& [key, value] : settings.items())
             {
-                if (Data::SettingsPack::Names().find(key) == Data::SettingsPack::Names().end())
-                {
-                    BOOST_LOG_TRIVIAL(warning) << "Unknown settings key: " << key;
-                    continue;
-                }
-
                 int setting = lt::setting_by_name(key);
 
                 if (setting < 0)
@@ -105,14 +75,7 @@ json SettingsPackUpdateCommand::Execute(const json& params)
 
         if (updated_settings)
         {
-            auto activeProfile = Data::Models::Profile::GetActive(m_db);
-
-            if (activeProfile != nullptr
-                && activeProfile->SettingsPackId() == id)
-            {
-                BOOST_LOG_TRIVIAL(info) << "Settings for active profile changed - reloading session";
-                m_session->ReloadSettings();
-            }
+            // TODO: update related session
         }
     }
     catch (std::exception const& ex)

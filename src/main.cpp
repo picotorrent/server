@@ -17,7 +17,6 @@
 #include "tsdb/timeseriesdatabase.hpp"
 
 namespace fs = std::filesystem;
-namespace lt = libtorrent;
 
 using pt::Server::Database;
 using pt::Server::Http::Handlers::JsonRpcHandler;
@@ -69,7 +68,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
         tsdb = prometheus;
     }
 
-    auto sm = SessionManager::Load(io, db, tsdb);
+    auto sm = SessionManager::Load(io, db);
 
     http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db, sm));
     http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
@@ -93,7 +92,7 @@ int main(int argc, char* argv[])
 
     if (!Database::Migrate(db))
     {
-        BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
+        BOOST_LOG_TRIVIAL(fatal) << "Failed to migrate database, shutting down";
         return 1;
     }
 

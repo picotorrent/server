@@ -6,6 +6,7 @@
 #include <libtorrent/torrent_info.hpp>
 
 #include "../json/infohash.hpp"
+#include "../session.hpp"
 #include "../sessionmanager.hpp"
 
 static std::string Base64Decode(const std::string_view in)
@@ -39,10 +40,10 @@ static std::string Base64Decode(const std::string_view in)
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::SessionManager;
+using pt::Server::ISessionManager;
 using pt::Server::RPC::SessionAddTorrentCommand;
 
-SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<SessionManager> session)
+SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<ISessionManager> session)
     : m_session(std::move(session))
 {
 }
@@ -75,7 +76,16 @@ json SessionAddTorrentCommand::Execute(const json& j)
     p.save_path = j["save_path"].get<std::string>();
     p.ti = std::make_shared<lt::torrent_info>(node);
 
-    return Ok({
-        { "info_hash", m_session->AddTorrent(p) }
-    });
+    auto session = j.contains("session_id")
+        ? m_session->Get(j["session_id"])
+        : m_session->GetDefault();
+
+    if (auto v = session.lock())
+    {
+        return Ok({
+                      {"info_hash", v->AddTorrent(p)}
+                  });
+    }
+
+    return Error(99, "Could not lock session");
 }

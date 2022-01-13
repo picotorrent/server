@@ -1,25 +1,27 @@
 #include "websockethandler.hpp"
 
+#include <queue>
+#include <utility>
+
 #include <boost/beast.hpp>
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
-#include <utility>
 
 #include "../../json/torrentstatus.hpp"
 #include "../../sessionmanager.hpp"
 
 using json = nlohmann::json;
 using pt::Server::Http::Handlers::WebSocketHandler;
-using pt::Server::SessionManager;
+using pt::Server::ISessionManager;
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession> {
 public:
-    WebSocketSession(boost::asio::ip::tcp::socket &&socket, std::shared_ptr<SessionManager> session)
+    WebSocketSession(boost::asio::ip::tcp::socket &&socket, std::shared_ptr<ISessionManager> session)
         : m_websocket(std::move(socket)),
           m_session(std::move(session))
     {
-        m_subscriberTag = m_session->Subscribe(
-            [this](auto && PH1) { OnSubscribe(std::forward<decltype(PH1)>(PH1)); });
+        //m_subscriberTag = m_session->Subscribe(
+        //  [this](auto && PH1) { OnSubscribe(std::forward<decltype(PH1)>(PH1)); });
     }
 
     template<class Body, class Allocator>
@@ -56,7 +58,7 @@ private:
         j["type"] = "init";
         j["torrents"] = json::object();
 
-        m_session->ForEachTorrent(
+        /*m_session->ForEachTorrent(
             [&j](lt::torrent_status const &ts)
             {
                 std::stringstream ss;
@@ -66,7 +68,7 @@ private:
                 j["torrents"][ss.str()] = ts;
 
                 return true;
-            });
+            });*/
 
         BOOST_LOG_TRIVIAL(debug) << "Sending initial state to client";
 
@@ -140,13 +142,13 @@ private:
 
     boost::beast::websocket::stream<boost::beast::tcp_stream> m_websocket;
     boost::beast::flat_buffer m_buffer;
-    std::shared_ptr<SessionManager> m_session;
+    std::shared_ptr<ISessionManager> m_session;
     bool m_isWriting { false };
     std::queue<std::string> m_sendData;
     std::shared_ptr<void> m_subscriberTag;
 };
 
-WebSocketHandler::WebSocketHandler(std::shared_ptr<pt::Server::SessionManager> sm)
+WebSocketHandler::WebSocketHandler(std::shared_ptr<pt::Server::ISessionManager> sm)
     : m_sm(std::move(sm))
 {
 }

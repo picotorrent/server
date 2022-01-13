@@ -3,17 +3,19 @@
 #include <boost/log/trivial.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/magnet_uri.hpp>
+#include <utility>
 
 #include "../json/infohash.hpp"
+#include "../session.hpp"
 #include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::SessionManager;
+using pt::Server::ISessionManager;
 using pt::Server::RPC::SessionAddMagnetLinkCommand;
 
-SessionAddMagnetLinkCommand::SessionAddMagnetLinkCommand(std::shared_ptr<SessionManager> session)
-    : m_session(session)
+SessionAddMagnetLinkCommand::SessionAddMagnetLinkCommand(std::shared_ptr<ISessionManager> session)
+    : m_session(std::move(session))
 {
 }
 
@@ -42,7 +44,16 @@ json SessionAddMagnetLinkCommand::Execute(const json& j)
 
     p.save_path = j["save_path"].get<std::string>();
 
-    return Ok({
-        { "info_hash", m_session->AddTorrent(p) }
-    });
+    auto session = j.contains("session_id")
+        ? m_session->Get(j["session_id"])
+        : m_session->GetDefault();
+
+    if (auto val = session.lock())
+    {
+        return Ok({
+                      {"info_hash", val->AddTorrent(p)}
+                  });
+    }
+
+    return Error(99, "Could not lock session");
 }
