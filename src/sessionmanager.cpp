@@ -36,7 +36,7 @@ std::shared_ptr<ISessionManager> SessionManager::Load(boost::asio::io_context& i
 
     Statement::ForEach(
         db,
-        "SELECT id,name FROM sessions",
+        "SELECT id,name,params_data,settings_pack_id FROM sessions",
         [&](const Statement::Row& row)
         {
             int id = row.GetInt32(0);
@@ -46,37 +46,27 @@ std::shared_ptr<ISessionManager> SessionManager::Load(boost::asio::io_context& i
 
             lt::session_params params;
 
-            Statement::ForEach(
-                db,
-                "SELECT data FROM session_params ORDER BY timestamp DESC LIMIT 1",
-                [&](Statement::Row const& row)
-                {
-                    auto buffer = row.GetBlob(0);
-
-                    lt::error_code ec;
-                    lt::bdecode_node node = lt::bdecode(
-                        lt::span<const char>(buffer.data(), buffer.size()),
-                        ec);
-
-                    if (ec)
-                    {
-                        BOOST_LOG_TRIVIAL(warning) << "Failed to bdecode session params buffer: " << ec.message();
-                    }
-                    else
-                    {
-                        params = lt::read_session_params(node, lt::session::save_dht_state);
-                        BOOST_LOG_TRIVIAL(info) << "Loaded session params (" << buffer.size() << " bytes)";
-                    }
-                });
-
-            auto settingsPack = SettingsPack::GetBySessionId(db, id);
-
-            if (settingsPack == nullptr)
+            if (!row.IsNull(2))
             {
-                BOOST_LOG_TRIVIAL(warning) << "Session with id " << id << " has no associated settings pack";
-                return;
+                auto buffer = row.GetBlob(2);
+
+                lt::error_code ec;
+                lt::bdecode_node node = lt::bdecode(
+                    lt::span<const char>(buffer.data(), buffer.size()),
+                    ec);
+
+                if (ec)
+                {
+                    BOOST_LOG_TRIVIAL(warning) << "Failed to bdecode session params buffer: " << ec.message();
+                }
+                else
+                {
+                    params = lt::read_session_params(node, lt::session::save_dht_state);
+                    BOOST_LOG_TRIVIAL(info) << "Loaded session params (" << buffer.size() << " bytes)";
+                }
             }
 
+            auto settingsPack = SettingsPack::GetById(db, row.GetInt32(3));
             params.settings = settingsPack->Settings();
 
             sessions.push_back(std::make_shared<Session>(io, db, id, name, params));

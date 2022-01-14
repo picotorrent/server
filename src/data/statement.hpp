@@ -16,15 +16,19 @@ namespace pt::Server::Data
         {
             friend class Statement;
 
-            std::vector<char> GetBlob(int col)      const;
-            bool              GetBool(int col)      const;
-            int               GetInt32(int col)     const;
-            std::string       GetStdString(int col) const;
-            bool              IsNull(int col)       const;
+            [[nodiscard]] std::vector<char> GetBlob(int col)                     const;
+            [[nodiscard]] bool              GetBool(int col)                     const;
+            [[nodiscard]] bool              GetBool(const std::string& col)      const;
+            [[nodiscard]] int               GetInt32(int col)                    const;
+            [[nodiscard]] int               GetInt32(const std::string& col)     const;
+            [[nodiscard]] std::string       GetStdString(int col)                const;
+            [[nodiscard]] std::string       GetStdString(const std::string& col) const;
+            [[nodiscard]] bool              IsNull(int col)                      const;
 
         private:
-            Row(sqlite3_stmt* stmt);
+            Row(sqlite3_stmt* stmt, const std::map<std::string, int>& cols);
             sqlite3_stmt* m_stmt;
+            const std::map<std::string, int>& m_cols;
         };
 
         static void ForEach(

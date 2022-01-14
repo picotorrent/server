@@ -9,7 +9,7 @@ namespace pt::Server::RPC
     class SettingsPackList : public Command
     {
     public:
-        SettingsPackList(sqlite3* db);
+        explicit SettingsPackList(sqlite3* db);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

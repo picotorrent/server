@@ -842,5 +842,36 @@ int Simplify::Migrate(sqlite3 *db)
     res = sqlite3_exec(db, "DROP TABLE session_params", nullptr, nullptr, nullptr);
     if (res != SQLITE_OK) { return res; }
 
+    // Add FK from torrents to session
+    res = sqlite3_exec(db, "ALTER TABLE torrents ADD COLUMN session_id INTEGER NULL REFERENCES sessions(id)", nullptr, nullptr, nullptr);
+    if (res != SQLITE_OK) { return res; }
+
+    // Update torrents, set default session id
+    res = sqlite3_exec(db, "UPDATE torrents SET session_id = (SELECT id FROM sessions WHERE name = 'Default')", nullptr, nullptr, nullptr);
+    if (res != SQLITE_OK) { return res; }
+
+    // create new torrents table
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE torrents_new ("
+            "info_hash      TEXT PRIMARY KEY,"
+            "session_id     INTEGER NOT NULL REFERENCES sessions(id),"
+            "queue_position INTEGER NOT NULL,"
+            "resume_data    BLOB NULL,"
+            "torrent_data   BLOB NULL,"
+            "timestamp      INTEGER NOT NULL DEFAULT (strftime('%s'))"
+        ");", nullptr, nullptr, nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
+    res = sqlite3_exec(
+        db,
+        "INSERT INTO torrents_new SELECT * from torrents; DROP TABLE torrents; ALTER TABLE torrents_new RENAME TO torrents;",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
     return SQLITE_OK;
 }

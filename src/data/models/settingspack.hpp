@@ -15,31 +15,31 @@ namespace pt::Server::Data
     public:
         static std::shared_ptr<SettingsPack> Create(
             sqlite3* db,
-            int sessionId,
-            const libtorrent::settings_pack& settings = libtorrent::default_settings());
+            const std::string& name,
+            const std::string& description,
+            const libtorrent::settings_pack& settings);
 
         static std::shared_ptr<SettingsPack> GetById(sqlite3* db, int id);
-        static std::shared_ptr<SettingsPack> GetBySessionId(sqlite3* db, int sessionId);
 
         int Id() { return m_id; }
-        int SessionId() { return m_sessionId; }
-        libtorrent::settings_pack& Settings() { return m_settings; }
+        std::string Name() { return m_name; }
+        std::string Description() { return m_desc; }
+        const libtorrent::settings_pack& Settings() { return m_settings; }
 
     private:
         SettingsPack(
             int id,
-            int sessionId,
+            const std::string& name,
+            const std::string& description,
             libtorrent::settings_pack settings)
             : m_id(id),
-            m_sessionId(sessionId),
             m_settings(std::move(settings))
         {
         }
 
-        static std::shared_ptr<SettingsPack> BuildFromStatement(sqlite3* db, sqlite3_stmt* stmt);
-
         int m_id;
-        int m_sessionId;
+        std::string m_name;
+        std::string m_desc;
         libtorrent::settings_pack m_settings;
     };
 }
