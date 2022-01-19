@@ -1,8 +1,9 @@
-#include "sessionaddtorrent.hpp"
+#include "sessionsaddtorrent.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/bdecode.hpp>
+#include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/torrent_info.hpp>
 
 #include "../json/infohash.hpp"
@@ -41,40 +42,50 @@ static std::string Base64Decode(const std::string_view in)
 namespace lt = libtorrent;
 using json = nlohmann::json;
 using pt::Server::ISessionManager;
-using pt::Server::RPC::SessionAddTorrentCommand;
+using pt::Server::RPC::SessionsAddTorrentCommand;
 
-SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<ISessionManager> session)
+SessionsAddTorrentCommand::SessionsAddTorrentCommand(std::shared_ptr<ISessionManager> session)
     : m_session(std::move(session))
 {
 }
 
-json SessionAddTorrentCommand::Execute(const json& j)
+json SessionsAddTorrentCommand::Execute(const json& j)
 {
-    if (!j.contains("data"))
+    lt::add_torrent_params params;
+
+    if (j.contains("magnet_uri"))
     {
-        return Error(1, "Missing 'data' field");
+        lt::error_code  ec;
+        params = lt::parse_magnet_uri(j["magnet_uri"], ec);
+
+        if (ec)
+        {
+            BOOST_LOG_TRIVIAL(warning) << "Failed to parse magnet URI: " << ec.message();
+        }
     }
 
-    if (!j.contains("save_path"))
+    if (j.contains("save_path"))
     {
-        return Error(1, "Missing 'save_path' field");
+        params.save_path = j["save_path"];
     }
 
-    std::string const& data = Base64Decode(
-        j["data"].get<std::string>());
-
-    lt::error_code ec;
-    lt::bdecode_node node = lt::bdecode(data, ec);
-
-    if (ec)
+    if (j.contains("ti"))
     {
-        BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec.message();
-        return Error(1, ec.message());
-    }
+        std::string const& data = Base64Decode(
+            j["data"].get<std::string>());
 
-    lt::add_torrent_params p;
-    p.save_path = j["save_path"].get<std::string>();
-    p.ti = std::make_shared<lt::torrent_info>(node);
+        lt::error_code ec;
+        lt::bdecode_node node = lt::bdecode(data, ec);
+
+        if (ec)
+        {
+            BOOST_LOG_TRIVIAL(warning) << "Failed to bdecode torrent: " << ec.message();
+        }
+        else
+        {
+            params.ti = std::make_shared<lt::torrent_info>(node);
+        }
+    }
 
     auto session = j.contains("session_id")
         ? m_session->Get(j["session_id"])
@@ -82,9 +93,10 @@ json SessionAddTorrentCommand::Execute(const json& j)
 
     if (auto v = session.lock())
     {
-        return Ok({
-                      {"info_hash", v->AddTorrent(p)}
-                  });
+        return Ok(
+            {
+                {"info_hash", v->AddTorrent(params)}
+            });
     }
 
     return Error(99, "Could not lock session");

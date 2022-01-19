@@ -46,16 +46,20 @@ json TorrentsPauseCommand::Execute(const json& j)
 
     if (j.is_array())
     {
+        auto session = m_sessions->GetDefault();
+
         for (lt::info_hash_t const& hash : j.get<std::vector<lt::info_hash_t>>())
         {
-            // pause(hash);
+            pause(session.lock(), hash);
         }
 
         return Ok();
     }
     else if (j.is_string())
     {
-        // pause(j.get<lt::info_hash_t>());
+        auto session = m_sessions->GetDefault();
+
+        pause(session.lock(), j.get<lt::info_hash_t>());
         return Ok();
     }
 

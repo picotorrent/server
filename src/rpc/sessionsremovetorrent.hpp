@@ -9,10 +9,10 @@ namespace pt::Server { class ISessionManager; }
 
 namespace pt::Server::RPC
 {
-    class SessionRemoveTorrentCommand : public Command
+    class SessionsRemoveTorrentCommand : public Command
     {
     public:
-        SessionRemoveTorrentCommand(std::shared_ptr<ISessionManager>);
+        SessionsRemoveTorrentCommand(std::shared_ptr<ISessionManager>);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

@@ -1,8 +1,5 @@
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <sqlite3.h>
 
 #include "../helpers.hpp"
 #include "../mocks.hpp"
@@ -16,16 +13,19 @@ class TorrentsResumeCommandTests : public ::testing::Test
 protected:
     void SetUp() override
     {
-        finder = std::make_shared<MockTorrentHandleFinder>();
-        cmd = std::make_unique<TorrentsResumeCommand>(finder);
+        sessions = std::make_shared<MockSessionManager>();
+        cmd = std::make_unique<TorrentsResumeCommand>(sessions);
     }
 
     std::unique_ptr<TorrentsResumeCommand> cmd;
-    std::shared_ptr<MockTorrentHandleFinder> finder;
+    std::shared_ptr<MockSessionManager> sessions;
 };
 
 TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
 {
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(0);
+
     auto result = cmd->Execute(1);
 
     EXPECT_TRUE(result.contains("error"));
@@ -34,10 +34,16 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
 
 TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
 {
-    auto hash = pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924");
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    lt::info_hash_t ih = pt::InfoHashFromString("0101010101010101010101010101010101010101");
 
-    EXPECT_CALL(*finder, Find(hash))
+    auto session = std::make_shared<MockSession>();
+    auto handle = std::make_shared<MockTorrentHandle>();
+
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(1)
+        .WillOnce(::testing::Return(session));
+
+    EXPECT_CALL(*session, FindTorrent(ih))
         .Times(1)
         .WillOnce(::testing::Return(handle));
 
@@ -48,7 +54,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
     EXPECT_CALL(*handle, Resume())
         .Times(1);
 
-    auto result = cmd->Execute("7cf55428325617fdde910fe55b79ab72be937924");
+    auto result = cmd->Execute("0101010101010101010101010101010101010101");
 
     EXPECT_TRUE(result.is_object());
 }
@@ -58,32 +64,36 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
     struct F
     {
         lt::info_hash_t ih;
-        std::shared_ptr<MockTorrentHandleActor> handle;
+        std::shared_ptr<MockTorrentHandle> handle;
     };
 
     std::vector<F> items;
-    items.push_back({ pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0101010101010101010101010101010101010101"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandle>() });
 
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    auto session = std::make_shared<MockSession>();
+
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(1)
+        .WillOnce(::testing::Return(session));
 
     for (auto const& itm : items)
     {
-        EXPECT_CALL(*finder, Find(itm.ih))
-                .Times(1)
-                .WillOnce(::testing::Return(itm.handle));
+        EXPECT_CALL(*session, FindTorrent(itm.ih))
+            .Times(1)
+            .WillOnce(::testing::Return(itm.handle));
 
         EXPECT_CALL(*itm.handle, IsValid())
-                .Times(1)
-                .WillOnce(::testing::Return(true));
+            .Times(1)
+            .WillOnce(::testing::Return(true));
 
         EXPECT_CALL(*itm.handle, Resume())
-                .Times(1);
+            .Times(1);
     }
 
     auto result = cmd->Execute(
-        { "7cf55428325617fdde910fe55b79ab72be937924",
+        { "0101010101010101010101010101010101010101",
           "0202020202020202020202020202020202020202",
           "0303030303030303030303030303030303030303" });
 

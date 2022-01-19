@@ -47,9 +47,8 @@ add_library(
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
-    src/rpc/sessionaddmagnetlink.cpp
-    src/rpc/sessionaddtorrent.cpp
-    src/rpc/sessionremovetorrent.cpp
+    src/rpc/sessionsaddtorrent.cpp
+    src/rpc/sessionsremovetorrent.cpp
     src/rpc/settingspackcreate.cpp
     src/rpc/settingspackgetbyid.cpp
     src/rpc/settingspackupdate.cpp
@@ -88,9 +87,9 @@ target_link_libraries(
 add_executable(
     PicoTorrentTests
     tests/main.cpp
-    tests/data/models.cpp
     tests/rpc/configget.cpp
     tests/rpc/configset.cpp
+    tests/rpc/sessionsaddtorrent.cpp
     tests/rpc/torrentspause.cpp
     tests/rpc/torrentsresume.cpp
 )

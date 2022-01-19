@@ -13,16 +13,19 @@ class TorrentsPauseCommandTests : public ::testing::Test
 protected:
     void SetUp() override
     {
-        finder = std::make_shared<MockTorrentHandleFinder>();
-        cmd = std::make_unique<TorrentsPauseCommand>(finder);
+        sessions = std::make_shared<MockSessionManager>();
+        cmd = std::make_unique<TorrentsPauseCommand>(sessions);
     }
 
     std::unique_ptr<TorrentsPauseCommand> cmd;
-    std::shared_ptr<MockTorrentHandleFinder> finder;
+    std::shared_ptr<MockSessionManager> sessions;
 };
 
 TEST_F(TorrentsPauseCommandTests, Execute_WithInvalidParams_ReturnsError)
 {
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(0);
+
     auto result = cmd->Execute(1);
 
     EXPECT_TRUE(result.contains("error"));
@@ -33,9 +36,14 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHash_PausesTorrent)
 {
     lt::info_hash_t ih = pt::InfoHashFromString("0101010101010101010101010101010101010101");
 
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    auto session = std::make_shared<MockSession>();
+    auto handle = std::make_shared<MockTorrentHandle>();
 
-    EXPECT_CALL(*finder, Find(ih))
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(1)
+        .WillOnce(::testing::Return(session));
+
+    EXPECT_CALL(*session, FindTorrent(ih))
         .Times(1)
         .WillOnce(::testing::Return(handle));
 
@@ -56,19 +64,23 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHashArray_PausesTorrents)
     struct F
     {
         lt::info_hash_t ih;
-        std::shared_ptr<MockTorrentHandleActor> handle;
+        std::shared_ptr<MockTorrentHandle> handle;
     };
 
     std::vector<F> items;
-    items.push_back({ pt::InfoHashFromString("0101010101010101010101010101010101010101"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandleActor>() });
+    items.push_back({ pt::InfoHashFromString("0101010101010101010101010101010101010101"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandle>() });
 
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    auto session = std::make_shared<MockSession>();
+
+    EXPECT_CALL(*sessions, GetDefault())
+        .Times(1)
+        .WillOnce(::testing::Return(session));
 
     for (auto const& itm : items)
     {
-        EXPECT_CALL(*finder, Find(itm.ih))
+        EXPECT_CALL(*session, FindTorrent(itm.ih))
                 .Times(1)
                 .WillOnce(::testing::Return(itm.handle));
 

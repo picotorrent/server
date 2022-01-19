@@ -5,9 +5,8 @@
 
 #include "../../rpc/configget.hpp"
 #include "../../rpc/configset.hpp"
-#include "../../rpc/sessionaddmagnetlink.hpp"
-#include "../../rpc/sessionaddtorrent.hpp"
-#include "../../rpc/sessionremovetorrent.hpp"
+#include "../../rpc/sessionsaddtorrent.hpp"
+#include "../../rpc/sessionsremovetorrent.hpp"
 #include "../../rpc/settingspackcreate.hpp"
 #include "../../rpc/settingspackgetbyid.hpp"
 #include "../../rpc/settingspacklist.hpp"
@@ -46,9 +45,8 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::IS
 {
     m_commands.insert({ "config.get",              std::make_shared<pt::Server::RPC::ConfigGetCommand>(db) });
     m_commands.insert({ "config.set",              std::make_shared<pt::Server::RPC::ConfigSetCommand>(db) });
-    m_commands.insert({ "session.addMagnetLink",   std::make_shared<pt::Server::RPC::SessionAddMagnetLinkCommand>(sm) });
-    m_commands.insert({ "session.addTorrent",      std::make_shared<pt::Server::RPC::SessionAddTorrentCommand>(sm) });
-    m_commands.insert({ "session.removeTorrent",   std::make_shared<pt::Server::RPC::SessionRemoveTorrentCommand>(sm) });
+    m_commands.insert({ "sessions.addTorrent",     std::make_shared<pt::Server::RPC::SessionsAddTorrentCommand>(sm) });
+    m_commands.insert({ "sessions.removeTorrent",  std::make_shared<pt::Server::RPC::SessionsRemoveTorrentCommand>(sm) });
     m_commands.insert({ "settingsPack.create",     std::make_shared<pt::Server::RPC::SettingsPackCreateCommand>(db) });
     m_commands.insert({ "settingsPack.getById",    std::make_shared<pt::Server::RPC::SettingsPackGetByIdCommand>(db) });
     m_commands.insert({ "settingsPack.list",       std::make_shared<pt::Server::RPC::SettingsPackList>(db) });

@@ -1,4 +1,4 @@
-#include "sessionremovetorrent.hpp"
+#include "sessionsremovetorrent.hpp"
 
 #include <libtorrent/info_hash.hpp>
 #include <utility>
@@ -9,14 +9,14 @@
 namespace lt = libtorrent;
 using json = nlohmann::json;
 using pt::Server::ISessionManager;
-using pt::Server::RPC::SessionRemoveTorrentCommand;
+using pt::Server::RPC::SessionsRemoveTorrentCommand;
 
-SessionRemoveTorrentCommand::SessionRemoveTorrentCommand(std::shared_ptr<ISessionManager> session)
+SessionsRemoveTorrentCommand::SessionsRemoveTorrentCommand(std::shared_ptr<ISessionManager> session)
     : m_session(std::move(session))
 {
 }
 
-json SessionRemoveTorrentCommand::Execute(const json& j)
+json SessionsRemoveTorrentCommand::Execute(const json& j)
 {
     if (j.is_array())
     {
