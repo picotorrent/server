@@ -29,11 +29,7 @@ export default {
     }
   },
   async mounted () {
-    const {
-      default_save_path
-    } = await this.$rpc('config.get', [ 'default_save_path' ]);
-
-    this.addSavePath = default_save_path;
+    this.addSavePath = '/tmp';
 
     const { uri } = this.$route.query;
 
