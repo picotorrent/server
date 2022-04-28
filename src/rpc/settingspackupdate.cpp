@@ -9,11 +9,11 @@
 
 using json = nlohmann::json;
 using pt::Server::RPC::SettingsPackUpdateCommand;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
 SettingsPackUpdateCommand::SettingsPackUpdateCommand(
     sqlite3* db,
-    std::shared_ptr<SessionManager> const& session)
+    std::shared_ptr<Session> const& session)
     : m_db(db),
     m_session(session)
 {

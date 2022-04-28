@@ -9,11 +9,11 @@
 using json = nlohmann::json;
 using pt::Server::Data::Models::ListenInterface;
 using pt::Server::RPC::ListenInterfacesCreateCommand;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
-ListenInterfacesCreateCommand::ListenInterfacesCreateCommand(sqlite3* db, std::shared_ptr<SessionManager> session)
+ListenInterfacesCreateCommand::ListenInterfacesCreateCommand(sqlite3* db, std::shared_ptr<Session> session)
     : m_db(db),
-    m_session(session)
+    m_session(std::move(session))
 {
 }
 

@@ -9,9 +9,9 @@
 using json = nlohmann::json;
 using pt::Server::Data::Models::Profile;
 using pt::Server::RPC::ProfilesUpdateCommand;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
-ProfilesUpdateCommand::ProfilesUpdateCommand(sqlite3* db, std::shared_ptr<SessionManager> session)
+ProfilesUpdateCommand::ProfilesUpdateCommand(sqlite3* db, std::shared_ptr<Session> session)
     : m_db(db),
     m_session(session)
 {

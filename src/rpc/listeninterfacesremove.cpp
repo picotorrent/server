@@ -7,11 +7,11 @@
 
 using json = nlohmann::json;
 using pt::Server::RPC::ListenInterfacesRemoveCommand;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
-ListenInterfacesRemoveCommand::ListenInterfacesRemoveCommand(sqlite3* db, std::shared_ptr<SessionManager> session)
+ListenInterfacesRemoveCommand::ListenInterfacesRemoveCommand(sqlite3* db, std::shared_ptr<Session> session)
     : m_db(db),
-    m_session(session)
+    m_session(std::move(session))
 {
 }
 

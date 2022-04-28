@@ -10,11 +10,10 @@ namespace lt = libtorrent;
 using json = nlohmann::json;
 using pt::Server::Data::Models::Proxy;
 using pt::Server::RPC::ProxyCreateCommand;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
-ProxyCreateCommand::ProxyCreateCommand(sqlite3* db, std::shared_ptr<SessionManager> session)
-    : m_db(db),
-    m_session(session)
+ProxyCreateCommand::ProxyCreateCommand(sqlite3* db)
+    : m_db(db)
 {
 }
 

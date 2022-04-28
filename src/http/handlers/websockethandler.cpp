@@ -10,11 +10,11 @@
 
 using json = nlohmann::json;
 using pt::Server::Http::Handlers::WebSocketHandler;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession> {
 public:
-    WebSocketSession(boost::asio::ip::tcp::socket &&socket, std::shared_ptr<SessionManager> session)
+    WebSocketSession(boost::asio::ip::tcp::socket &&socket, std::shared_ptr<Session> session)
         : m_websocket(std::move(socket)),
           m_session(std::move(session))
     {
@@ -119,7 +119,7 @@ private:
 
     void MaybeWrite()
     {
-        if (m_isWriting || m_sendData.empty()) { return; };
+        if (m_isWriting || m_sendData.empty()) { return; }
 
         std::string &d = m_sendData.front();
 
@@ -140,14 +140,14 @@ private:
 
     boost::beast::websocket::stream<boost::beast::tcp_stream> m_websocket;
     boost::beast::flat_buffer m_buffer;
-    std::shared_ptr<SessionManager> m_session;
+    std::shared_ptr<Session> m_session;
     bool m_isWriting { false };
     std::queue<std::string> m_sendData;
     std::shared_ptr<void> m_subscriberTag;
 };
 
-WebSocketHandler::WebSocketHandler(std::shared_ptr<pt::Server::SessionManager> sm)
-    : m_sm(std::move(sm))
+WebSocketHandler::WebSocketHandler(std::shared_ptr<pt::Server::Session> session)
+    : m_session(std::move(session))
 {
 }
 
@@ -155,5 +155,5 @@ void WebSocketHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> cont
 {
     std::make_shared<WebSocketSession>(
         context->Stream().release_socket(),
-        m_sm)->Run(context->Request());
+        m_session)->Run(context->Request());
 }

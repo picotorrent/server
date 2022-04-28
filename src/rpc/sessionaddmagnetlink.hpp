@@ -5,17 +5,17 @@
 
 #include "command.hpp"
 
-namespace pt::Server { class SessionManager; }
+namespace pt::Server { class Session; }
 
 namespace pt::Server::RPC
 {
     class SessionAddMagnetLinkCommand : public Command
     {
     public:
-        SessionAddMagnetLinkCommand(std::shared_ptr<SessionManager>);
+        explicit SessionAddMagnetLinkCommand(std::shared_ptr<Session>);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<SessionManager> m_session;
+        std::shared_ptr<Session> m_session;
     };
 }

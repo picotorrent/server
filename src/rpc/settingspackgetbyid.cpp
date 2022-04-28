@@ -11,7 +11,6 @@ namespace lt = libtorrent;
 using json = nlohmann::json;
 using pt::Server::Data::SettingsPack;
 using pt::Server::RPC::SettingsPackGetByIdCommand;
-using pt::Server::SessionManager;
 
 SettingsPackGetByIdCommand::SettingsPackGetByIdCommand(sqlite3* db)
     : m_db(db)

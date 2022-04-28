@@ -5,18 +5,17 @@
 
 #include "command.hpp"
 
-namespace pt::Server { class SessionManager; }
+namespace pt::Server { class Session; }
 
 namespace pt::Server::RPC
 {
     class ProxyCreateCommand : public Command
     {
     public:
-        ProxyCreateCommand(sqlite3* db, std::shared_ptr<SessionManager> session);
+        explicit ProxyCreateCommand(sqlite3* db);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
         sqlite3* m_db;
-        std::shared_ptr<SessionManager> m_session;
     };
 }

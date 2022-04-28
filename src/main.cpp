@@ -25,7 +25,7 @@ using pt::Server::Http::Handlers::WebSocketHandler;
 using pt::Server::Http::HttpListener;
 using pt::Server::Log;
 using pt::Server::Options;
-using pt::Server::SessionManager;
+using pt::Server::Session;
 
 void Run(sqlite3* db, std::shared_ptr<Options> const& options)
 {
@@ -69,7 +69,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
         tsdb = prometheus;
     }
 
-    auto sm = SessionManager::Load(io, db, tsdb);
+    auto sm = Session::Load(io, db, tsdb);
 
     http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db, sm));
     http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
