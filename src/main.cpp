@@ -6,13 +6,11 @@
 #include "data/migrator.hpp"
 #include "log.hpp"
 #include "options.hpp"
-#include "sessionmanager.hpp"
+#include "session.hpp"
 
 #include "http/handlers/jsonrpchandler.hpp"
 #include "http/handlers/websockethandler.hpp"
 #include "http/httplistener.hpp"
-#include "http/httprequesthandler.hpp"
-#include "tsdb/influxdb.hpp"
 #include "tsdb/prometheus.hpp"
 #include "tsdb/timeseriesdatabase.hpp"
 
@@ -48,19 +46,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
         },
         options->WebRoot());
 
-    if (options->IsValidInfluxDbConfig())
-    {
-        BOOST_LOG_TRIVIAL(info) << "InfluxDb configuration seems legit. Configuring reporter...";
-
-        tsdb = std::make_shared<pt::Server::TSDB::InfluxDb>(
-            io,
-            options->InfluxDbHost().value(),
-            options->InfluxDbPort().value(),
-            options->InfluxDbOrganization().value(),
-            options->InfluxDbBucket().value(),
-            options->InfluxDbToken().value());
-    }
-    else if (options->PrometheusExporterEnabled())
+    if (options->PrometheusExporterEnabled())
     {
         BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
 

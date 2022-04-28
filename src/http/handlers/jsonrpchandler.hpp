@@ -4,7 +4,7 @@
 
 #include "../httprequesthandler.hpp"
 #include "../../rpc/command.hpp"
-#include "../../sessionmanager.hpp"
+#include "../../session.hpp"
 
 namespace pt::Server::Http::Handlers
 {

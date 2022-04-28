@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 namespace lt = libtorrent;
 

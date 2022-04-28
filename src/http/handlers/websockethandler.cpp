@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "../../json/torrentstatus.hpp"
-#include "../../sessionmanager.hpp"
+#include "../../session.hpp"
 
 using json = nlohmann::json;
 using pt::Server::Http::Handlers::WebSocketHandler;

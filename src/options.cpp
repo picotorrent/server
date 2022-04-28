@@ -14,12 +14,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         ("http-addr", po::value<std::string>(), "set the http server address")
         ("http-port", po::value<int>(), "set the http server port")
         ("log-level", po::value<std::string>(), "set log level")
-        // InfluxDb options
-        ("influxdb-host", po::value<std::string>(), "set the InfluxDb host")
-        ("influxdb-port", po::value<int>(), "set the InfluxDb port")
-        ("influxdb-bucket", po::value<std::string>(), "set the InfluxDb bucket")
-        ("influxdb-org", po::value<std::string>(), "set the InfluxDb organization")
-        ("influxdb-token", po::value<std::string>(), "set the InfluxDb auth. token")
         // Prometheus options
         ("prometheus-exporter", "enable the Prometheus metrics exporter")
         ;
@@ -68,19 +62,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         if (level == "error") { opts->m_logLevel = boost::log::trivial::error; }
         if (level == "fatal") { opts->m_logLevel = boost::log::trivial::fatal; }
     }
-
-    // InfluxDb setup
-    if (auto val = std::getenv("PICOTORRENT_INFLUXDB_HOST")) { opts->m_influxHost = val; }
-    if (auto val = std::getenv("PICOTORRENT_INFLUXDB_PORT")) { opts->m_influxPort = std::stoi(val); }
-    if (auto val = std::getenv("PICOTORRENT_INFLUXDB_BUCKET")) { opts->m_influxBucket = val; }
-    if (auto val = std::getenv("PICOTORRENT_INFLUXDB_ORG")) { opts->m_influxOrg = val; }
-    if (auto val = std::getenv("PICOTORRENT_INFLUXDB_TOKEN")) { opts->m_influxToken = val; }
-
-    if (vm.count("influxdb-host")) { opts->m_influxHost = vm["influxdb-host"].as<std::string>(); }
-    if (vm.count("influxdb-port")) { opts->m_influxPort = vm["influxdb-port"].as<int>(); }
-    if (vm.count("influxdb-bucket")) { opts->m_influxBucket = vm["influxdb-bucket"].as<std::string>(); }
-    if (vm.count("influxdb-org")) { opts->m_influxOrg = vm["influxdb-org"].as<std::string>(); }
-    if (vm.count("influxdb-token")) { opts->m_influxToken = vm["influxdb-token"].as<std::string>(); }
 
     if (std::getenv("PICOTORRENT_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
     if (vm.count("prometheus-exporter")) { opts->m_prometheusEnabled = true; }

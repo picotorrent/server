@@ -1,4 +1,4 @@
-#include "sessionmanager.hpp"
+#include "session.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -19,7 +19,7 @@
 #include "data/statement.hpp"
 #include "json/infohash.hpp"
 #include "json/torrentstatus.hpp"
-#include "tsdb/influxdb.hpp"
+#include "tsdb/timeseriesdatabase.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;

@@ -4,7 +4,7 @@
 
 #include "../data/datareader.hpp"
 #include "../data/models/profile.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 using json = nlohmann::json;
 using pt::Server::Data::Models::Profile;

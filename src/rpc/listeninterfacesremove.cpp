@@ -3,7 +3,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "../data/datareader.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 using json = nlohmann::json;
 using pt::Server::RPC::ListenInterfacesRemoveCommand;

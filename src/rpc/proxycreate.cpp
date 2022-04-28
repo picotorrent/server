@@ -4,7 +4,7 @@
 
 #include "../data/datareader.hpp"
 #include "../data/models/proxy.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;

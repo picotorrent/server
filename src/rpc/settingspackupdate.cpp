@@ -5,7 +5,7 @@
 #include "../data/transaction.hpp"
 #include "../data/models/profile.hpp"
 #include "../data/models/settingspack.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 using json = nlohmann::json;
 using pt::Server::RPC::SettingsPackUpdateCommand;

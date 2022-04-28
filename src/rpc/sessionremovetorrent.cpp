@@ -3,7 +3,7 @@
 #include <libtorrent/info_hash.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;

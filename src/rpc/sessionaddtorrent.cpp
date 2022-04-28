@@ -6,7 +6,7 @@
 #include <libtorrent/torrent_info.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
+#include "../session.hpp"
 
 static std::string Base64Decode(const std::string_view in)
 {

@@ -21,7 +21,8 @@ add_library(
 
     src/log.cpp
     src/options.cpp
-    src/sessionmanager.cpp
+    src/session.cpp
+    src/session.hpp
 
     # data
     src/data/migrator.cpp
@@ -68,8 +69,6 @@ add_library(
     src/rpc/torrentsresume.cpp
 
     # tsdb
-    src/tsdb/influxdb.cpp
-    src/tsdb/influxdb.hpp
     src/tsdb/prometheus.cpp
     src/tsdb/prometheus.hpp
 )
