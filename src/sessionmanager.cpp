@@ -39,6 +39,20 @@ static std::string to_str(lt::info_hash_t hash)
     return ss.str();
 }
 
+static std::string ToString(const lt::sha1_hash &hash)
+{
+    std::stringstream ss;
+    ss << hash;
+    return ss.str();
+}
+
+static std::string ToString(const lt::sha256_hash &hash)
+{
+    std::stringstream ss;
+    ss << hash;
+    return ss.str();
+}
+
 struct Scope
 {
     explicit Scope(std::string name)
@@ -60,69 +74,6 @@ struct add_params
 {
     bool muted;
 };
-
-static lt::settings_pack GetSettingsPack(sqlite3* db)
-{
-    auto profile = Profile::GetActive(db);
-    auto settings = SettingsPack::GetById(db, profile->SettingsPackId());
-    auto pack = settings->Settings();
-
-    std::stringstream incoming;
-    std::stringstream outgoing;
-
-    for (auto const& listenInterface : ListenInterface::GetAll(db))
-    {
-        incoming << ","
-            << listenInterface->Host()
-            << ":"
-            << listenInterface->Port()
-            << (listenInterface->IsLocal() ? "l" : "")
-            << (listenInterface->IsSsl() ? "s" : "");
-
-        if (listenInterface->IsOutgoing())
-        {
-            outgoing << ","
-                << listenInterface->Host();
-        }
-    }
-
-    if (!incoming.str().empty())
-    {
-        pack.set_str(lt::settings_pack::listen_interfaces, incoming.str().substr(1));
-    }
-
-    if (!outgoing.str().empty())
-    {
-        pack.set_str(lt::settings_pack::outgoing_interfaces, outgoing.str().substr(1));
-    }
-
-    // Load proxy
-    if (profile->ProxyId())
-    {
-        if (auto proxy = Proxy::GetById(db, profile->ProxyId().value()))
-        {
-            BOOST_LOG_TRIVIAL(info) << "Setting up session proxy";
-
-            pack.set_int(lt::settings_pack::proxy_type,                 proxy->Type());
-            pack.set_str(lt::settings_pack::proxy_hostname,             proxy->Hostname());
-            pack.set_int(lt::settings_pack::proxy_port,                 proxy->Port());
-            pack.set_str(lt::settings_pack::proxy_username,             proxy->Username().value_or(""));
-            pack.set_str(lt::settings_pack::proxy_password,             proxy->Password().value_or(""));
-            pack.set_bool(lt::settings_pack::proxy_hostnames,           proxy->ProxyHostnames());
-            pack.set_bool(lt::settings_pack::proxy_peer_connections,    proxy->ProxyPeerConnections());
-            pack.set_bool(lt::settings_pack::proxy_tracker_connections, proxy->ProxyTrackerConnections());
-        }
-        else
-        {
-            BOOST_LOG_TRIVIAL(warning) << "Proxy not found";
-        }
-    }
-
-    // Set static things like alert_mask
-    pack.set_int(lt::settings_pack::alert_mask, lt::alert_category::all);
-
-    return pack;
-}
 
 std::shared_ptr<Session> Session::Load(boost::asio::io_context& io, sqlite3* db, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb)
 {
@@ -154,18 +105,17 @@ std::shared_ptr<Session> Session::Load(boost::asio::io_context& io, sqlite3* db,
         });
 
     BOOST_LOG_TRIVIAL(info) << "Loading session settings";
-    params.settings = GetSettingsPack(db);
 
-    auto sm = std::shared_ptr<Session>(
+    auto session = std::shared_ptr<Session>(
         new Session(
                 io,
                 db,
                 std::make_unique<lt::session>(params),
                 std::move(tsdb)));
 
-    sm->LoadTorrents();
+    session->LoadTorrents();
 
-    return std::move(sm);
+    return std::move(session);
 }
 
 Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb)
@@ -177,8 +127,6 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
     m_stats(lt::session_stats_metrics()),
     m_tsdb(std::move(tsdb))
 {
-    Scope s("Session::Session");
-
     m_session->set_alert_notify(
         [this]()
         {
@@ -192,8 +140,6 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
 
 Session::~Session()
 {
-    Scope s("Session::~Session");
-
     m_session->set_alert_notify([] {});
     m_timer.cancel();
 
@@ -246,7 +192,12 @@ Session::~Session()
     BOOST_LOG_TRIVIAL(info) << "Saving data for " << num_outstanding_resume << " torrent(s)";
 
     sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(m_db, "UPDATE torrents SET queue_position = $1, resume_data = $2 WHERE info_hash = $3", -1, &stmt, nullptr);
+    sqlite3_prepare_v2(
+        m_db,
+        "UPDATE torrents SET queue_position = $1, resume_data_buf = $2 WHERE info_hash_v1 = $3 AND info_hash_v2 = $4",
+        -1,
+        &stmt,
+        nullptr);
 
     while (num_outstanding_resume > 0)
     {
@@ -278,16 +229,35 @@ Session::~Session()
             --num_outstanding_resume;
 
             std::vector<char> buffer = lt::write_resume_data_buf(rd->params);
-            std::string info_hash = to_str(rd->handle.info_hashes());
 
             // Store state
             sqlite3_bind_int(stmt, 1, static_cast<int>(rd->handle.status().queue_position));
             sqlite3_bind_blob(stmt, 2, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 3, info_hash.c_str(), -1, SQLITE_TRANSIENT);
+
+            if (rd->handle.info_hashes().has_v1())
+            {
+                sqlite3_bind_text(stmt, 3, ToString(rd->handle.info_hashes().v1).c_str(), -1, SQLITE_TRANSIENT);
+            }
+            else
+            {
+                sqlite3_bind_null(stmt, 3);
+            }
+
+            if (rd->handle.info_hashes().has_v2())
+            {
+                sqlite3_bind_text(stmt, 4, ToString(rd->handle.info_hashes().v2).c_str(), -1, SQLITE_TRANSIENT);
+            }
+            else
+            {
+                sqlite3_bind_null(stmt, 4);
+            }
 
             if (sqlite3_step(stmt) != SQLITE_DONE)
             {
-                BOOST_LOG_TRIVIAL(warning) << "Failed to save resume data for torrent " << info_hash << ": " << sqlite3_errmsg(m_db);
+                BOOST_LOG_TRIVIAL(warning)
+                    << "Failed to save resume data for torrent "
+                    << rd->params.name << ": "
+                    << sqlite3_errmsg(m_db);
             }
 
             sqlite3_reset(stmt);
@@ -307,7 +277,7 @@ public:
     {
     }
 
-    virtual ~TorrentHandle() {}
+    virtual ~TorrentHandle() = default;
 
     bool IsValid() override
     {
@@ -342,8 +312,6 @@ std::shared_ptr<pt::Server::ITorrentHandle> Session::FindTorrent(const lt::info_
 
 lt::info_hash_t Session::AddTorrent(lt::add_torrent_params& params)
 {
-    Scope s("Session::AddTorrent");
-
     params.userdata = lt::client_data_t(new add_params());
 
     m_session->async_add_torrent(params);
@@ -355,8 +323,6 @@ lt::info_hash_t Session::AddTorrent(lt::add_torrent_params& params)
 
 bool Session::FindTorrent(lt::info_hash_t const& hash, lt::torrent_status& status)
 {
-    Scope s("Session::FindTorrent");
-
     auto it = m_torrents.find(hash);
     if (it == m_torrents.end()) { return false; }
     status = it->second;
@@ -375,18 +341,11 @@ void Session::ForEachTorrent(std::function<bool(lt::torrent_status const& ts)> c
 
 void Session::ReloadSettings()
 {
-    Scope s("Session::ReloadSettings");
-
     BOOST_LOG_TRIVIAL(info) << "Reloading session settings";
-
-    m_session->apply_settings(
-        GetSettingsPack(m_db));
 }
 
 void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
 {
-    Scope s("Session::RemoveTorrent");
-
     lt::remove_flags_t flags = {};
 
     if (remove_files)
@@ -413,8 +372,6 @@ void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
 
 std::shared_ptr<void> Session::Subscribe(std::function<void(nlohmann::json&)> sub)
 {
-    Scope s("Session::Subscribe");
-
     auto ptr = std::make_shared<std::function<void(json&)>>(std::move(sub));
     m_subscribers.push_back(ptr);
     return ptr;
@@ -451,8 +408,6 @@ void Session::Broadcast(json& j)
 
 void Session::LoadTorrents()
 {
-    Scope s("Session::LoadTorrents");
-
     int added  =  0;
     int stored = -1;
 
@@ -468,74 +423,21 @@ void Session::LoadTorrents()
 
     Statement::ForEach(
         m_db,
-        "SELECT t.info_hash, t.resume_data, t.torrent_data, mu.uri, mu.save_path FROM torrents t\n"
-        "LEFT JOIN magnet_uris mu ON t.info_hash = mu.info_hash\n"
-        "ORDER BY queue_position ASC",
+        "SELECT resume_data_buf FROM torrents ORDER BY queue_position ASC",
         [&added, &session = m_session](Statement::Row const& row)
         {
-            bool haveMagnetUri = !row.IsNull(3);
-            bool haveTorrentData = !row.IsNull(2);
-            bool haveResumeData = !row.IsNull(1);
-
-            // This is the add_torrent_params instance we add to the session.
-            lt::add_torrent_params params;
-
-            // We have a magnet uri, and no torrent data. This is expected in cases where PicoTorrent
-            // shuts down before the metadata has been received. In that case, add the torrent as a
-            // regular magnet link again and begin search.
-            if (haveMagnetUri && !haveTorrentData)
-            {
-                lt::error_code ec;
-                lt::parse_magnet_uri(row.GetStdString(3), params, ec);
-
-                if (ec)
-                {
-                    BOOST_LOG_TRIVIAL(error) << "Failed to parse stored magnet URI: " << ec;
-                    return;
-                }
-
-                params.save_path = row.GetStdString(4);
-
-                if (params.save_path.empty())
-                {
-                    BOOST_LOG_TRIVIAL(error) << "Cannot add magnet URI with no save path";
-                    return;
-                }
-            }
-            // We have torrent data - ie. we can add this as a normal torrent to the session.
-            else if (haveTorrentData)
-            {
-                lt::error_code ec;
-
-                if (haveResumeData)
-                {
-                    auto buffer = row.GetBlob(1);
-                    params = lt::read_resume_data(
-                        lt::span<const char>(buffer.data(), buffer.size()),
-                        ec);
-
-                    if (ec)
-                    {
-                        BOOST_LOG_TRIVIAL(warning) << "Failed to read resume data for torrent: " << ec.message();
-                    }
-                }
-
-                auto torrentBuffer = row.GetBlob(2);
-                lt::bdecode_node node = lt::bdecode(
-                    lt::span<const char>(torrentBuffer.data(), torrentBuffer.size()),
-                    ec);
-
-                if (ec)
-                {
-                    BOOST_LOG_TRIVIAL(error) << "Failed to read torrent data: " << ec.message();
-                    return;
-                }
-
-                params.ti = std::make_shared<lt::torrent_info>(node);
-            }
-
+            auto buffer = row.GetBlob(0);
             auto extra = new add_params();
             extra->muted = true;
+
+            lt::error_code ec;
+            lt::add_torrent_params params = lt::read_resume_data(buffer, ec);
+
+            if (ec)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Failed to read resume data: " << ec.message();
+                return;
+            }
 
             params.userdata = lt::client_data_t(extra);
 
@@ -559,8 +461,6 @@ void Session::ReadAlerts()
         {
         case lt::add_torrent_alert::alert_type:
         {
-            Scope s("Session::ReadAlerts::add_torrent_alert");
-
             auto* ata = lt::alert_cast<lt::add_torrent_alert>(alert);
 
             if (ata->error)
@@ -585,60 +485,38 @@ void Session::ReadAlerts()
             {
                 BOOST_LOG_TRIVIAL(debug) << "Saving torrent " << to_str(ts.info_hashes) << " in database";
 
-                // Store torrent in database. This will always create an entry in the 'torrents' table
-                // and if it is a magnet uri (ie. no torrent file exists) it will also add an entry to
-                // the 'magnet_uris' table.
-
                 Statement::ForEach(
                     m_db,
-                    "INSERT INTO torrents (info_hash, queue_position, torrent_data) VALUES($1, $2, $3);",
+                    "INSERT INTO torrents (info_hash_v1, info_hash_v2, queue_position, resume_data_buf)\n"
+                    "VALUES($1, $2, $3, $4);",
                     [](auto const&) {},
                     [&](sqlite3_stmt* stmt)
                     {
-                        sqlite3_bind_text(stmt, 1, to_str(ata->params.info_hashes).c_str(), -1, SQLITE_TRANSIENT);
-                        sqlite3_bind_int(stmt,  2, static_cast<int>(ts.queue_position));
+                        lt::info_hash_t ih = ata->params.info_hashes;
 
-                        if (ata->params.ti)
+                        if (ih.has_v1())
                         {
-                            lt::create_torrent ct(*ata->params.ti);
-                            std::vector<char> buffer;
-                            lt::bencode(std::back_inserter(buffer), ct.generate());
-
-                            sqlite3_bind_blob(stmt, 3, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
+                            sqlite3_bind_text(stmt, 1, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
                         }
                         else
                         {
-                            sqlite3_bind_null(stmt, 3);
+                            sqlite3_bind_null(stmt, 1);
                         }
-                    });
 
-                if (ata->params.ti)
-                {
-                    // If we have a torrent file, we save resume data here
-                    // to get the save path stored.
-
-                    ata->handle.save_resume_data();
-                }
-                else
-                {
-                    // No torrent file. Store the magnet uri with data in the database.
-
-                    BOOST_LOG_TRIVIAL(debug) << "... also saving magnet uri in database";
-
-                    Statement::ForEach(
-                        m_db,
-                        "INSERT INTO magnet_uris (info_hash, save_path, uri) VALUES ($1, $2, $3);",
-                        [](auto const&) {},
-                        [&](sqlite3_stmt* stmt)
+                        if (ih.has_v2())
                         {
-                            auto uri = lt::make_magnet_uri(ata->handle);
+                            sqlite3_bind_text(stmt, 2, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
+                        }
+                        else
+                        {
+                            sqlite3_bind_null(stmt, 2);
+                        }
 
-                            // Store magnet uri
-                            sqlite3_bind_text(stmt, 1, to_str(ata->params.info_hashes).c_str(), -1, SQLITE_TRANSIENT);
-                            sqlite3_bind_text(stmt, 2, ata->params.save_path.c_str(),           -1, SQLITE_TRANSIENT);
-                            sqlite3_bind_text(stmt, 3, uri.c_str(),                             -1, SQLITE_TRANSIENT);
-                        });
-                }
+                        sqlite3_bind_int(stmt, 3, static_cast<int>(ts.queue_position));
+
+                        std::vector<char> buffer = lt::write_resume_data_buf(ata->params);
+                        sqlite3_bind_blob(stmt, 4, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
+                    });
 
                 BOOST_LOG_TRIVIAL(info) << "Torrent " << to_str(ata->handle.info_hashes()) << " added";
             }
@@ -659,38 +537,14 @@ void Session::ReadAlerts()
         }
         case lt::metadata_received_alert::alert_type:
         {
-            Scope s("Session::ReadAlerts::metadata_received_alert");
-
             auto* mra = lt::alert_cast<lt::metadata_received_alert>(alert);
 
-            lt::create_torrent ct(*mra->handle.torrent_file());
-            std::vector<char> buffer;
-            lt::bencode(std::back_inserter(buffer), ct.generate());
+            BOOST_LOG_TRIVIAL(info) << "Metadata received for torrent " << mra->handle.status().name;
 
-            std::string hash = to_str(mra->handle.info_hashes());
-
-            BOOST_LOG_TRIVIAL(debug) << "Saving metadata for torrent " << hash;
-
-            Statement::ForEach(
-                m_db,
-                "UPDATE torrents SET torrent_data = $1 WHERE info_hash = $2",
-                [](auto const&){},
-                [&](sqlite3_stmt* stmt)
-                {
-                    sqlite3_bind_blob(stmt, 1, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-                    sqlite3_bind_text(stmt, 2, hash.c_str(),  static_cast<int>(hash.size()),   SQLITE_TRANSIENT);
-                });
-
-            Statement::ForEach(
-                m_db,
-                "DELETE FROM magnet_uris WHERE info_hash = $1",
-                [](auto const&){},
-                [&](sqlite3_stmt* stmt)
-                {
-                    sqlite3_bind_text(stmt, 1, hash.c_str(), static_cast<int>(hash.size()), SQLITE_TRANSIENT);
-                });
-
-            BOOST_LOG_TRIVIAL(info) << "Metadata saved for torrent " << to_str(mra->handle.info_hashes());
+            mra->handle.save_resume_data(
+                lt::torrent_handle::flush_disk_cache
+                | lt::torrent_handle::save_info_dict
+                | lt::torrent_handle::only_if_modified);
 
             break;
         }
@@ -699,18 +553,37 @@ void Session::ReadAlerts()
             auto* srda = lt::alert_cast<lt::save_resume_data_alert>(alert);
 
             std::vector<char> buffer = lt::write_resume_data_buf(srda->params);
-            std::string info_hash = to_str(srda->handle.info_hashes());
 
             Statement::ForEach(
                 m_db,
-                "UPDATE torrents SET queue_position = $1, resume_data = $2 WHERE info_hash = $3",
+                "UPDATE torrents SET resume_data_buf = $1 WHERE info_hash_v1 = $2 AND info_hash_v2 = $3",
                 [](auto&&){},
                 [&](sqlite3_stmt* stmt)
                 {
-                    sqlite3_bind_int(stmt, 1, static_cast<int>(srda->handle.status().queue_position));
-                    sqlite3_bind_blob(stmt, 2, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-                    sqlite3_bind_text(stmt, 3, info_hash.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_blob(stmt, 1, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
+
+                    lt::info_hash_t ih = srda->params.info_hashes;
+
+                    if (ih.has_v1())
+                    {
+                        sqlite3_bind_text(stmt, 2, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
+                    }
+                    else
+                    {
+                        sqlite3_bind_null(stmt, 2);
+                    }
+
+                    if (ih.has_v2())
+                    {
+                        sqlite3_bind_text(stmt, 3, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
+                    }
+                    else
+                    {
+                        sqlite3_bind_null(stmt, 3);
+                    }
                 });
+
+            BOOST_LOG_TRIVIAL(info) << "Resume data saved for " << srda->params.name;
 
             break;
         }
@@ -766,8 +639,6 @@ void Session::ReadAlerts()
         }
         case lt::torrent_removed_alert::alert_type:
         {
-            Scope s("Session::ReadAlerts::torrent_removed_alert");
-
             auto* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
             std::string hash = to_str(tra->info_hashes);
 
@@ -775,11 +646,32 @@ void Session::ReadAlerts()
 
             Statement::ForEach(
                 m_db,
-                "DELETE FROM torrents WHERE info_hash = $1",
+                "DELETE FROM torrents\n"
+                "WHERE (info_hash_v1 = $1 AND info_hash_v2 IS NULL)\n"
+                "   OR (info_hash_v1 IS NULL AND info_hash_v2 = $2)\n"
+                "   OR (info_hash_v1 = $1 AND info_hash_v2 = $2);",
                 [](auto const&){},
                 [&](sqlite3_stmt* stmt)
                 {
-                    sqlite3_bind_text(stmt, 1, hash.c_str(), static_cast<int>(hash.size()), SQLITE_TRANSIENT);
+                    lt::info_hash_t ih = tra->info_hashes;
+
+                    if (ih.has_v1())
+                    {
+                        sqlite3_bind_text(stmt, 1, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
+                    }
+                    else
+                    {
+                        sqlite3_bind_null(stmt, 1);
+                    }
+
+                    if (ih.has_v2())
+                    {
+                        sqlite3_bind_text(stmt, 2, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
+                    }
+                    else
+                    {
+                        sqlite3_bind_null(stmt, 2);
+                    }
                 });
 
             json j;
@@ -788,7 +680,7 @@ void Session::ReadAlerts()
 
             Broadcast(j);
 
-            BOOST_LOG_TRIVIAL(info) << "Torrent " << hash << " removed";
+            BOOST_LOG_TRIVIAL(info) << "Torrent " << tra->torrent_name() << " removed";
 
             break;
         }

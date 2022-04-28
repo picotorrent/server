@@ -3,7 +3,7 @@
 #include <boost/log/trivial.hpp>
 #include <sqlite3.h>
 
-#include "database.hpp"
+#include "data/migrator.hpp"
 #include "log.hpp"
 #include "options.hpp"
 #include "sessionmanager.hpp"
@@ -19,7 +19,7 @@
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
-using pt::Server::Database;
+using pt::Server::Data::Migrator;
 using pt::Server::Http::Handlers::JsonRpcHandler;
 using pt::Server::Http::Handlers::WebSocketHandler;
 using pt::Server::Http::HttpListener;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
     sqlite3* db = nullptr;
     sqlite3_open(options->DatabaseFilePath().c_str(), &db);
 
-    if (!Database::Migrate(db))
+    if (!Migrator::Run(db))
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
         return 1;

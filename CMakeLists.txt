@@ -19,12 +19,13 @@ add_library(
     PicoTorrentCore
     STATIC
 
-    src/database.cpp
     src/log.cpp
     src/options.cpp
     src/sessionmanager.cpp
 
     # data
+    src/data/migrator.cpp
+    src/data/migrator.hpp
     src/data/migrations/0001_initialsetup.cpp
     src/data/statement.cpp
     src/data/transaction.cpp
