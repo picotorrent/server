@@ -259,7 +259,7 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
     sqlite3_bind_int(stmt, 18, settings.get_bool(lt::settings_pack::announce_to_all_trackers)          ? 1 : 0);
     sqlite3_bind_int(stmt, 19, settings.get_bool(lt::settings_pack::prefer_udp_trackers)               ? 1 : 0);
     sqlite3_bind_int(stmt, 20, settings.get_bool(lt::settings_pack::disable_hash_checks)               ? 1 : 0);
-    sqlite3_bind_int(stmt, 21, settings.get_bool(lt::settings_pack::volatile_read_cache)               ? 1 : 0);
+    sqlite3_bind_int(stmt, 21,                                                                               0);
     sqlite3_bind_int(stmt, 22, settings.get_bool(lt::settings_pack::no_atime_storage)                  ? 1 : 0);
     sqlite3_bind_int(stmt, 23, settings.get_bool(lt::settings_pack::incoming_starts_queued_torrents)   ? 1 : 0);
     sqlite3_bind_int(stmt, 24, settings.get_bool(lt::settings_pack::report_true_downloaded)            ? 1 : 0);
@@ -277,7 +277,7 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
     sqlite3_bind_int(stmt, 36, settings.get_bool(lt::settings_pack::always_send_user_agent)            ? 1 : 0);
     sqlite3_bind_int(stmt, 37, settings.get_bool(lt::settings_pack::apply_ip_filter_to_trackers)       ? 1 : 0);
     sqlite3_bind_int(stmt, 38, settings.get_bool(lt::settings_pack::ban_web_seeds)                     ? 1 : 0);
-    sqlite3_bind_int(stmt, 39, settings.get_bool(lt::settings_pack::allow_partial_disk_writes)         ? 1 : 0);
+    sqlite3_bind_int(stmt, 39,                                                                               0);
     sqlite3_bind_int(stmt, 40, settings.get_bool(lt::settings_pack::support_share_mode)                ? 1 : 0);
     sqlite3_bind_int(stmt, 41, settings.get_bool(lt::settings_pack::report_redundant_bytes)            ? 1 : 0);
     sqlite3_bind_int(stmt, 42, settings.get_bool(lt::settings_pack::listen_system_port_fallback)       ? 1 : 0);
@@ -361,8 +361,8 @@ std::shared_ptr<SettingsPack> SettingsPack::Create(
     sqlite3_bind_int(stmt, 119, settings.get_int(lt::settings_pack::recv_socket_buffer_size));
     sqlite3_bind_int(stmt, 120, settings.get_int(lt::settings_pack::send_socket_buffer_size));
     sqlite3_bind_int(stmt, 121, settings.get_int(lt::settings_pack::max_peer_recv_buffer_size));
-    sqlite3_bind_int(stmt, 122, settings.get_int(lt::settings_pack::read_cache_line_size));
-    sqlite3_bind_int(stmt, 123, settings.get_int(lt::settings_pack::write_cache_line_size));
+    sqlite3_bind_int(stmt, 122, 0);
+    sqlite3_bind_int(stmt, 123, 0);
     sqlite3_bind_int(stmt, 124, settings.get_int(lt::settings_pack::optimistic_disk_retry));
     sqlite3_bind_int(stmt, 125, settings.get_int(lt::settings_pack::max_suggest_pieces));
     sqlite3_bind_int(stmt, 126, settings.get_int(lt::settings_pack::local_service_announce_interval));
