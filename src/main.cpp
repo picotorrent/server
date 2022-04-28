@@ -25,7 +25,26 @@ using pt::Server::Log;
 using pt::Server::Options;
 using pt::Server::Session;
 
-void Run(sqlite3* db, std::shared_ptr<Options> const& options)
+struct sqlite3_deleter
+{
+    void operator()(sqlite3* db)
+    {
+        sqlite3_close(db);
+    }
+};
+
+static std::unique_ptr<sqlite3, sqlite3_deleter> OpenSQLiteDatabase(const char* path)
+{
+    sqlite3* buffer = nullptr;
+    int err = sqlite3_open(path, &buffer);
+    if (err)
+    {
+        throw std::runtime_error("failed to open sqlite");
+    }
+    return std::unique_ptr<sqlite3, sqlite3_deleter>(buffer);
+}
+
+static int Run(sqlite3* db, std::shared_ptr<Options> const& options)
 {
     boost::asio::io_context io;
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
@@ -39,11 +58,7 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
 
     auto http = std::make_shared<HttpListener>(
         io,
-        boost::asio::ip::tcp::endpoint
-        {
-            boost::asio::ip::make_address(options->Host()),
-            options->Port()
-        },
+        options->HttpEndpoint(),
         options->WebRoot());
 
     if (options->PrometheusExporterEnabled())
@@ -62,6 +77,8 @@ void Run(sqlite3* db, std::shared_ptr<Options> const& options)
     http->Run();
 
     io.run();
+
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -74,19 +91,13 @@ int main(int argc, char* argv[])
     BOOST_LOG_TRIVIAL(info) << "PicoTorrent Server starting up...";
     BOOST_LOG_TRIVIAL(info) << "Opening database from " << options->DatabaseFilePath();
 
-    sqlite3* db = nullptr;
-    sqlite3_open(options->DatabaseFilePath().c_str(), &db);
+    auto db = OpenSQLiteDatabase(options->DatabaseFilePath().c_str());
 
-    if (!Migrator::Run(db))
+    if (!Migrator::Run(db.get()))
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
         return 1;
     }
 
-    Run(db, options);
-
-    BOOST_LOG_TRIVIAL(info) << "Closing database...";
-    sqlite3_close(db);
-
-    return 0;
+    return Run(db.get(), options);
 }

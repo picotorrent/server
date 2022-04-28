@@ -22,10 +22,11 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
+    std::string httpHost = "127.0.0.1";
+    int httpPort = 1337;
+
     auto opts = std::make_shared<Options>();
     opts->m_databaseFilePath = fs::path(argv[0]).parent_path() / "PicoTorrent.sqlite";
-    opts->m_host = "127.0.0.1";
-    opts->m_port = 1337;
     opts->m_logLevel = boost::log::trivial::info;
     opts->m_webRoot = nullptr;
 
@@ -34,14 +35,14 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         opts->m_databaseFilePath = fs::path(dbPath);
     }
 
-    if (const char* httpHost = std::getenv("PICOTORRENT_HTTP_HOST"))
+    if (const char* httpHostEnv = std::getenv("PICOTORRENT_HTTP_HOST"))
     {
-        opts->m_host = httpHost;
+        httpHost = httpHostEnv;
     }
 
-    if (const char* httpPort = std::getenv("PICOTORRENT_HTTP_PORT"))
+    if (const char* httpPortEnv = std::getenv("PICOTORRENT_HTTP_PORT"))
     {
-        opts->m_port = std::stoi(httpPort);
+        httpPort = std::stoi(httpPortEnv);
     }
 
     if (const char* webRoot = std::getenv("PICOTORRENT_WEBROOT_PATH"))
@@ -49,8 +50,8 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         opts->m_webRoot = std::make_shared<std::string>(webRoot);
     }
 
-    if (vm.count("http-addr")) { opts->m_host = vm["http-addr"].as<std::string>(); }
-    if (vm.count("http-port")) { opts->m_port = vm["http-port"].as<int>(); }
+    if (vm.count("http-addr")) { httpHost = vm["http-addr"].as<std::string>(); }
+    if (vm.count("http-port")) { httpPort = vm["http-port"].as<int>(); }
 
     if (vm.count("log-level"))
     {
@@ -65,6 +66,12 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
 
     if (std::getenv("PICOTORRENT_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
     if (vm.count("prometheus-exporter")) { opts->m_prometheusEnabled = true; }
+
+    opts->m_httpEndpoint = boost::asio::ip::tcp::endpoint
+        {
+            boost::asio::ip::make_address(httpHost),
+            static_cast<uint16_t>(httpPort)
+        };
 
     return opts;
 }

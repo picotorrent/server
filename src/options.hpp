@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 
+#include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
 
 namespace pt::Server
@@ -15,17 +16,15 @@ namespace pt::Server
 
         std::filesystem::path DatabaseFilePath() { return m_databaseFilePath; }
         boost::log::trivial::severity_level LogLevel() { return m_logLevel; }
-        std::string Host() { return m_host; }
-        uint16_t Port() { return m_port; }
+        boost::asio::ip::tcp::endpoint HttpEndpoint() const { return m_httpEndpoint; }
         std::shared_ptr<std::string> WebRoot() { return m_webRoot; }
 
-        bool PrometheusExporterEnabled() { return m_prometheusEnabled; }
+        bool PrometheusExporterEnabled() const { return m_prometheusEnabled; }
 
     private:
         std::filesystem::path m_databaseFilePath;
         boost::log::trivial::severity_level m_logLevel;
-        std::string m_host;
-        uint16_t m_port;
+        boost::asio::ip::tcp::endpoint m_httpEndpoint;
         std::shared_ptr<std::string> m_webRoot;
 
         bool m_prometheusEnabled;
