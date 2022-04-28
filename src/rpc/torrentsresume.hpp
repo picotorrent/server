@@ -5,17 +5,17 @@
 
 #include "command.hpp"
 
-namespace pt::Server { class ITorrentHandleFinder; }
+namespace pt::Server { class ISession; }
 
 namespace pt::Server::RPC
 {
     class TorrentsResumeCommand : public Command
     {
     public:
-        TorrentsResumeCommand(std::shared_ptr<ITorrentHandleFinder>);
+        TorrentsResumeCommand(std::shared_ptr<ISession>);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<ITorrentHandleFinder> m_finder;
+        std::shared_ptr<ISession> m_session;
     };
 }

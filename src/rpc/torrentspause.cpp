@@ -14,10 +14,10 @@ namespace lt = libtorrent;
 
 using json = nlohmann::json;
 using pt::Server::RPC::TorrentsPauseCommand;
-using pt::Server::ITorrentHandleFinder;
+using pt::Server::ISession;
 
-TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<ITorrentHandleFinder> finder)
-    : m_finder(std::move(finder))
+TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<ISession> session)
+    : m_session(std::move(session))
 {
 }
 
@@ -25,7 +25,7 @@ json TorrentsPauseCommand::Execute(const json& j)
 {
     auto pause = [this](const lt::info_hash_t& hash)
     {
-        auto handle = m_finder->Find(hash);
+        auto handle = m_session->FindTorrent(hash);
 
         if (handle == nullptr)
         {

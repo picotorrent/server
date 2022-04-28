@@ -17,23 +17,23 @@ namespace pt::Server::TSDB
 
 namespace pt::Server
 {
-    class ITorrentHandleActor
+    class ITorrentHandle
     {
     public:
-        virtual ~ITorrentHandleActor() = default;
+        virtual ~ITorrentHandle() = default;
 
         virtual bool IsValid() = 0;
         virtual void Pause() = 0;
         virtual void Resume() = 0;
     };
 
-    class ITorrentHandleFinder
+    class ISession
     {
     public:
-        virtual std::shared_ptr<ITorrentHandleActor> Find(const libtorrent::info_hash_t& hash) = 0;
+        virtual std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) = 0;
     };
 
-    class SessionManager : public ITorrentHandleFinder
+    class SessionManager : public ISession
     {
     public:
         static std::shared_ptr<SessionManager> Load(boost::asio::io_context& io, sqlite3* db, std::shared_ptr<TSDB::TimeSeriesDatabase> tsdb);
@@ -41,7 +41,7 @@ namespace pt::Server
         ~SessionManager();
 
         // inherited
-        std::shared_ptr<ITorrentHandleActor> Find(const libtorrent::info_hash_t& hash) override;
+        std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
 
         libtorrent::info_hash_t AddTorrent(libtorrent::add_torrent_params& params);
         bool FindTorrent(libtorrent::info_hash_t const& hash, libtorrent::torrent_status& status);
