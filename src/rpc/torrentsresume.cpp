@@ -13,8 +13,8 @@
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
-using pt::Server::RPC::TorrentsResumeCommand;
-using pt::Server::ISession;
+using pika::RPC::TorrentsResumeCommand;
+using pika::ISession;
 
 TorrentsResumeCommand::TorrentsResumeCommand(std::shared_ptr<ISession> session)
     : m_session(std::move(session))

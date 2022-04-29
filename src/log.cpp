@@ -7,7 +7,7 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
-using pt::Server::Log;
+using pika::Log;
 
 namespace expr = boost::log::expressions;
 

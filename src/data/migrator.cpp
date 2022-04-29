@@ -5,8 +5,8 @@
 #include "migrations/0001_initialsetup.hpp"
 #include "transaction.hpp"
 
-using pt::Server::Data::Migrator;
-using pt::Server::Data::Transaction;
+using pika::Data::Migrator;
+using pika::Data::Transaction;
 
 static int GetUserVersion(sqlite3* db)
 {

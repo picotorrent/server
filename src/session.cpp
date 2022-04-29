@@ -23,13 +23,13 @@
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::Data::Models::ListenInterface;
-using pt::Server::Data::Models::Profile;
-using pt::Server::Data::Models::Proxy;
-using pt::Server::Data::SettingsPack;
-using pt::Server::Data::Statement;
-using pt::Server::Data::SQLiteException;
-using pt::Server::Session;
+using pika::Data::Models::ListenInterface;
+using pika::Data::Models::Profile;
+using pika::Data::Models::Proxy;
+using pika::Data::SettingsPack;
+using pika::Data::Statement;
+using pika::Data::SQLiteException;
+using pika::Session;
 
 static std::string to_str(lt::info_hash_t hash)
 {
@@ -269,7 +269,7 @@ Session::~Session()
     BOOST_LOG_TRIVIAL(info) << "Session state saved";
 }
 
-class TorrentHandle : public pt::Server::ITorrentHandle
+class TorrentHandle : public pika::ITorrentHandle
 {
 public:
     explicit TorrentHandle(lt::torrent_status& status)
@@ -298,7 +298,7 @@ private:
     lt::torrent_status m_status;
 };
 
-std::shared_ptr<pt::Server::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t& hash)
+std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t& hash)
 {
     auto status = m_torrents.find(hash);
 

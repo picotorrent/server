@@ -4,7 +4,7 @@
 
 #include <sqlite3.h>
 
-namespace pt::Server::RPC
+namespace pika::RPC
 {
     class ConfigGetCommand : public Command
     {

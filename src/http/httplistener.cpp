@@ -5,8 +5,8 @@
 
 #include "httpsession.hpp"
 
-using pt::Server::Http::HttpListener;
-using pt::Server::Http::HttpRequestHandler;
+using pika::Http::HttpListener;
+using pika::Http::HttpRequestHandler;
 
 HttpListener::HttpListener(
     boost::asio::io_context& ioc,

@@ -2,21 +2,21 @@
 
 #include "../httprequesthandler.hpp"
 
-namespace pt::Server
+namespace pika
 {
     class Session;
 }
 
-namespace pt::Server::Http::Handlers
+namespace pika::Http::Handlers
 {
     class WebSocketHandler : public HttpRequestHandler
     {
     public:
-        explicit WebSocketHandler(std::shared_ptr<pt::Server::Session> session);
+        explicit WebSocketHandler(std::shared_ptr<pika::Session> session);
 
         void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
 
     private:
-        std::shared_ptr<pt::Server::Session> m_session;
+        std::shared_ptr<pika::Session> m_session;
     };
 }

@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 cmake_policy(SET CMP0092 NEW) # don't add /W3 as default
 
-set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg-overlays/triplets)
 set(CMAKE_TOOLCHAIN_FILE   ${CMAKE_CURRENT_SOURCE_DIR}/vendor/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
-project(PicoTorrentServer)
+project(pika)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -16,7 +15,7 @@ find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
-    PicoTorrentCore
+    pikacore
     STATIC
 
     src/log.cpp
@@ -50,21 +49,9 @@ add_library(
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
-    src/rpc/listeninterfacescreate.cpp
-    src/rpc/listeninterfacesgetall.cpp
-    src/rpc/listeninterfacesremove.cpp
-    src/rpc/profilesgetactive.cpp
-    src/rpc/profilesgetall.cpp
-    src/rpc/profilesupdate.cpp
-    src/rpc/proxycreate.cpp
-    src/rpc/proxygetall.cpp
     src/rpc/sessionaddmagnetlink.cpp
     src/rpc/sessionaddtorrent.cpp
     src/rpc/sessionremovetorrent.cpp
-    src/rpc/settingspackcreate.cpp
-    src/rpc/settingspackgetbyid.cpp
-    src/rpc/settingspackupdate.cpp
-    src/rpc/settingspacklist.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
 
@@ -75,7 +62,7 @@ add_library(
 
 
 target_link_libraries(
-    PicoTorrentCore
+    pikacore
     Boost::boost
     Boost::log
     Boost::program_options
@@ -85,17 +72,17 @@ target_link_libraries(
 )
 
 add_executable(
-    PicoTorrentServer
+    pika
     src/main.cpp
 )
 
 target_link_libraries(
-    PicoTorrentServer
-    PicoTorrentCore
+    pika
+    pikacore
 )
 
 add_executable(
-    PicoTorrentTests
+    pikatests
     tests/main.cpp
     tests/data/models.cpp
     tests/rpc/configget.cpp
@@ -105,8 +92,10 @@ add_executable(
 )
 
 target_link_libraries(
-    PicoTorrentTests
+    pikatests
     PRIVATE
-    PicoTorrentCore
-    GTest::gmock GTest::gtest GTest::gmock_main
+    pikacore
+    GTest::gmock
+    GTest::gtest
+    GTest::gmock_main
 )

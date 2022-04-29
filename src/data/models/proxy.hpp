@@ -10,7 +10,7 @@
 
 #include "../statement.hpp"
 
-namespace pt::Server::Data::Models
+namespace pika::Data::Models
 {
     class Proxy
     {

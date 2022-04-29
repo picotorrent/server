@@ -39,8 +39,8 @@ static std::string Base64Decode(const std::string_view in)
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::Session;
-using pt::Server::RPC::SessionAddTorrentCommand;
+using pika::Session;
+using pika::RPC::SessionAddTorrentCommand;
 
 SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<Session> session)
     : m_session(std::move(session))

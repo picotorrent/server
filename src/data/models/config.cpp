@@ -3,8 +3,8 @@
 #include "../statement.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Data::Models::Config;
-using pt::Server::Data::Statement;
+using pika::Data::Models::Config;
+using pika::Data::Statement;
 
 json Config::Get(sqlite3* db, const std::string_view &key)
 {

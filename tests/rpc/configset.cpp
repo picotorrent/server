@@ -6,8 +6,8 @@
 #include "../../src/rpc/configset.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Data::Statement;
-using pt::Server::RPC::ConfigSetCommand;
+using pika::Data::Statement;
+using pika::RPC::ConfigSetCommand;
 
 class ConfigSetCommandTests : public ::testing::Test
 {
@@ -15,7 +15,7 @@ protected:
     void SetUp() override
     {
         sqlite3_open(":memory:", &db);
-        EXPECT_TRUE(pt::Server::Data::Migrator::Run(db));
+        EXPECT_TRUE(pika::Data::Migrator::Run(db));
 
         cmd = std::make_unique<ConfigSetCommand>(db);
     }

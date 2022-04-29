@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <sqlite3.h>
 
-namespace pt::Server::Data::Models
+namespace pika::Data::Models
 {
     class Config
     {

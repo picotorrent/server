@@ -1,6 +1,6 @@
 #include "settingspack.hpp"
 
-using pt::Server::Data::SettingsPack;
+using pika::Data::SettingsPack;
 
 std::unordered_set<std::string>& SettingsPack::Names()
 {

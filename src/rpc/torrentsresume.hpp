@@ -5,9 +5,9 @@
 
 #include "command.hpp"
 
-namespace pt::Server { class ISession; }
+namespace pika { class ISession; }
 
-namespace pt::Server::RPC
+namespace pika::RPC
 {
     class TorrentsResumeCommand : public Command
     {

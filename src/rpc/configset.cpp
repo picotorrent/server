@@ -3,8 +3,8 @@
 #include "../data/models/config.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Data::Models::Config;
-using pt::Server::RPC::ConfigSetCommand;
+using pika::Data::Models::Config;
+using pika::RPC::ConfigSetCommand;
 
 ConfigSetCommand::ConfigSetCommand(sqlite3* db)
     : m_db(db)

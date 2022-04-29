@@ -6,16 +6,16 @@
 #include "../../rpc/command.hpp"
 #include "../../session.hpp"
 
-namespace pt::Server::Http::Handlers
+namespace pika::Http::Handlers
 {
     class JsonRpcHandler : public HttpRequestHandler
     {
     public:
-        explicit JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::Session> &session);
+        explicit JsonRpcHandler(sqlite3* db, const std::shared_ptr<pika::Session> &session);
 
         void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
 
     private:
-        std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>> m_commands;
+        std::map<std::string, std::shared_ptr<pika::RPC::Command>> m_commands;
     };
 }

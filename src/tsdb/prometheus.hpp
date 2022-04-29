@@ -5,7 +5,7 @@
 
 #include <optional>
 
-namespace pt::Server::TSDB
+namespace pika::TSDB
 {
     class Prometheus : public Http::HttpRequestHandler, public TimeSeriesDatabase
     {

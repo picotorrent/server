@@ -4,13 +4,13 @@
 
 #include "../src/session.hpp"
 
-class MockSession : public pt::Server::ISession
+class MockSession : public pika::ISession
 {
 public:
-    MOCK_METHOD(std::shared_ptr<pt::Server::ITorrentHandle>, FindTorrent, (const libtorrent::info_hash_t& hash));
+    MOCK_METHOD(std::shared_ptr<pika::ITorrentHandle>, FindTorrent, (const libtorrent::info_hash_t& hash));
 };
 
-class MockTorrentHandle : public pt::Server::ITorrentHandle
+class MockTorrentHandle : public pika::ITorrentHandle
 {
 public:
     MOCK_METHOD(bool, IsValid, ());

@@ -5,8 +5,8 @@
 #include "datareader.hpp"
 #include "sqliteexception.hpp"
 
-using pt::Server::Data::SQLiteException;
-using pt::Server::Data::Statement;
+using pika::Data::SQLiteException;
+using pika::Data::Statement;
 
 Statement::Row::Row(sqlite3_stmt* stmt)
     : m_stmt(stmt)

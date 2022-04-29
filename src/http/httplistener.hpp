@@ -5,7 +5,7 @@
 
 #include <boost/asio.hpp>
 
-namespace pt::Server::Http
+namespace pika::Http
 {
     class HttpRequestHandler;
 

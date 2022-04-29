@@ -4,7 +4,7 @@
 
 #include "sqliteexception.hpp"
 
-using pt::Server::Data::Transaction;
+using pika::Data::Transaction;
 
 Transaction::Transaction(sqlite3* db)
     : m_db(db),

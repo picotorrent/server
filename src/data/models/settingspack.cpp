@@ -9,8 +9,8 @@
 #include "../sqliteexception.hpp"
 
 namespace lt = libtorrent;
-using pt::Server::Data::SettingsPack;
-using pt::Server::Data::SQLiteException;
+using pika::Data::SettingsPack;
+using pika::Data::SQLiteException;
 
 std::shared_ptr<SettingsPack> SettingsPack::Create(
     sqlite3* db,

@@ -4,9 +4,9 @@
 #include "../sqliteexception.hpp"
 #include "../statement.hpp"
 
-using pt::Server::Data::Models::ListenInterface;
-using pt::Server::Data::SQLiteException;
-using pt::Server::Data::Statement;
+using pika::Data::Models::ListenInterface;
+using pika::Data::SQLiteException;
+using pika::Data::Statement;
 
 std::shared_ptr<ListenInterface> ListenInterface::Create(sqlite3* db, std::string const& host, int port, bool isLocal, bool isOutgoing, bool isSsl)
 {

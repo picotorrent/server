@@ -9,8 +9,8 @@
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::Session;
-using pt::Server::RPC::SessionAddMagnetLinkCommand;
+using pika::Session;
+using pika::RPC::SessionAddMagnetLinkCommand;
 
 SessionAddMagnetLinkCommand::SessionAddMagnetLinkCommand(std::shared_ptr<Session> session)
     : m_session(std::move(session))

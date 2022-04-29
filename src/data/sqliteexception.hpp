@@ -2,7 +2,7 @@
 
 #include <exception>
 
-namespace pt::Server::Data
+namespace pika::Data
 {
     class SQLiteException : public std::exception
     {

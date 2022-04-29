@@ -2,7 +2,7 @@
 
 #include <regex>
 
-using pt::Server::TSDB::Prometheus;
+using pika::TSDB::Prometheus;
 
 Prometheus::~Prometheus() = default;
 

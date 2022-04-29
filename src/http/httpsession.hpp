@@ -13,10 +13,10 @@
 #include <boost/asio/strand.hpp>
 #include <sqlite3.h>
 
-namespace pt::Server { class SessionManager; }
-namespace pt::Server::RPC { class Command; }
+namespace pika { class SessionManager; }
+namespace pika::RPC { class Command; }
 
-namespace pt::Server::Http
+namespace pika::Http
 {
     class HttpRequestHandler;
 

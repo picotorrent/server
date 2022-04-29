@@ -13,14 +13,14 @@
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
-using pt::Server::Http::HttpRequestHandler;
-using pt::Server::Http::HttpSession;
-using pt::Server::Http::MimeType;
-using pt::Server::SessionManager;
+using pika::Http::HttpRequestHandler;
+using pika::Http::HttpSession;
+using pika::Http::MimeType;
+using pika::SessionManager;
 
 using BasicHttpRequest = boost::beast::http::request<boost::beast::http::string_body>;
 
-class HttpSession::DefaultContext : public pt::Server::Http::HttpRequestHandler::Context
+class HttpSession::DefaultContext : public pika::Http::HttpRequestHandler::Context
 {
 public:
     explicit DefaultContext(std::shared_ptr<HttpSession> session, BasicHttpRequest request)

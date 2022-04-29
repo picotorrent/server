@@ -5,9 +5,9 @@
 
 #include "command.hpp"
 
-namespace pt::Server { class Session; }
+namespace pika { class Session; }
 
-namespace pt::Server::RPC
+namespace pika::RPC
 {
     class SessionRemoveTorrentCommand : public Command
     {

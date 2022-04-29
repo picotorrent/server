@@ -6,8 +6,8 @@
 #include "../sqliteexception.hpp"
 #include "../statement.hpp"
 
-using pt::Server::Data::SQLiteException;
-using pt::Server::Data::Models::Proxy;
+using pika::Data::SQLiteException;
+using pika::Data::Models::Proxy;
 
 std::shared_ptr<Proxy> Proxy::Create(
     sqlite3* db,

@@ -8,7 +8,7 @@
 #include "../../src/json/infohash.hpp"
 #include "../../src/rpc/torrentsresume.hpp"
 
-using pt::Server::RPC::TorrentsResumeCommand;
+using pika::RPC::TorrentsResumeCommand;
 
 class TorrentsResumeCommandTests : public ::testing::Test
 {

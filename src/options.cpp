@@ -5,7 +5,7 @@
 namespace fs = std::filesystem;
 namespace po = boost::program_options;
 
-using pt::Server::Options;
+using pika::Options;
 
 std::shared_ptr<Options> Options::Load(int argc, char* argv[])
 {
@@ -26,26 +26,26 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     int httpPort = 1337;
 
     auto opts = std::make_shared<Options>();
-    opts->m_databaseFilePath = fs::path(argv[0]).parent_path() / "PicoTorrent.sqlite";
+    opts->m_databaseFilePath = fs::path(argv[0]).parent_path() / "pika.sqlite";
     opts->m_logLevel = boost::log::trivial::info;
     opts->m_webRoot = nullptr;
 
-    if (const char* dbPath = std::getenv("PICOTORRENT_DB_FILE"))
+    if (const char* dbPath = std::getenv("PIKA_DB_FILE"))
     {
         opts->m_databaseFilePath = fs::path(dbPath);
     }
 
-    if (const char* httpHostEnv = std::getenv("PICOTORRENT_HTTP_HOST"))
+    if (const char* httpHostEnv = std::getenv("PIKA_HTTP_HOST"))
     {
         httpHost = httpHostEnv;
     }
 
-    if (const char* httpPortEnv = std::getenv("PICOTORRENT_HTTP_PORT"))
+    if (const char* httpPortEnv = std::getenv("PIKA_HTTP_PORT"))
     {
         httpPort = std::stoi(httpPortEnv);
     }
 
-    if (const char* webRoot = std::getenv("PICOTORRENT_WEBROOT_PATH"))
+    if (const char* webRoot = std::getenv("PIKA_WEBROOT_PATH"))
     {
         opts->m_webRoot = std::make_shared<std::string>(webRoot);
     }
@@ -64,7 +64,7 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         if (level == "fatal") { opts->m_logLevel = boost::log::trivial::fatal; }
     }
 
-    if (std::getenv("PICOTORRENT_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
+    if (std::getenv("PIKA_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
     if (vm.count("prometheus-exporter")) { opts->m_prometheusEnabled = true; }
 
     opts->m_httpEndpoint = boost::asio::ip::tcp::endpoint

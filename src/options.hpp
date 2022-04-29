@@ -8,7 +8,7 @@
 #include <boost/asio.hpp>
 #include <boost/log/trivial.hpp>
 
-namespace pt::Server
+namespace pika
 {
     struct Options
     {

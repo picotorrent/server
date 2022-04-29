@@ -10,12 +10,12 @@
 #include <nlohmann/json.hpp>
 #include <sqlite3.h>
 
-namespace pt::Server::TSDB
+namespace pika::TSDB
 {
     struct TimeSeriesDatabase;
 }
 
-namespace pt::Server
+namespace pika
 {
     class ITorrentHandle
     {

@@ -4,8 +4,8 @@
 #include "../../src/data/migrator.hpp"
 #include "../../src/data/models/listeninterface.hpp"
 
-using pt::Server::Data::Migrator;
-using pt::Server::Data::Models::ListenInterface;
+using pika::Data::Migrator;
+using pika::Data::Models::ListenInterface;
 
 class ListenInterfaceTests : public testing::Test
 {
@@ -13,7 +13,7 @@ protected:
     void SetUp() override
     {
         sqlite3_open(":memory:", &db);
-        EXPECT_TRUE(pt::Server::Data::Migrator::Run(db));
+        EXPECT_TRUE(pika::Data::Migrator::Run(db));
     }
 
     void TearDown() override

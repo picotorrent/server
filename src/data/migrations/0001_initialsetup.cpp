@@ -2,7 +2,7 @@
 
 #include <boost/log/trivial.hpp>
 
-using pt::Server::Data::Migrations::InitialSetup;
+using pika::Data::Migrations::InitialSetup;
 
 int InitialSetup::Migrate(sqlite3* db)
 {

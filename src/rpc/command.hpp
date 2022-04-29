@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace pt::Server::RPC
+namespace pika::RPC
 {
     class Command
     {

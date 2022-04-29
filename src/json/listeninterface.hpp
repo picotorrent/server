@@ -6,7 +6,7 @@
 
 using nlohmann::json;
 
-namespace pt::Server::Data::Models
+namespace pika::Data::Models
 {
     static void to_json(json& j, const std::shared_ptr<ListenInterface>& li)
     {

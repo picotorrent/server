@@ -2,7 +2,7 @@
 
 #include <boost/beast.hpp>
 
-namespace pt::Server::Http
+namespace pika::Http
 {
     static boost::beast::string_view MimeType(boost::beast::string_view path)
     {

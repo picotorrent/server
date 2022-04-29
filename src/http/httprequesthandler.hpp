@@ -2,7 +2,7 @@
 
 #include <boost/beast.hpp>
 
-namespace pt::Server::Http
+namespace pika::Http
 {
     class HttpRequestHandler
     {

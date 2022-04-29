@@ -2,7 +2,7 @@
 
 #include <sqlite3.h>
 
-namespace pt::Server::Data
+namespace pika::Data
 {
     struct Transaction
     {

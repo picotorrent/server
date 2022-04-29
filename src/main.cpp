@@ -17,18 +17,22 @@
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
-using pt::Server::Data::Migrator;
-using pt::Server::Http::Handlers::JsonRpcHandler;
-using pt::Server::Http::Handlers::WebSocketHandler;
-using pt::Server::Http::HttpListener;
-using pt::Server::Log;
-using pt::Server::Options;
-using pt::Server::Session;
+using pika::Data::Migrator;
+using pika::Http::Handlers::JsonRpcHandler;
+using pika::Http::Handlers::WebSocketHandler;
+using pika::Http::HttpListener;
+using pika::Log;
+using pika::Options;
+using pika::Session;
 
 struct sqlite3_deleter
 {
     void operator()(sqlite3* db)
     {
+        BOOST_LOG_TRIVIAL(info)
+            << "Running SQLite VACUUM with result: "
+            << sqlite3_exec(db, "VACUUM;", nullptr, nullptr, nullptr);
+
         sqlite3_close(db);
     }
 };
@@ -36,68 +40,92 @@ struct sqlite3_deleter
 static std::unique_ptr<sqlite3, sqlite3_deleter> OpenSQLiteDatabase(const char* path)
 {
     sqlite3* buffer = nullptr;
-    int err = sqlite3_open(path, &buffer);
-    if (err)
-    {
-        throw std::runtime_error("failed to open sqlite");
-    }
-    return std::unique_ptr<sqlite3, sqlite3_deleter>(buffer);
+    return sqlite3_open(path, &buffer) == SQLITE_OK
+        ? std::unique_ptr<sqlite3, sqlite3_deleter>(buffer)
+        : throw std::runtime_error("failed to open database");
 }
 
-static int Run(sqlite3* db, std::shared_ptr<Options> const& options)
+struct App
 {
-    boost::asio::io_context io;
-    boost::asio::signal_set signals(io, SIGINT, SIGTERM);
-    signals.async_wait(
-        [&io](boost::system::error_code const& ec, int signal)
-        {
-            io.stop();
-        });
-
-    std::shared_ptr<pt::Server::TSDB::TimeSeriesDatabase> tsdb = nullptr;
-
-    auto http = std::make_shared<HttpListener>(
-        io,
-        options->HttpEndpoint(),
-        options->WebRoot());
-
-    if (options->PrometheusExporterEnabled())
+    explicit App(int argc, char* argv[])
+        : m_argc(argc)
+        , m_argv(argv)
     {
-        BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
-
-        auto prometheus = std::make_shared<pt::Server::TSDB::Prometheus>();
-        http->AddHandler("GET", "/metrics", prometheus);
-        tsdb = prometheus;
     }
 
-    auto sm = Session::Load(io, db, tsdb);
+    ~App() { BOOST_LOG_TRIVIAL(info) << "Pika shutting down."; }
 
-    http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db, sm));
-    http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
-    http->Run();
+    std::shared_ptr<Options> Bootstrap()
+    {
+        if (auto opts = Options::Load(m_argc, m_argv))
+        {
+            Log::Setup(opts->LogLevel());
+            return opts;
+        }
 
-    io.run();
+        return nullptr;
+    }
 
-    return 0;
-}
+    int Run(const std::shared_ptr<Options> &options)
+    {
+        auto db = OpenSQLiteDatabase(options->DatabaseFilePath().c_str());
+
+        if (!Migrator::Run(db.get()))
+        {
+            BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
+            return 1;
+        }
+
+        boost::asio::io_context io;
+        boost::asio::signal_set signals(io, SIGINT, SIGTERM);
+        signals.async_wait(
+                [&io](boost::system::error_code const& ec, int signal)
+                {
+                    BOOST_LOG_TRIVIAL(info) << "Interrupt received (" << signal << ") - stopping...";
+                    io.stop();
+                });
+
+        std::shared_ptr<pika::TSDB::TimeSeriesDatabase> tsdb = nullptr;
+
+        auto http = std::make_shared<HttpListener>(
+                io,
+                options->HttpEndpoint(),
+                options->WebRoot());
+
+        if (options->PrometheusExporterEnabled())
+        {
+            BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
+
+            auto prometheus = std::make_shared<pika::TSDB::Prometheus>();
+            http->AddHandler("GET", "/metrics", prometheus);
+            tsdb = prometheus;
+        }
+
+        auto sm = Session::Load(io, db.get(), tsdb);
+
+        http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
+        http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
+        http->Run();
+
+        io.run();
+
+        return 0;
+    }
+
+private:
+    int m_argc;
+    char** m_argv;
+};
 
 int main(int argc, char* argv[])
 {
-    auto options = Options::Load(argc, argv);
-    if (!options) { return 1; }
+    App app(argc, argv);
 
-    Log::Setup(options->LogLevel());
-
-    BOOST_LOG_TRIVIAL(info) << "PicoTorrent Server starting up...";
-    BOOST_LOG_TRIVIAL(info) << "Opening database from " << options->DatabaseFilePath();
-
-    auto db = OpenSQLiteDatabase(options->DatabaseFilePath().c_str());
-
-    if (!Migrator::Run(db.get()))
+    if (auto options = app.Bootstrap())
     {
-        BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
-        return 1;
+        BOOST_LOG_TRIVIAL(info) << "Pika starting up...";
+        return app.Run(options);
     }
 
-    return Run(db.get(), options);
+    return 1;
 }

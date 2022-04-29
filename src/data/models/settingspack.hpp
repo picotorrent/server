@@ -7,7 +7,7 @@
 #include <libtorrent/settings_pack.hpp>
 #include <sqlite3.h>
 
-namespace pt::Server::Data
+namespace pika::Data
 {
     class SettingsPack
     {

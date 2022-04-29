@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-namespace pt::Server::TSDB
+namespace pika::TSDB
 {
     struct TimeSeriesDatabase
     {

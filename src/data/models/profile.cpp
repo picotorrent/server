@@ -6,9 +6,9 @@
 #include "../sqliteexception.hpp"
 #include "../statement.hpp"
 
-using pt::Server::Data::Models::Profile;
-using pt::Server::Data::SQLiteException;
-using pt::Server::Data::Statement;
+using pika::Data::Models::Profile;
+using pika::Data::SQLiteException;
+using pika::Data::Statement;
 
 std::shared_ptr<Profile> Profile::GetActive(sqlite3* db)
 {

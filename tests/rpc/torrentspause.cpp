@@ -6,7 +6,7 @@
 #include "../../src/json/infohash.hpp"
 #include "../../src/rpc/torrentspause.hpp"
 
-using pt::Server::RPC::TorrentsPauseCommand;
+using pika::RPC::TorrentsPauseCommand;
 
 class TorrentsPauseCommandTests : public ::testing::Test
 {

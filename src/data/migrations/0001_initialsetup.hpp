@@ -2,7 +2,7 @@
 
 #include <sqlite3.h>
 
-namespace pt::Server::Data::Migrations
+namespace pika::Data::Migrations
 {
     struct InitialSetup
     {

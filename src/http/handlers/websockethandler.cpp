@@ -9,8 +9,8 @@
 #include "../../session.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Http::Handlers::WebSocketHandler;
-using pt::Server::Session;
+using pika::Http::Handlers::WebSocketHandler;
+using pika::Session;
 
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession> {
 public:
@@ -32,7 +32,7 @@ public:
         m_websocket.set_option(boost::beast::websocket::stream_base::decorator(
                 [](boost::beast::websocket::response_type& res)
                 {
-                    res.set(boost::beast::http::field::server, "PicoTorrentServer/1.0");
+                    res.set(boost::beast::http::field::server, "pika/1.0");
                 }));
 
         // Accept the websocket handshake
@@ -146,7 +146,7 @@ private:
     std::shared_ptr<void> m_subscriberTag;
 };
 
-WebSocketHandler::WebSocketHandler(std::shared_ptr<pt::Server::Session> session)
+WebSocketHandler::WebSocketHandler(std::shared_ptr<pika::Session> session)
     : m_session(std::move(session))
 {
 }
