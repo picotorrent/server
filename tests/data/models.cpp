@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 #include <sqlite3.h>
 
-#include "../../src/database.hpp"
+#include "../../src/data/migrator.hpp"
 #include "../../src/data/models/listeninterface.hpp"
 
-using pt::Server::Database;
+using pt::Server::Data::Migrator;
 using pt::Server::Data::Models::ListenInterface;
 
 class ListenInterfaceTests : public testing::Test
@@ -13,7 +13,7 @@ protected:
     void SetUp() override
     {
         sqlite3_open(":memory:", &db);
-        EXPECT_TRUE(pt::Server::Database::Migrate(db));
+        EXPECT_TRUE(pt::Server::Data::Migrator::Run(db));
     }
 
     void TearDown() override
