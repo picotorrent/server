@@ -36,5 +36,17 @@ int InitialSetup::Migrate(sqlite3* db)
 
     if (res != SQLITE_OK) { return res; }
 
+    res = sqlite3_exec(
+        db,
+        "CREATE TABLE config ("
+            "key   TEXT PRIMARY KEY,"
+            "value TEXT NOT NULL"
+        ");",
+        nullptr,
+        nullptr,
+        nullptr);
+
+    if (res != SQLITE_OK) { return res; }
+
     return SQLITE_OK;
 }

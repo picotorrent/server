@@ -13,6 +13,7 @@ find_package(GTest               CONFIG REQUIRED)
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
+find_package(uriparser           CONFIG REQUIRED)
 
 add_library(
     pikacore
@@ -36,15 +37,21 @@ add_library(
     src/data/models/settingspack.cpp
     src/data/models/settingspacknames.cpp
 
+    src/eventhandlers/plugineventhandler.cpp
+    src/eventhandlers/plugineventhandler.hpp
+    src/eventhandlers/sessionstatshandler.hpp
+
     # http
+    src/http/httpclient.cpp
+    src/http/httpclient.hpp
     src/http/httplistener.cpp
     src/http/httpsession.cpp
 
     # http handlers
     src/http/handlers/jsonrpchandler.cpp
     src/http/handlers/jsonrpchandler.hpp
-    src/http/handlers/websockethandler.cpp
-    src/http/handlers/websockethandler.hpp
+    src/http/handlers/metricshandler.cpp
+    src/http/handlers/metricshandler.hpp
 
     # rpc
     src/rpc/configget.cpp
@@ -54,12 +61,7 @@ add_library(
     src/rpc/sessionremovetorrent.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
-
-    # tsdb
-    src/tsdb/prometheus.cpp
-    src/tsdb/prometheus.hpp
 )
-
 
 target_link_libraries(
     pikacore
@@ -69,6 +71,7 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3
+    uriparser::uriparser
 )
 
 add_executable(

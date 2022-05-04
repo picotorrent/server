@@ -8,18 +8,18 @@
 #include "options.hpp"
 #include "session.hpp"
 
+#include "eventhandlers/plugineventhandler.hpp"
+#include "eventhandlers/sessionstatshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
-#include "http/handlers/websockethandler.hpp"
+#include "http/handlers/metricshandler.hpp"
 #include "http/httplistener.hpp"
-#include "tsdb/prometheus.hpp"
-#include "tsdb/timeseriesdatabase.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
 using pika::Data::Migrator;
 using pika::Http::Handlers::JsonRpcHandler;
-using pika::Http::Handlers::WebSocketHandler;
+using pika::Http::Handlers::MetricsHandler;
 using pika::Http::HttpListener;
 using pika::Log;
 using pika::Options;
@@ -85,26 +85,21 @@ struct App
                     io.stop();
                 });
 
-        std::shared_ptr<pika::TSDB::TimeSeriesDatabase> tsdb = nullptr;
+        auto peh = std::make_shared<pika::EventHandlers::PluginEventHandler>(io);
+        auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
 
-        auto http = std::make_shared<HttpListener>(
-                io,
-                options->HttpEndpoint(),
-                options->WebRoot());
+        auto sm = Session::Load(io, db.get());
+        sm->AddEventHandler(peh);
+        sm->AddEventHandler(ssh);
+
+        auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint(), options->WebRoot());
+        http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
 
         if (options->PrometheusExporterEnabled())
         {
-            BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
-
-            auto prometheus = std::make_shared<pika::TSDB::Prometheus>();
-            http->AddHandler("GET", "/metrics", prometheus);
-            tsdb = prometheus;
+            http->AddHandler("GET", "/metrics", std::make_shared<MetricsHandler>(ssh));
         }
 
-        auto sm = Session::Load(io, db.get(), tsdb);
-
-        http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
-        http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
         http->Run();
 
         io.run();
