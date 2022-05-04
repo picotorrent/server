@@ -26,6 +26,9 @@ public static class NativeMethods
     public static extern void lt_session_destroy(IntPtr handle);
 
     [DllImport(LibPikaCore)]
+    public static extern void lt_session_async_add_torrent(IntPtr s, IntPtr a);
+
+    [DllImport(LibPikaCore)]
     public static extern void lt_session_set_alert_notify(
         IntPtr handle, AlertNotify notify);
 
@@ -48,5 +51,6 @@ public static class NativeMethods
     [DllImport(LibPikaCore, CharSet = CharSet.Unicode)]
     public static extern void lt_atp_savepath_set(
         IntPtr handle,
-        string data);
+        [MarshalAs(UnmanagedType.LPStr)] string data,
+        int len);
 }

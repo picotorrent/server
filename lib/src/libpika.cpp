@@ -29,6 +29,12 @@ extern "C"
         delete static_cast<libtorrent::session*>(ptr);
     }
 
+    EXPORT void lt_session_async_add_torrent(void* ptr, void* atp)
+    {
+        static_cast<libtorrent::session*>(ptr)->async_add_torrent(
+            *static_cast<libtorrent::add_torrent_params*>(atp));
+    }
+
     EXPORT void lt_session_set_alert_notify(void* ptr, ALERT_NOTIFY_CB cb)
     {
         auto session = static_cast<libtorrent::session*>(ptr);
@@ -70,10 +76,10 @@ extern "C"
         delete static_cast<libtorrent::add_torrent_params*>(ptr);
     }
 
-    EXPORT void lt_atp_savepath_set(void* ptr, wchar_t* buf)
+    EXPORT void lt_atp_savepath_set(void* ptr, const char* buf, int len)
     {
         auto atp = static_cast<libtorrent::add_torrent_params*>(ptr);
-        //atp->save_path = std::string(buf, len);
-        std::wcout << std::wstring(buf) << L"\n";
+        atp->save_path = std::string(buf);
+        printf("%s\n", atp->save_path.c_str());
     }
 }

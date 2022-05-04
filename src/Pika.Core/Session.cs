@@ -55,8 +55,9 @@ internal class Session : ISession, IDisposable
     public void AddTorrent(AddTorrentParams p)
     {
         var ptr = NativeMethods.lt_atp_create();
-
-        NativeMethods.lt_atp_savepath_set(ptr, p.SavePath);
+        NativeMethods.lt_atp_savepath_set(ptr, p.SavePath, p.SavePath.Length);
+        NativeMethods.lt_session_async_add_torrent(_handle, ptr);
+        NativeMethods.lt_atp_destroy(ptr);
     }
 
     public ISessionSubscriber CreateSubscriber()
