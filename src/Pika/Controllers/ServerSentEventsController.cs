@@ -29,7 +29,14 @@ public class ServerSentEventsController : ControllerBase
             await HttpContext.Response.WriteAsync($"data: {alert.Message}\n");
             await HttpContext.Response.WriteAsync("\n");
             await HttpContext.Response.Body.FlushAsync();
+
+            if (HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                break;
+            }
         }
+
+        _logger.LogInformation("Closing SSE stream");
 
         return new EmptyResult();
     }

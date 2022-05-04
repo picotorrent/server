@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 
 #include <libtorrent/session.hpp>
@@ -57,5 +58,22 @@ extern "C"
     {
         auto session = static_cast<libtorrent::session*>(ptr);
         return session->wait_for_alert(libtorrent::seconds(1)) != nullptr;
+    }
+
+    EXPORT void* lt_atp_create()
+    {
+        return new libtorrent::add_torrent_params();
+    }
+
+    EXPORT void lt_atp_destroy(void* ptr)
+    {
+        delete static_cast<libtorrent::add_torrent_params*>(ptr);
+    }
+
+    EXPORT void lt_atp_savepath_set(void* ptr, wchar_t* buf)
+    {
+        auto atp = static_cast<libtorrent::add_torrent_params*>(ptr);
+        //atp->save_path = std::string(buf, len);
+        std::wcout << std::wstring(buf) << L"\n";
     }
 }

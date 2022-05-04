@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Channels;
 
 namespace Pika.Core;
@@ -32,6 +33,8 @@ internal sealed class SessionSubscriber : ISessionSubscriber
 
 public interface ISession
 {
+    void AddTorrent(AddTorrentParams p);
+
     ISessionSubscriber CreateSubscriber();
 
     static ISession New() => new Session();
@@ -47,6 +50,13 @@ internal class Session : ISession, IDisposable
     {
         _handle = NativeMethods.lt_session_create();
         _alerter = Task.Factory.StartNew(ReadAlerts);
+    }
+
+    public void AddTorrent(AddTorrentParams p)
+    {
+        var ptr = NativeMethods.lt_atp_create();
+
+        NativeMethods.lt_atp_savepath_set(ptr, p.SavePath);
     }
 
     public ISessionSubscriber CreateSubscriber()
