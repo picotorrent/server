@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pika", "Pika\Pika.csproj", "{ED059D71-3692-4260-9AFE-D3F3BA9667EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pika.Core", "Pika.Core\Pika.Core.csproj", "{5ECB957C-E935-4796-A2E3-33504B79175D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED059D71-3692-4260-9AFE-D3F3BA9667EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED059D71-3692-4260-9AFE-D3F3BA9667EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED059D71-3692-4260-9AFE-D3F3BA9667EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED059D71-3692-4260-9AFE-D3F3BA9667EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECB957C-E935-4796-A2E3-33504B79175D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECB957C-E935-4796-A2E3-33504B79175D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECB957C-E935-4796-A2E3-33504B79175D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECB957C-E935-4796-A2E3-33504B79175D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
