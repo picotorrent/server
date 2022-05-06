@@ -17,7 +17,6 @@ namespace pika
         std::filesystem::path DatabaseFilePath() { return m_databaseFilePath; }
         boost::log::trivial::severity_level LogLevel() { return m_logLevel; }
         boost::asio::ip::tcp::endpoint HttpEndpoint() const { return m_httpEndpoint; }
-        std::shared_ptr<std::string> WebRoot() { return m_webRoot; }
 
         bool PrometheusExporterEnabled() const { return m_prometheusEnabled; }
 
@@ -25,7 +24,6 @@ namespace pika
         std::filesystem::path m_databaseFilePath;
         boost::log::trivial::severity_level m_logLevel;
         boost::asio::ip::tcp::endpoint m_httpEndpoint;
-        std::shared_ptr<std::string> m_webRoot;
 
         bool m_prometheusEnabled;
     };

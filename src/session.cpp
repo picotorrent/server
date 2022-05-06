@@ -15,7 +15,6 @@
 #include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
 #include "data/statement.hpp"
-#include "json/infohash.hpp"
 #include "sessioneventhandler.hpp"
 
 namespace lt = libtorrent;
@@ -279,7 +278,7 @@ void Session::ReadAlerts()
 
             if (!extra->muted)
             {
-                AddTorrentParams::Insert(m_db, ata->params);
+                AddTorrentParams::Insert(m_db, ata->params, static_cast<int>(ts.queue_position));
                 BOOST_LOG_TRIVIAL(info) << "Torrent " << ts.name << " added";
             }
 

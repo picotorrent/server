@@ -7,6 +7,12 @@
 
 #include <sqlite3.h>
 
+#define CHECK_OK(func) \
+    { \
+        int res = func; \
+        if (res != SQLITE_OK) { return res; } \
+    }
+
 namespace pika::Data
 {
     class Statement
@@ -23,14 +29,14 @@ namespace pika::Data
             bool              IsNull(int col)       const;
 
         private:
-            Row(sqlite3_stmt* stmt);
+            explicit Row(sqlite3_stmt* stmt);
             sqlite3_stmt* m_stmt;
         };
 
         static void ForEach(
             sqlite3* db,
             std::string const& sql,
-            std::function<void(Row const&)> const& cb,
-            std::function<void(sqlite3_stmt*)> bind = {});
+            const std::function<void(Row const&)> &cb,
+            const std::function<int(sqlite3_stmt*)> &bind = {});
     };
 }

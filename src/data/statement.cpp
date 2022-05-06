@@ -22,7 +22,7 @@ std::vector<char> Statement::Row::GetBlob(int col) const
 
 bool Statement::Row::GetBool(int col) const
 {
-    return sqlite3_column_int(m_stmt, col) == 1 ? true : false;
+    return sqlite3_column_int(m_stmt, col) == 1;
 }
 
 int Statement::Row::GetInt32(int col) const
@@ -43,8 +43,8 @@ bool Statement::Row::IsNull(int col) const
 void Statement::ForEach(
     sqlite3* db,
     std::string const& sql,
-    std::function<void(Statement::Row const&)> const& cb,
-    std::function<void(sqlite3_stmt*)> bind)
+    const std::function<void(Statement::Row const&)> &cb,
+    const std::function<int(sqlite3_stmt*)> &bind)
 {
     sqlite3_stmt* stmt;
     int res = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
@@ -52,19 +52,39 @@ void Statement::ForEach(
     if (res != SQLITE_OK)
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to prepare statement: " << sqlite3_errmsg(db);
-        throw SQLiteException();
+        throw SQLiteException(db);
     }
 
     if (bind)
     {
-        bind(stmt);
+        if (bind(stmt) != SQLITE_OK)
+        {
+            throw SQLiteException(db);
+        }
     }
 
-    while ((res = sqlite3_step(stmt)) == SQLITE_ROW)
+    do
     {
-        Row r(stmt);
-        cb(r);
-    }
+        res = sqlite3_step(stmt);
 
-    sqlite3_finalize(stmt);
+        switch (res)
+        {
+        case SQLITE_DONE:
+            break;
+        case SQLITE_ROW: {
+            Row r(stmt);
+            cb(r);
+            continue;
+        }
+        default:
+            throw SQLiteException(db);
+        }
+
+        break;
+    } while(true);
+
+    if (sqlite3_finalize(stmt) != SQLITE_OK)
+    {
+        throw SQLiteException(db);
+    }
 }

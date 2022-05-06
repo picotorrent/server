@@ -12,7 +12,7 @@ namespace pika::Data::Models
         static int Count(sqlite3* db);
         static bool Exists(sqlite3* db, const libtorrent::info_hash_t &hash);
         static void ForEach(sqlite3* db, const std::function<void(const libtorrent::add_torrent_params &)> &cb);
-        static void Insert(sqlite3* db, const libtorrent::add_torrent_params &params);
+        static void Insert(sqlite3* db, const libtorrent::add_torrent_params &params, int queuePosition);
         static void Remove(sqlite3* db, const libtorrent::info_hash_t &hash);
         static void Update(sqlite3* db, const libtorrent::add_torrent_params &params);
     };

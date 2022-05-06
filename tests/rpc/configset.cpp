@@ -37,7 +37,8 @@ protected:
             },
             [&key](auto stmt)
             {
-                sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+                CHECK_OK(sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.size()), SQLITE_TRANSIENT))
+                return SQLITE_OK;
             });
         return v;
     }

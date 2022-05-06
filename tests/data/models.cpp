@@ -1,13 +1,19 @@
 #include <gtest/gtest.h>
+#include <libtorrent/add_torrent_params.hpp>
+#include <libtorrent/session_params.hpp>
 #include <sqlite3.h>
 
+#include "../helpers.hpp"
 #include "../../src/data/migrator.hpp"
-#include "../../src/data/models/listeninterface.hpp"
+#include "../../src/data/models/addtorrentparams.hpp"
+#include "../../src/data/models/sessionparams.hpp"
 
+namespace lt = libtorrent;
 using pika::Data::Migrator;
-using pika::Data::Models::ListenInterface;
+using pika::Data::Models::AddTorrentParams;
+using pika::Data::Models::SessionParams;
 
-class ListenInterfaceTests : public testing::Test
+class ModelsTests : public testing::Test
 {
 protected:
     void SetUp() override
@@ -21,20 +27,22 @@ protected:
         sqlite3_close(db);
     }
 
-    sqlite3* db;
+    sqlite3* db{};
 };
 
-TEST_F(ListenInterfaceTests, Create)
+TEST_F(ModelsTests, AddTorrentParams_Insert)
 {
-    ListenInterface::Create(db, "127.0.0.1", 6881, true, true, true);
-    auto all = ListenInterface::GetAll(db);
+    lt::add_torrent_params p;
+    p.info_hashes = pt::InfoHashFromString("0101010101010101010101010101010101010101");
+    p.save_path = "/tmp";
 
-    EXPECT_EQ(all.back()->Host(), "127.0.0.1");
+    AddTorrentParams::Insert(db, p, 1);
+
+    EXPECT_EQ(AddTorrentParams::Count(db), 1);
 }
 
-TEST_F(ListenInterfaceTests, GetAll)
+TEST_F(ModelsTests, SessionParams_Insert)
 {
-    auto all = ListenInterface::GetAll(db);
-    EXPECT_EQ(all[0]->Host(), "0.0.0.0");
-    EXPECT_EQ(all[1]->Host(), "[::]");
+    lt::session_params sp;
+    SessionParams::Insert(db, sp);
 }

@@ -89,7 +89,7 @@ struct App
         auto sm = Session::Load(io, db.get());
         sm->AddEventHandler(ssh);
 
-        auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint(), options->WebRoot());
+        auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint());
         http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
 
         if (options->PrometheusExporterEnabled())

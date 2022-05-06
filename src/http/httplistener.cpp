@@ -10,11 +10,9 @@ using pika::Http::HttpRequestHandler;
 
 HttpListener::HttpListener(
     boost::asio::io_context& ioc,
-    const boost::asio::ip::tcp::endpoint& endpoint,
-    std::shared_ptr<std::string const>  docroot)
+    const boost::asio::ip::tcp::endpoint& endpoint)
     : m_io(ioc)
     , m_acceptor(boost::asio::make_strand(ioc))
-    , m_docroot(std::move(docroot))
     , m_handlers(std::make_shared<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>())
 {
     m_acceptor.open(endpoint.protocol());
@@ -59,8 +57,7 @@ void HttpListener::EndAccept(boost::system::error_code ec, boost::asio::ip::tcp:
     {
         std::make_shared<HttpSession>(
             std::move(socket),
-            m_handlers,
-            m_docroot)->Run();
+            m_handlers)->Run();
     }
 
     BeginAccept();

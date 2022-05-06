@@ -8,14 +8,11 @@
 #include <utility>
 
 #include "httprequesthandler.hpp"
-#include "mimetype.hpp"
-#include "../rpc/command.hpp"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 using pika::Http::HttpRequestHandler;
 using pika::Http::HttpSession;
-using pika::Http::MimeType;
 using pika::SessionManager;
 
 using BasicHttpRequest = boost::beast::http::request<boost::beast::http::string_body>;
@@ -51,11 +48,9 @@ private:
 
 HttpSession::HttpSession(
     boost::asio::ip::tcp::socket&& socket,
-    std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>  handlers,
-    std::shared_ptr<std::string const> docroot)
+    std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers)
     : m_stream(std::move(socket))
     , m_handlers(std::move(handlers))
-    , m_docroot(std::move(docroot))
     , m_queue(*this)
 {
 }
@@ -123,17 +118,6 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return;
     }
 
-    auto const bad_request = [&req](boost::beast::string_view why)
-    {
-        http::response<http::string_body> res{http::status::bad_request, req.version()};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, "text/plain");
-        res.keep_alive(req.keep_alive());
-        res.body() = std::string(why);
-        res.prepare_payload();
-        return res;
-    };
-
     auto const not_found = [&req](boost::beast::string_view target)
     {
         http::response<http::string_body> res{http::status::not_found, req.version()};
@@ -145,64 +129,7 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         return res;
     };
 
-    auto const server_error = [&req](boost::beast::string_view what)
-    {
-        http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, "text/plain");
-        res.keep_alive(req.keep_alive());
-        res.body() = "An error occurred: '" + std::string(what) + "'";
-        res.prepare_payload();
-        return res;
-    };
-
-    if (req.target().empty() ||
-        req.target()[0] != '/' ||
-        req.target().find("..") != boost::beast::string_view::npos)
-    {
-        m_queue(bad_request("Illegal request-target"));
-    }
-    else
-    {
-        if (!m_docroot)
-        {
-            BOOST_LOG_TRIVIAL(debug) << "No doc root set";
-            m_queue(not_found(req.target()));
-        }
-        else
-        {
-            std::string path = fs::path(*m_docroot).concat(req.target().to_string());
-            if(req.target().back() == '/') { path.append("index.html"); }
-
-            boost::beast::error_code ec;
-            http::file_body::value_type body;
-            body.open(path.c_str(), boost::beast::file_mode::scan, ec);
-
-            if(ec == boost::beast::errc::no_such_file_or_directory)
-            {
-                m_queue(not_found(req.target()));
-            }
-            else if (ec)
-            {
-                m_queue(server_error(ec.message()));
-            }
-            else
-            {
-                auto const size = body.size();
-
-                http::response<http::file_body> res{
-                    std::piecewise_construct,
-                    std::make_tuple(std::move(body)),
-                    std::make_tuple(http::status::ok, req.version())};
-                res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                res.set(http::field::content_type, MimeType(path));
-                res.content_length(size);
-                res.keep_alive(req.keep_alive());
-
-                m_queue(std::move(res));
-            }
-        }
-    }
+    m_queue(not_found(req.target()));
 
     // If we aren't at the queue limit, try to pipeline another request
     if(!m_queue.IsFull())

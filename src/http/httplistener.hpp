@@ -14,8 +14,7 @@ namespace pika::Http
     public:
         HttpListener(
             boost::asio::io_context& ioc,
-            const boost::asio::ip::tcp::endpoint& endpoint,
-            std::shared_ptr<std::string const> docroot);
+            const boost::asio::ip::tcp::endpoint& endpoint);
 
         void AddHandler(
             const std::string& method,
@@ -30,7 +29,6 @@ namespace pika::Http
 
         boost::asio::io_context& m_io;
         boost::asio::ip::tcp::acceptor m_acceptor;
-        std::shared_ptr<std::string const> m_docroot;
         std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
     };
 }

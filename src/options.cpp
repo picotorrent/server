@@ -28,7 +28,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     auto opts = std::make_shared<Options>();
     opts->m_databaseFilePath = fs::path(argv[0]).parent_path() / "pika.sqlite";
     opts->m_logLevel = boost::log::trivial::info;
-    opts->m_webRoot = nullptr;
 
     if (const char* dbPath = std::getenv("PIKA_DB_FILE"))
     {
@@ -43,11 +42,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     if (const char* httpPortEnv = std::getenv("PIKA_HTTP_PORT"))
     {
         httpPort = std::stoi(httpPortEnv);
-    }
-
-    if (const char* webRoot = std::getenv("PIKA_WEBROOT_PATH"))
-    {
-        opts->m_webRoot = std::make_shared<std::string>(webRoot);
     }
 
     if (vm.count("http-addr")) { httpHost = vm["http-addr"].as<std::string>(); }

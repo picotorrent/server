@@ -19,7 +19,7 @@ Transaction::Transaction(sqlite3* db)
 
     if (res != SQLITE_OK)
     {
-        throw SQLiteException();
+        throw SQLiteException(m_db);
     }
 }
 
@@ -42,7 +42,7 @@ void Transaction::Commit()
 
     if (res != SQLITE_OK)
     {
-        throw SQLiteException();
+        throw SQLiteException(m_db);
     }
 
     m_did_act = true;
@@ -59,7 +59,7 @@ void Transaction::Rollback()
 
     if (res != SQLITE_OK)
     {
-        throw SQLiteException();
+        throw SQLiteException(m_db);
     }
 
     m_did_act = true;
