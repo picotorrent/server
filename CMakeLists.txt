@@ -30,15 +30,13 @@ add_library(
     src/data/migrations/0001_initialsetup.cpp
     src/data/statement.cpp
     src/data/transaction.cpp
+    src/data/models/addtorrentparams.cpp
+    src/data/models/addtorrentparams.hpp
     src/data/models/config.cpp
-    src/data/models/listeninterface.cpp
-    src/data/models/profile.cpp
-    src/data/models/proxy.cpp
-    src/data/models/settingspack.cpp
-    src/data/models/settingspacknames.cpp
+    src/data/models/config.hpp
+    src/data/models/sessionparams.cpp
+    src/data/models/sessionparams.hpp
 
-    src/eventhandlers/plugineventhandler.cpp
-    src/eventhandlers/plugineventhandler.hpp
     src/eventhandlers/sessionstatshandler.hpp
 
     # http

@@ -4,71 +4,27 @@
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/create_torrent.hpp>
 #include <libtorrent/magnet_uri.hpp>
-#include <libtorrent/read_resume_data.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/session_stats.hpp>
+#include <utility>
 #include <libtorrent/write_resume_data.hpp>
 #include <nlohmann/json.hpp>
 
 #include "data/datareader.hpp"
+#include "data/models/addtorrentparams.hpp"
+#include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
-#include "data/models/listeninterface.hpp"
-#include "data/models/profile.hpp"
-#include "data/models/proxy.hpp"
-#include "data/models/settingspack.hpp"
 #include "data/statement.hpp"
 #include "json/infohash.hpp"
-#include "json/torrentstatus.hpp"
 #include "sessioneventhandler.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::Data::Models::ListenInterface;
-using pika::Data::Models::Profile;
-using pika::Data::Models::Proxy;
-using pika::Data::SettingsPack;
+using pika::Data::Models::AddTorrentParams;
+using pika::Data::Models::SessionParams;
 using pika::Data::Statement;
 using pika::Data::SQLiteException;
 using pika::Session;
-
-static std::string to_str(lt::info_hash_t hash)
-{
-    std::stringstream ss;
-    if (hash.has_v2()) { ss << hash.v2; }
-    else { ss << hash.v1; }
-    return ss.str();
-}
-
-static std::string ToString(const lt::sha1_hash &hash)
-{
-    std::stringstream ss;
-    ss << hash;
-    return ss.str();
-}
-
-static std::string ToString(const lt::sha256_hash &hash)
-{
-    std::stringstream ss;
-    ss << hash;
-    return ss.str();
-}
-
-struct Scope
-{
-    explicit Scope(std::string name)
-        : m_name(std::move(name))
-    {
-        BOOST_LOG_TRIVIAL(debug) << "> " << m_name;
-    }
-
-    ~Scope()
-    {
-        BOOST_LOG_TRIVIAL(debug) << "< " << m_name;
-    }
-
-private:
-    std::string m_name;
-};
 
 struct add_params
 {
@@ -79,42 +35,28 @@ std::shared_ptr<Session> Session::Load(boost::asio::io_context& io, sqlite3* db)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
-    lt::session_params params;
+    lt::session_params params = SessionParams::GetLatest(db);
+    // TODO: Update settings
 
-    Statement::ForEach(
+    auto session = std::make_unique<lt::session>(params);
+
+    BOOST_LOG_TRIVIAL(info)
+        << "Loading "
+        << AddTorrentParams::Count(db)
+        << " from database";
+
+    AddTorrentParams::ForEach(
         db,
-        "SELECT data FROM session_params ORDER BY timestamp DESC LIMIT 1",
-        [&](Statement::Row const& row)
+        [&session](const lt::add_torrent_params &params)
         {
-            auto buffer = row.GetBlob(0);
-
-            lt::error_code ec;
-            lt::bdecode_node node = lt::bdecode(
-                lt::span<const char>(buffer.data(), buffer.size()),
-                ec);
-
-            if (ec)
-            {
-                BOOST_LOG_TRIVIAL(warning) << "Failed to bdecode session params buffer: " << ec.message();
-            }
-            else
-            {
-                params = lt::read_session_params(node, lt::session::save_dht_state);
-                BOOST_LOG_TRIVIAL(info) << "Loaded session params (" << buffer.size() << " bytes)";
-            }
+            session->async_add_torrent(params);
         });
 
-    BOOST_LOG_TRIVIAL(info) << "Loading session settings";
-
-    auto session = std::shared_ptr<Session>(
+    return std::shared_ptr<Session>(
         new Session(
-                io,
-                db,
-                std::make_unique<lt::session>(params)));
-
-    session->LoadTorrents();
-
-    return std::move(session);
+            io,
+            db,
+            std::move(session)));
 }
 
 Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session)
@@ -133,7 +75,19 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
 
     boost::system::error_code ec;
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
-    m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
+
+    if (ec)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Failed to set timer expiry: " << ec;
+    }
+    else
+    {
+        m_timer.async_wait(
+            [this](auto &&PH1)
+            {
+                PostUpdates(std::forward<decltype(PH1)>(PH1));
+            });
+    }
 }
 
 Session::~Session()
@@ -141,27 +95,9 @@ Session::~Session()
     m_session->set_alert_notify([] {});
     m_timer.cancel();
 
-    std::vector<char> stateBuffer = lt::write_session_params_buf(
-        m_session->session_state(),
-        lt::session::save_dht_state);
-
-    BOOST_LOG_TRIVIAL(info) << "Saving session params (" << stateBuffer.size() << " bytes)";
-
-    try
-    {
-        Statement::ForEach(
-            m_db,
-            "INSERT INTO session_params (data, timestamp) VALUES ($1, strftime('%s'));",
-            [](auto const&) {},
-            [&](sqlite3_stmt* stmt)
-            {
-                sqlite3_bind_blob(stmt, 1, stateBuffer.data(), static_cast<int>(stateBuffer.size()), SQLITE_TRANSIENT);
-            });
-    }
-    catch (SQLiteException&)
-    {
-        BOOST_LOG_TRIVIAL(error) << "Failed to save session params";
-    }
+    SessionParams::Insert(
+        m_db,
+        m_session->session_state());
 
     m_session->pause();
 
@@ -188,14 +124,6 @@ Session::~Session()
     }
 
     BOOST_LOG_TRIVIAL(info) << "Saving data for " << num_outstanding_resume << " torrent(s)";
-
-    sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(
-        m_db,
-        "UPDATE torrents SET queue_position = $1, resume_data_buf = $2 WHERE info_hash_v1 = $3 AND info_hash_v2 = $4",
-        -1,
-        &stmt,
-        nullptr);
 
     while (num_outstanding_resume > 0)
     {
@@ -226,56 +154,22 @@ Session::~Session()
             if (!rd) { continue; }
             --num_outstanding_resume;
 
-            std::vector<char> buffer = lt::write_resume_data_buf(rd->params);
-
-            // Store state
-            sqlite3_bind_int(stmt, 1, static_cast<int>(rd->handle.status().queue_position));
-            sqlite3_bind_blob(stmt, 2, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-
-            if (rd->handle.info_hashes().has_v1())
-            {
-                sqlite3_bind_text(stmt, 3, ToString(rd->handle.info_hashes().v1).c_str(), -1, SQLITE_TRANSIENT);
-            }
-            else
-            {
-                sqlite3_bind_null(stmt, 3);
-            }
-
-            if (rd->handle.info_hashes().has_v2())
-            {
-                sqlite3_bind_text(stmt, 4, ToString(rd->handle.info_hashes().v2).c_str(), -1, SQLITE_TRANSIENT);
-            }
-            else
-            {
-                sqlite3_bind_null(stmt, 4);
-            }
-
-            if (sqlite3_step(stmt) != SQLITE_DONE)
-            {
-                BOOST_LOG_TRIVIAL(warning)
-                    << "Failed to save resume data for torrent "
-                    << rd->params.name << ": "
-                    << sqlite3_errmsg(m_db);
-            }
-
-            sqlite3_reset(stmt);
+            AddTorrentParams::Update(m_db, rd->params);
         }
     }
 
-    sqlite3_finalize(stmt);
-
-    BOOST_LOG_TRIVIAL(info) << "Session state saved";
+    BOOST_LOG_TRIVIAL(info) << "All state saved";
 }
 
 class TorrentHandle : public pika::ITorrentHandle
 {
 public:
-    explicit TorrentHandle(const lt::torrent_status& status)
-        : m_status(status)
+    explicit TorrentHandle(lt::torrent_status status)
+        : m_status(std::move(status))
     {
     }
 
-    virtual ~TorrentHandle() = default;
+    ~TorrentHandle() override = default;
 
     bool IsValid() override
     {
@@ -324,24 +218,6 @@ lt::info_hash_t Session::AddTorrent(lt::add_torrent_params& params)
         : params.info_hashes;
 }
 
-bool Session::FindTorrent(lt::info_hash_t const& hash, lt::torrent_status& status)
-{
-    auto it = m_torrents.find(hash);
-    if (it == m_torrents.end()) { return false; }
-    status = it->second;
-    return true;
-}
-
-void Session::ForEachTorrent(std::function<bool(lt::torrent_status const& ts)> const& iteree)
-{
-    Scope s("Session::ForEachTorrent");
-
-    for (auto const& item : m_torrents)
-    {
-        if (!iteree(item.second)) break;
-    }
-}
-
 void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
 {
     lt::remove_flags_t flags = {};
@@ -355,59 +231,17 @@ void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
 
     if (find == m_torrents.end())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Torrent not found: " << to_str(hash);
+        BOOST_LOG_TRIVIAL(warning) << "Torrent not found: " << hash;
         return;
     }
 
     if (!find->second.handle.is_valid())
     {
-        BOOST_LOG_TRIVIAL(warning) << "Torrent handle not valid: " << to_str(hash);
+        BOOST_LOG_TRIVIAL(warning) << "Torrent handle not valid: " << hash;
         return;
     }
 
     m_session->remove_torrent(find->second.handle, flags);
-}
-
-void Session::LoadTorrents()
-{
-    int added  =  0;
-    int stored = -1;
-
-    Statement::ForEach(
-        m_db,
-        "SELECT COUNT(*) FROM torrents",
-        [&](Statement::Row const& row)
-        {
-            stored = row.GetInt32(0);
-        });
-
-    BOOST_LOG_TRIVIAL(info) << "Loading " << stored << " torrents from database";
-
-    Statement::ForEach(
-        m_db,
-        "SELECT resume_data_buf FROM torrents ORDER BY queue_position ASC",
-        [&added, &session = m_session](Statement::Row const& row)
-        {
-            auto buffer = row.GetBlob(0);
-            auto extra = new add_params();
-            extra->muted = true;
-
-            lt::error_code ec;
-            lt::add_torrent_params params = lt::read_resume_data(buffer, ec);
-
-            if (ec)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Failed to read resume data: " << ec.message();
-                return;
-            }
-
-            params.userdata = lt::client_data_t(extra);
-
-            session->async_add_torrent(params);
-            added++;
-        });
-
-    BOOST_LOG_TRIVIAL(info) << "Loaded " << added << " (of " << stored << ") torrent(s)";
 }
 
 void Session::ReadAlerts()
@@ -435,7 +269,7 @@ void Session::ReadAlerts()
 
             if (extra == nullptr)
             {
-                BOOST_LOG_TRIVIAL(error) << "No internal add_params for " << to_str(ata->params.info_hashes);
+                BOOST_LOG_TRIVIAL(error) << "No internal add_params for " << ata->params.info_hashes;
                 m_session->remove_torrent(ata->handle, lt::session::delete_files);
                 continue;
             }
@@ -445,42 +279,8 @@ void Session::ReadAlerts()
 
             if (!extra->muted)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Saving torrent " << to_str(ts.info_hashes) << " in database";
-
-                Statement::ForEach(
-                    m_db,
-                    "INSERT INTO torrents (info_hash_v1, info_hash_v2, queue_position, resume_data_buf)\n"
-                    "VALUES($1, $2, $3, $4);",
-                    [](auto const&) {},
-                    [&](sqlite3_stmt* stmt)
-                    {
-                        lt::info_hash_t ih = ata->params.info_hashes;
-
-                        if (ih.has_v1())
-                        {
-                            sqlite3_bind_text(stmt, 1, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
-                        }
-                        else
-                        {
-                            sqlite3_bind_null(stmt, 1);
-                        }
-
-                        if (ih.has_v2())
-                        {
-                            sqlite3_bind_text(stmt, 2, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
-                        }
-                        else
-                        {
-                            sqlite3_bind_null(stmt, 2);
-                        }
-
-                        sqlite3_bind_int(stmt, 3, static_cast<int>(ts.queue_position));
-
-                        std::vector<char> buffer = lt::write_resume_data_buf(ata->params);
-                        sqlite3_bind_blob(stmt, 4, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-                    });
-
-                BOOST_LOG_TRIVIAL(info) << "Torrent " << to_str(ata->handle.info_hashes()) << " added";
+                AddTorrentParams::Insert(m_db, ata->params);
+                BOOST_LOG_TRIVIAL(info) << "Torrent " << ts.name << " added";
             }
 
             auto th = std::make_shared<TorrentHandle>(ts);
@@ -488,8 +288,7 @@ void Session::ReadAlerts()
             TriggerEvent(
                 [&th](ISessionEventHandler* seh)
                 {
-                    // TODO: Data
-                    seh->OnTorrentAdded();
+                    seh->OnTorrentAdded(th);
                 });
 
             break;
@@ -514,40 +313,10 @@ void Session::ReadAlerts()
         }
         case lt::save_resume_data_alert::alert_type:
         {
-            auto* srda = lt::alert_cast<lt::save_resume_data_alert>(alert);
+            auto* a = lt::alert_cast<lt::save_resume_data_alert>(alert);
 
-            std::vector<char> buffer = lt::write_resume_data_buf(srda->params);
-
-            Statement::ForEach(
-                m_db,
-                "UPDATE torrents SET resume_data_buf = $1 WHERE info_hash_v1 = $2 AND info_hash_v2 = $3",
-                [](auto&&){},
-                [&](sqlite3_stmt* stmt)
-                {
-                    sqlite3_bind_blob(stmt, 1, buffer.data(), static_cast<int>(buffer.size()), SQLITE_TRANSIENT);
-
-                    lt::info_hash_t ih = srda->params.info_hashes;
-
-                    if (ih.has_v1())
-                    {
-                        sqlite3_bind_text(stmt, 2, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
-                    }
-                    else
-                    {
-                        sqlite3_bind_null(stmt, 2);
-                    }
-
-                    if (ih.has_v2())
-                    {
-                        sqlite3_bind_text(stmt, 3, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
-                    }
-                    else
-                    {
-                        sqlite3_bind_null(stmt, 3);
-                    }
-                });
-
-            BOOST_LOG_TRIVIAL(info) << "Resume data saved for " << srda->params.name;
+            AddTorrentParams::Update(m_db, a->params);
+            BOOST_LOG_TRIVIAL(info) << "Resume data saved for " << a->params.name;
 
             break;
         }
@@ -588,8 +357,7 @@ void Session::ReadAlerts()
                 TriggerEvent(
                     [&torrents](ISessionEventHandler* seh)
                     {
-                        // TODO: Data
-                        seh->OnStateUpdate();
+                        seh->OnStateUpdate(torrents);
                     });
             }
 
@@ -598,45 +366,15 @@ void Session::ReadAlerts()
         case lt::torrent_removed_alert::alert_type:
         {
             auto* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
-            std::string hash = to_str(tra->info_hashes);
 
             m_torrents.erase(tra->info_hashes);
 
-            Statement::ForEach(
-                m_db,
-                "DELETE FROM torrents\n"
-                "WHERE (info_hash_v1 = $1 AND info_hash_v2 IS NULL)\n"
-                "   OR (info_hash_v1 IS NULL AND info_hash_v2 = $2)\n"
-                "   OR (info_hash_v1 = $1 AND info_hash_v2 = $2);",
-                [](auto const&){},
-                [&](sqlite3_stmt* stmt)
-                {
-                    lt::info_hash_t ih = tra->info_hashes;
-
-                    if (ih.has_v1())
-                    {
-                        sqlite3_bind_text(stmt, 1, ToString(ih.v1).c_str(), -1, SQLITE_TRANSIENT);
-                    }
-                    else
-                    {
-                        sqlite3_bind_null(stmt, 1);
-                    }
-
-                    if (ih.has_v2())
-                    {
-                        sqlite3_bind_text(stmt, 2, ToString(ih.v2).c_str(), -1, SQLITE_TRANSIENT);
-                    }
-                    else
-                    {
-                        sqlite3_bind_null(stmt, 2);
-                    }
-                });
+            AddTorrentParams::Remove(m_db, tra->info_hashes);
 
             TriggerEvent(
-                [](ISessionEventHandler* seh)
+                [&tra](ISessionEventHandler* seh)
                 {
-                    // TODO: data
-                    seh->OnTorrentRemoved();
+                    seh->OnTorrentRemoved(tra->info_hashes);
                 });
 
             BOOST_LOG_TRIVIAL(info) << "Torrent " << tra->torrent_name() << " removed";

@@ -43,14 +43,11 @@ namespace pika
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
 
         libtorrent::info_hash_t AddTorrent(libtorrent::add_torrent_params& params);
-        bool FindTorrent(libtorrent::info_hash_t const& hash, libtorrent::torrent_status& status);
-        void ForEachTorrent(std::function<bool(libtorrent::torrent_status const& ts)> const&);
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false);
 
     private:
         Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);
 
-        void LoadTorrents();
         void ReadAlerts();
         void PostUpdates(boost::system::error_code ec);
         void TriggerEvent(const std::function<void(ISessionEventHandler*)> &func);

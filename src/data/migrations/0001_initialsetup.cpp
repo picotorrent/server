@@ -6,11 +6,11 @@ using pika::Data::Migrations::InitialSetup;
 
 int InitialSetup::Migrate(sqlite3* db)
 {
-    BOOST_LOG_TRIVIAL(info) << "Creating torrents table";
+    BOOST_LOG_TRIVIAL(info) << "Creating 'addtorrentparams' table";
 
     int res = sqlite3_exec(
         db,
-        "CREATE TABLE torrents ("
+        "CREATE TABLE addtorrentparams ("
             "id INTEGER PRIMARY KEY,"
             "info_hash_v1 TEXT,"
             "info_hash_v2 TEXT,"
@@ -24,10 +24,12 @@ int InitialSetup::Migrate(sqlite3* db)
 
     if (res != SQLITE_OK) { return res; }
 
+    BOOST_LOG_TRIVIAL(info) << "Creating 'sessionparams' table";
+
     res = sqlite3_exec(
         db,
-        "CREATE TABLE session_params ("
-            "data      BLOB NOT NULL,"
+        "CREATE TABLE sessionparams ("
+            "data BLOB NOT NULL,"
             "timestamp INTEGER NOT NULL DEFAULT (strftime('%s'))"
         ");",
         nullptr,
@@ -36,17 +38,15 @@ int InitialSetup::Migrate(sqlite3* db)
 
     if (res != SQLITE_OK) { return res; }
 
-    res = sqlite3_exec(
+    BOOST_LOG_TRIVIAL(info) << "Creating 'config' table";
+
+    return sqlite3_exec(
         db,
         "CREATE TABLE config ("
-            "key   TEXT PRIMARY KEY,"
+            "key TEXT PRIMARY KEY,"
             "value TEXT NOT NULL"
         ");",
         nullptr,
         nullptr,
         nullptr);
-
-    if (res != SQLITE_OK) { return res; }
-
-    return SQLITE_OK;
 }

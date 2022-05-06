@@ -8,7 +8,6 @@
 #include "options.hpp"
 #include "session.hpp"
 
-#include "eventhandlers/plugineventhandler.hpp"
 #include "eventhandlers/sessionstatshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
 #include "http/handlers/metricshandler.hpp"
@@ -85,11 +84,9 @@ struct App
                     io.stop();
                 });
 
-        auto peh = std::make_shared<pika::EventHandlers::PluginEventHandler>(io);
         auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
 
         auto sm = Session::Load(io, db.get());
-        sm->AddEventHandler(peh);
         sm->AddEventHandler(ssh);
 
         auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint(), options->WebRoot());
