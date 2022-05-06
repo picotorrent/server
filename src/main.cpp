@@ -85,7 +85,7 @@ struct App
                     io.stop();
                 });
 
-        pika::Scripting::Engine se;
+        pika::Scripting::Engine se(io);
         se.Run();
 
         auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();

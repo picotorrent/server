@@ -73,6 +73,7 @@ add_library(
     # scripting
     src/scripting/engine.cpp
     src/scripting/engine.hpp
+    src/scripting/scriptengine.hpp
 )
 
 target_link_libraries(
