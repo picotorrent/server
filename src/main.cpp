@@ -12,6 +12,7 @@
 #include "http/handlers/jsonrpchandler.hpp"
 #include "http/handlers/metricshandler.hpp"
 #include "http/httplistener.hpp"
+#include "scripting/engine.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
@@ -83,6 +84,9 @@ struct App
                     BOOST_LOG_TRIVIAL(info) << "Interrupt received (" << signal << ") - stopping...";
                     io.stop();
                 });
+
+        pika::Scripting::Engine se;
+        se.Run();
 
         auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
 

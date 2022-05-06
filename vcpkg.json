@@ -11,7 +11,6 @@
     "gtest",
     "libtorrent",
     "nlohmann-json",
-    "sqlite3",
-    "uriparser"
+    "sqlite3"
   ]
 }

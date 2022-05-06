@@ -13,7 +13,19 @@ find_package(GTest               CONFIG REQUIRED)
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
-find_package(uriparser           CONFIG REQUIRED)
+
+add_library(
+    duktape
+    STATIC
+    vendor/duktape/src/duktape.c
+    vendor/duktape/src/duktape.h
+)
+
+target_include_directories(
+    duktape
+    INTERFACE
+    vendor/duktape/src
+)
 
 add_library(
     pikacore
@@ -40,8 +52,6 @@ add_library(
     src/eventhandlers/sessionstatshandler.hpp
 
     # http
-    src/http/httpclient.cpp
-    src/http/httpclient.hpp
     src/http/httplistener.cpp
     src/http/httpsession.cpp
 
@@ -59,6 +69,10 @@ add_library(
     src/rpc/sessionremovetorrent.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
+
+    # scripting
+    src/scripting/engine.cpp
+    src/scripting/engine.hpp
 )
 
 target_link_libraries(
@@ -66,10 +80,10 @@ target_link_libraries(
     Boost::boost
     Boost::log
     Boost::program_options
+    duktape
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3
-    uriparser::uriparser
 )
 
 add_executable(
