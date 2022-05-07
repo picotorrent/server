@@ -64,6 +64,8 @@ static duk_ret_t Pika_On(duk_context* ctx)
     return 0;
 }
 
+static duk_ret_t Pika_TimerCancel(duk_context* ctx);
+
 struct Timer
 {
     explicit Timer(boost::asio::io_context &io, duk_context *ctx, duk_uarridx_t id, int interval)
@@ -111,7 +113,13 @@ private:
         duk_get_prop_string(m_ctx, -1, "timers");
         duk_get_prop_index(m_ctx, -1, id);
 
-        if (duk_pcall(m_ctx, 0) != 0)
+        duk_push_object(m_ctx);
+        duk_push_pointer(m_ctx, this);
+        duk_put_prop_string(m_ctx, -2, "\xff" "Timer");
+        duk_push_c_function(m_ctx, Pika_TimerCancel, 0);
+        duk_put_prop_string(m_ctx, -2, "cancel");
+
+        if (duk_pcall_method(m_ctx, 0) != 0)
         {
             BOOST_LOG_TRIVIAL(error) << "Timer callback error: " << duk_safe_to_string(m_ctx, -1);
         }
@@ -175,6 +183,27 @@ Engine::Engine(boost::asio::io_context &io)
     : m_io(io)
     , m_ctx(duk_create_heap_default())
 {
+}
+
+void Engine::Emit(const std::string &name, Wrapper *wrapper)
+{
+    duk_push_global_stash(m_ctx);
+    duk_get_prop_string(m_ctx, -1, "callbacks");
+    duk_get_prop_string(m_ctx, -1, name.c_str()); // event
+
+    // top should now be an array of event handlers for this event
+
+    for (duk_uarridx_t i = 0; i < duk_get_length(m_ctx, -1); i++)
+    {
+        duk_get_prop_index(m_ctx, -1, i);
+        if (duk_pcall(m_ctx, (*wrapper)(m_ctx)) != 0)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Emit error: " << duk_safe_to_string(m_ctx, -1);
+        }
+        duk_pop(m_ctx);
+    }
+
+    duk_pop_3(m_ctx);
 }
 
 void Engine::Run()

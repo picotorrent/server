@@ -85,12 +85,12 @@ struct App
                     io.stop();
                 });
 
-        pika::Scripting::Engine se(io);
-        se.Run();
+        auto scriptEngine = std::make_shared<pika::Scripting::Engine>(io);
+        scriptEngine->Run();
 
         auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
 
-        auto sm = Session::Load(io, db.get());
+        auto sm = Session::Load(io, db.get(), scriptEngine);
         sm->AddEventHandler(ssh);
 
         auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint());

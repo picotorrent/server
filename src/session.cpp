@@ -15,6 +15,7 @@
 #include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
 #include "data/statement.hpp"
+#include "scripting/scriptengine.hpp"
 #include "sessioneventhandler.hpp"
 
 namespace lt = libtorrent;
@@ -30,12 +31,94 @@ struct add_params
     bool muted;
 };
 
-std::shared_ptr<Session> Session::Load(boost::asio::io_context& io, sqlite3* db)
+class SettingsPackWrapper : public pika::Scripting::Wrapper
+{
+public:
+    explicit SettingsPackWrapper(lt::settings_pack &sp)
+        : m_sp(sp)
+    {
+    }
+
+    duk_ret_t operator()(duk_context *ctx) override
+    {
+        /*duk_push_object(ctx); // target
+        duk_push_pointer(ctx, this);
+        duk_put_prop_string(ctx, -2, "\xff" "SettingsPackWrapper");
+        duk_push_object(ctx); // handler
+        duk_push_c_function(ctx, Get, 3);
+        duk_put_prop_string(ctx, -2, "get");
+        duk_push_c_function(ctx, Set, 3);
+        duk_put_prop_string(ctx, -2, "set");
+        duk_push_c_function(ctx, OwnKeys, 3);
+        duk_put_prop_string(ctx, -2, "ownKeys");
+        duk_push_proxy(ctx, 0);*/
+
+        duk_push_object(ctx);
+        duk_push_string(ctx, "enable_dht");
+        duk_push_c_function(ctx, GetEnableDht, 0 /*nargs*/);
+        duk_push_c_function(ctx, SetEnableDht, 1 /*nargs*/);
+        duk_def_prop(ctx,
+                     -4,
+                     DUK_DEFPROP_HAVE_GETTER |
+                     DUK_DEFPROP_HAVE_SETTER |
+                     DUK_DEFPROP_HAVE_CONFIGURABLE |  /* clear */
+                     DUK_DEFPROP_HAVE_ENUMERABLE | DUK_DEFPROP_ENUMERABLE);  /* set */
+
+        return 1;
+    }
+
+private:
+    static duk_ret_t GetEnableDht(duk_context* ctx) { return 0; }
+    static duk_ret_t SetEnableDht(duk_context* ctx)
+    {
+        return 0;
+    }
+
+    static duk_ret_t Get(duk_context* ctx)
+    {
+        return 0;
+    }
+
+    static duk_ret_t OwnKeys(duk_context* ctx)
+    {
+        duk_push_array(ctx);
+        duk_push_string(ctx, "enable_dht");
+        duk_put_prop_index(ctx, -2, duk_get_length(ctx, -2));
+        return 1;
+    }
+
+    static duk_ret_t Set(duk_context* ctx)
+    {
+        // 0: target
+        // 1: property
+        // 2: value
+
+        duk_get_prop_string(ctx, 0, "\xff" "SettingsPackWrapper");
+        auto w = static_cast<SettingsPackWrapper*>(duk_get_pointer(ctx, -1));
+        duk_pop(ctx);
+
+        // TODO: Update properties
+
+        return 0;
+    }
+
+    lt::settings_pack& m_sp;
+};
+
+std::shared_ptr<Session> Session::Load(
+    boost::asio::io_context& io,
+    sqlite3* db,
+    const std::shared_ptr<pika::Scripting::IScriptEngine> &scripting)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
     lt::session_params params = SessionParams::GetLatest(db);
+    params.settings = lt::default_settings();
+
     // TODO: Update settings
+
+    SettingsPackWrapper spw(params.settings);
+    scripting->Emit("session.configure", &spw);
 
     auto session = std::make_unique<lt::session>(params);
 

@@ -1,12 +1,20 @@
-function config (settings) {
-    settings.enable_dht = false;
+function configGenerator(pika) {
+    return function config(settings) {
+        pika.log('Overriding settings');
+
+        pika.log(
+            JSON.stringify(
+                Object.keys(settings)));
+
+        settings.enable_dht = true;
+    }
 }
 
 plugin = function (pika) {
-    pika.on('session.configure', config);
+    pika.on('session.configure', configGenerator(pika));
 
-    const timer = pika.timer(function () {
+    pika.timer(function () {
         pika.log('tick');
-        timer.cancel();
-    }, 5000);
+        this.cancel();
+    }, 1000);
 }

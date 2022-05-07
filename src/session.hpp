@@ -10,6 +10,11 @@
 #include <nlohmann/json.hpp>
 #include <sqlite3.h>
 
+namespace pika::Scripting
+{
+    class IScriptEngine;
+}
+
 namespace pika
 {
     class ISessionEventHandler;
@@ -34,7 +39,10 @@ namespace pika
     class Session : public ISession
     {
     public:
-        static std::shared_ptr<Session> Load(boost::asio::io_context& io, sqlite3* db);
+        static std::shared_ptr<Session> Load(
+            boost::asio::io_context& io,
+            sqlite3* db,
+            const std::shared_ptr<pika::Scripting::IScriptEngine> &scripting);
 
         ~Session();
 
