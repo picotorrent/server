@@ -98,7 +98,19 @@ private:
                 break;
             default:
                 BOOST_LOG_TRIVIAL(error) << "Timer error: " << ec.message();
+                break;
             }
+
+            duk_push_global_stash(m_ctx);
+            duk_get_prop_string(m_ctx, -1, "timers");
+            duk_del_prop_index(m_ctx, -1, id);
+            duk_pop_2(m_ctx); // get prop string
+
+            duk_gc(m_ctx, 0);
+            duk_gc(m_ctx, 0);
+
+            delete this;
+
             return;
         }
 
@@ -230,7 +242,7 @@ void Engine::Run()
     duk_push_pointer(m_ctx, new EngineState(m_io));
     duk_put_global_string(m_ctx, "\xff" "engine");
 
-    std::ifstream js("/Users/viktor/code/picotorrent/server/scripts/pika.js", std::ios::binary);
+    std::ifstream js("/home/viktor/dev/picotorrent/server/scripts/pika.js", std::ios::binary);
     std::stringstream ss;
     ss << js.rdbuf();
     std::string script = ss.str();

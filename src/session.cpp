@@ -34,8 +34,8 @@ struct add_params
 class SettingsPackWrapper : public pika::Scripting::Wrapper
 {
 public:
-    explicit SettingsPackWrapper(lt::settings_pack &sp)
-        : m_sp(sp)
+    explicit SettingsPackWrapper(lt::settings_pack sp)
+        : m_sp(std::move(sp))
     {
     }
 
@@ -54,6 +54,10 @@ public:
         duk_push_proxy(ctx, 0);*/
 
         duk_push_object(ctx);
+        duk_push_pointer(ctx, new lt::settings_pack(m_sp));
+        duk_put_prop_string(ctx, -2, "\xff" "SettingsPack");
+        duk_push_c_function(ctx, Finalizer, 1);
+        duk_set_finalizer(ctx, -2);
         duk_push_string(ctx, "enable_dht");
         duk_push_c_function(ctx, GetEnableDht, 0 /*nargs*/);
         duk_push_c_function(ctx, SetEnableDht, 1 /*nargs*/);
@@ -68,9 +72,37 @@ public:
     }
 
 private:
-    static duk_ret_t GetEnableDht(duk_context* ctx) { return 0; }
+    static duk_ret_t Finalizer(duk_context* ctx)
+    {
+        duk_push_this(ctx);
+        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
+        delete static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
+        duk_pop_2(ctx);
+
+        return 0;
+    }
+
+    static duk_ret_t GetEnableDht(duk_context* ctx)
+    {
+        duk_push_this(ctx);
+        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
+        auto sp = static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
+        duk_pop_2(ctx);
+
+        duk_push_boolean(ctx, sp->get_bool(lt::settings_pack::enable_dht));
+
+        return 1;
+    }
+
     static duk_ret_t SetEnableDht(duk_context* ctx)
     {
+        duk_push_this(ctx);
+        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
+        auto sp = static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
+        duk_pop_2(ctx);
+
+        sp->set_bool(lt::settings_pack::enable_dht, duk_get_boolean(ctx, 0));
+
         return 0;
     }
 
@@ -102,7 +134,7 @@ private:
         return 0;
     }
 
-    lt::settings_pack& m_sp;
+    lt::settings_pack m_sp;
 };
 
 std::shared_ptr<Session> Session::Load(

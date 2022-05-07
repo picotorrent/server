@@ -6,15 +6,15 @@ function configGenerator(pika) {
             JSON.stringify(
                 Object.keys(settings)));
 
-        settings.enable_dht = true;
+        settings.enable_dht = false;
+
+        pika.timer(function ()  {
+            pika.log(settings.enable_dht);
+            this.cancel();
+        }, 1000);
     }
 }
 
 plugin = function (pika) {
     pika.on('session.configure', configGenerator(pika));
-
-    pika.timer(function () {
-        pika.log('tick');
-        this.cancel();
-    }, 1000);
 }
