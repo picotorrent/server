@@ -42,7 +42,7 @@ namespace pika
         void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) override;
         libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params& params) override;
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
-        void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false) override;
+        void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles) override;
 
     private:
         Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);

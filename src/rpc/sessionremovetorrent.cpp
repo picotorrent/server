@@ -7,10 +7,10 @@
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::Session;
+using pika::ISession;
 using pika::RPC::SessionRemoveTorrentCommand;
 
-SessionRemoveTorrentCommand::SessionRemoveTorrentCommand(std::shared_ptr<Session> session)
+SessionRemoveTorrentCommand::SessionRemoveTorrentCommand(std::shared_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }
