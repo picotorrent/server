@@ -5,17 +5,17 @@
 
 #include "command.hpp"
 
-namespace pika { class Session; }
+namespace pika { class ISession; }
 
 namespace pika::RPC
 {
     class SessionAddTorrentCommand : public Command
     {
     public:
-        explicit SessionAddTorrentCommand(std::shared_ptr<Session>);
+        explicit SessionAddTorrentCommand(std::shared_ptr<ISession>);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<Session> m_session;
+        std::shared_ptr<ISession> m_session;
     };
 }

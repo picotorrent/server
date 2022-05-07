@@ -42,7 +42,7 @@ using json = nlohmann::json;
 using pika::Session;
 using pika::RPC::SessionAddTorrentCommand;
 
-SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<Session> session)
+SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }

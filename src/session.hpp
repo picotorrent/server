@@ -24,7 +24,9 @@ namespace pika
     {
     public:
         virtual void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) = 0;
+        virtual libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params &params) = 0;
         virtual std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) = 0;
+        virtual void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false) = 0;
     };
 
     class Session : public ISession
@@ -37,12 +39,10 @@ namespace pika
 
         ~Session();
 
-        // inherited
         void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) override;
+        libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params& params) override;
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
-
-        libtorrent::info_hash_t AddTorrent(libtorrent::add_torrent_params& params);
-        void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false);
+        void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false) override;
 
     private:
         Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);

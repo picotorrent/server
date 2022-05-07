@@ -158,7 +158,7 @@ std::shared_ptr<Session> Session::Load(
     BOOST_LOG_TRIVIAL(info)
         << "Loading "
         << AddTorrentParams::Count(db)
-        << " from database";
+        << " torrent(s) from database";
 
     AddTorrentParams::ForEach(
         db,
@@ -322,15 +322,16 @@ std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t
     return std::make_shared<TorrentHandle>(status->second);
 }
 
-lt::info_hash_t Session::AddTorrent(lt::add_torrent_params& params)
+lt::info_hash_t Session::AddTorrent(const lt::add_torrent_params &params)
 {
-    params.userdata = lt::client_data_t(new add_params());
+    lt::add_torrent_params p = params;
+    p.userdata = lt::client_data_t(new add_params());
 
-    m_session->async_add_torrent(params);
+    m_session->async_add_torrent(p);
 
-    return params.ti
-        ? params.ti->info_hashes()
-        : params.info_hashes;
+    return p.ti
+        ? p.ti->info_hashes()
+        : p.info_hashes;
 }
 
 void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
