@@ -9,6 +9,7 @@
 
 #include "../json/infohash.hpp"
 #include "../session.hpp"
+#include "../torrenthandle.hpp"
 
 namespace lt = libtorrent;
 

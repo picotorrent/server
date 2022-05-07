@@ -17,6 +17,7 @@
 #include "data/statement.hpp"
 #include "scripting/scriptengine.hpp"
 #include "sessioneventhandler.hpp"
+#include "torrenthandle.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;

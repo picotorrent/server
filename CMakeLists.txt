@@ -35,6 +35,7 @@ add_library(
     src/options.cpp
     src/session.cpp
     src/session.hpp
+    src/torrenthandle.hpp
 
     # data
     src/data/migrator.cpp

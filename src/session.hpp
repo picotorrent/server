@@ -18,16 +18,7 @@ namespace pika::Scripting
 namespace pika
 {
     class ISessionEventHandler;
-
-    class ITorrentHandle
-    {
-    public:
-        virtual ~ITorrentHandle() = default;
-
-        virtual bool IsValid() = 0;
-        virtual void Pause() = 0;
-        virtual void Resume() = 0;
-    };
+    class ITorrentHandle;
 
     class ISession
     {
