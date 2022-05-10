@@ -69,6 +69,7 @@ struct App
     int Run(const std::shared_ptr<Options> &options)
     {
         auto db = OpenSQLiteDatabase(options->DatabaseFilePath().c_str());
+        sqlite3_exec(db.get(), "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
 
         if (!Migrator::Run(db.get()))
         {
@@ -91,6 +92,7 @@ struct App
         auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
 
         auto sm = Session::Load(io, db.get(), scriptEngine);
+        BOOST_LOG_TRIVIAL(info) << "Session loaded";
         sm->AddEventHandler(ssh);
 
         auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint());
@@ -103,6 +105,7 @@ struct App
 
         http->Run();
 
+        BOOST_LOG_TRIVIAL(info) << "Running io_context";
         io.run();
 
         return 0;

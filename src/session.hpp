@@ -26,6 +26,7 @@ namespace pika
         virtual void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) = 0;
         virtual libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params &params) = 0;
         virtual std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) = 0;
+        virtual void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) = 0;
         virtual void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false) = 0;
     };
 
@@ -42,6 +43,7 @@ namespace pika
         void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) override;
         libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params& params) override;
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
+        void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) override;
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles) override;
 
     private:

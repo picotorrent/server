@@ -1,5 +1,6 @@
 #include "addtorrentparams.hpp"
 
+#include <libtorrent/read_resume_data.hpp>
 #include <libtorrent/write_resume_data.hpp>
 
 #include "../statement.hpp"
@@ -36,8 +37,18 @@ bool AddTorrentParams::Exists(sqlite3 *db, const libtorrent::info_hash_t &hash)
     return false;
 }
 
-void AddTorrentParams::ForEach(sqlite3 *db, const std::function<void(const libtorrent::add_torrent_params &)> &cb)
+void AddTorrentParams::ForEach(sqlite3 *db, const std::function<void(libtorrent::add_torrent_params &)> &cb)
 {
+    Statement::ForEach(
+        db,
+        "SELECT resume_data_buf FROM addtorrentparams\n"
+        "ORDER BY queue_position ASC",
+        [&cb](const Statement::Row &row)
+        {
+            auto buf = row.GetBlob(0);
+            auto params = lt::read_resume_data(buf);
+            cb(params);
+        });
 }
 
 void AddTorrentParams::Insert(sqlite3 *db, const libtorrent::add_torrent_params &params, int queuePosition)

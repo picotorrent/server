@@ -27,9 +27,10 @@ using pika::Data::Statement;
 using pika::Data::SQLiteException;
 using pika::Session;
 
-struct add_params
+struct PikaParams
 {
-    bool muted;
+    int current;
+    int total;
 };
 
 class SettingsPackWrapper : public pika::Scripting::Wrapper
@@ -147,6 +148,8 @@ std::shared_ptr<Session> Session::Load(
 
     lt::session_params params = SessionParams::GetLatest(db);
     params.settings = lt::default_settings();
+    params.settings.set_int(lt::settings_pack::alert_mask, lt::alert::all_categories);
+    params.settings.set_int(lt::settings_pack::alert_queue_size, 100000);
 
     // TODO: Update settings
 
@@ -154,18 +157,30 @@ std::shared_ptr<Session> Session::Load(
     scripting->Emit("session.configure", &spw);
 
     auto session = std::make_unique<lt::session>(params);
+    int torrents = AddTorrentParams::Count(db);
 
     BOOST_LOG_TRIVIAL(info)
         << "Loading "
-        << AddTorrentParams::Count(db)
+        << torrents
         << " torrent(s) from database";
+
+    int added = 0;
 
     AddTorrentParams::ForEach(
         db,
-        [&session](const lt::add_torrent_params &params)
+        [&session, &added, &torrents](lt::add_torrent_params &params)
         {
+            added++;
+            auto ap = new PikaParams();
+            ap->current = added;
+            ap->total = torrents;
+
+            params.userdata = lt::client_data_t(ap);
+
             session->async_add_torrent(params);
         });
+
+    BOOST_LOG_TRIVIAL(info) << "Torrents added to session";
 
     return std::shared_ptr<Session>(
         new Session(
@@ -203,6 +218,8 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
                 PostUpdates(std::forward<decltype(PH1)>(PH1));
             });
     }
+
+    BOOST_LOG_TRIVIAL(info) << "Session constructed";
 }
 
 Session::~Session()
@@ -322,16 +339,21 @@ std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t
     return std::make_shared<TorrentHandle>(status->second);
 }
 
+void Session::ForEachTorrent(const std::function<void(const libtorrent::torrent_status &)> &cb)
+{
+    for (const auto& [hash, status] : m_torrents)
+    {
+        cb(status);
+    }
+}
+
 lt::info_hash_t Session::AddTorrent(const lt::add_torrent_params &params)
 {
-    lt::add_torrent_params p = params;
-    p.userdata = lt::client_data_t(new add_params());
+    m_session->async_add_torrent(params);
 
-    m_session->async_add_torrent(p);
-
-    return p.ti
-        ? p.ti->info_hashes()
-        : p.info_hashes;
+    return params.ti
+        ? params.ti->info_hashes()
+        : params.info_hashes;
 }
 
 void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
@@ -381,22 +403,27 @@ void Session::ReadAlerts()
                 return;
             }
 
-            auto* extra = ata->params.userdata.get<add_params>();
-
-            if (extra == nullptr)
-            {
-                BOOST_LOG_TRIVIAL(error) << "No internal add_params for " << ata->params.info_hashes;
-                m_session->remove_torrent(ata->handle, lt::session::delete_files);
-                continue;
-            }
+            auto* extra = ata->params.userdata.get<PikaParams>();
 
             lt::torrent_status ts = ata->handle.status();
             m_torrents.insert({ ts.info_hashes, ts });
 
-            if (!extra->muted)
+            if (extra == nullptr)
             {
                 AddTorrentParams::Insert(m_db, ata->params, static_cast<int>(ts.queue_position));
                 BOOST_LOG_TRIVIAL(info) << "Torrent " << ts.name << " added";
+            }
+            else
+            {
+                if (extra->current % 1000 == 0
+                    && extra->current != extra->total)
+                {
+                    BOOST_LOG_TRIVIAL(info) << extra->current << " torrents (of " << extra->total << ") added";
+                }
+                else if (extra->current == extra->total)
+                {
+                    BOOST_LOG_TRIVIAL(info) << "All torrents added";
+                }
             }
 
             auto th = std::make_shared<TorrentHandle>(ts);
