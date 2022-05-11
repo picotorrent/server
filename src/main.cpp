@@ -8,18 +8,15 @@
 #include "options.hpp"
 #include "session.hpp"
 
-#include "eventhandlers/sessionstatshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
-#include "http/handlers/metricshandler.hpp"
 #include "http/httplistener.hpp"
-#include "scripting/engine.hpp"
+#include "plugins/pluginfactory.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
 using pika::Data::Migrator;
 using pika::Http::Handlers::JsonRpcHandler;
-using pika::Http::Handlers::MetricsHandler;
 using pika::Http::HttpListener;
 using pika::Log;
 using pika::Options;
@@ -86,26 +83,21 @@ struct App
                     io.stop();
                 });
 
-        auto scriptEngine = std::make_shared<pika::Scripting::Engine>(io);
-        scriptEngine->Run();
-
-        auto ssh = std::make_shared<pika::EventHandlers::SessionStatsHandler>();
-
-        auto sm = Session::Load(io, db.get(), scriptEngine);
-        BOOST_LOG_TRIVIAL(info) << "Session loaded";
-        sm->AddEventHandler(ssh);
-
+        auto sm = Session::Load(io, db.get());
         auto http = std::make_shared<HttpListener>(io, options->HttpEndpoint());
+
         http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
 
-        if (options->PrometheusExporterEnabled())
+        auto pf = std::make_shared<pika::Plugins::PluginFactory>(io, http);
+
+        for (const auto& path : options->Plugins())
         {
-            http->AddHandler("GET", "/metrics", std::make_shared<MetricsHandler>(ssh));
+            pf->Load(path);
         }
 
+        sm->AddEventHandler(pf);
         http->Run();
 
-        BOOST_LOG_TRIVIAL(info) << "Running io_context";
         io.run();
 
         return 0;

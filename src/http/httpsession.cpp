@@ -36,6 +36,11 @@ public:
         return m_session->m_stream;
     }
 
+    void Write(boost::beast::http::response<boost::beast::http::file_body> res) override
+    {
+        m_session->m_queue(std::move(res));
+    }
+
     void Write(boost::beast::http::response<boost::beast::http::string_body> res) override
     {
         m_session->m_queue(std::move(res));

@@ -1,5 +1,5 @@
 import './App.css';
-import { Box, CircularProgress, CircularProgressLabel, Flex, HStack, IconButton, Image, Input, InputGroup, InputLeftElement, InputRightElement, Kbd, Menu, MenuButton, MenuItem, MenuList, Progress, Text } from '@chakra-ui/react';
+import { Box, Flex, HStack, IconButton, Image, Input, InputGroup, InputLeftElement, InputRightElement, Kbd, Menu, MenuButton, MenuItem, MenuList, Progress, Text } from '@chakra-ui/react';
 import { HamburgerIcon, SearchIcon } from '@chakra-ui/icons';
 
 interface Torrent {

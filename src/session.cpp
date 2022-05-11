@@ -141,8 +141,7 @@ private:
 
 std::shared_ptr<Session> Session::Load(
     boost::asio::io_context& io,
-    sqlite3* db,
-    const std::shared_ptr<pika::Scripting::IScriptEngine> &scripting)
+    sqlite3* db)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
@@ -152,9 +151,6 @@ std::shared_ptr<Session> Session::Load(
     params.settings.set_int(lt::settings_pack::alert_queue_size, 100000);
 
     // TODO: Update settings
-
-    SettingsPackWrapper spw(params.settings);
-    scripting->Emit("session.configure", &spw);
 
     auto session = std::make_unique<lt::session>(params);
     int torrents = AddTorrentParams::Count(db);

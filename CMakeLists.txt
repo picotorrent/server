@@ -12,6 +12,7 @@ find_package(Boost                      REQUIRED COMPONENTS log program_options 
 find_package(GTest               CONFIG REQUIRED)
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
 find_package(nlohmann_json       CONFIG REQUIRED)
+find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
@@ -50,8 +51,6 @@ add_library(
     src/data/models/sessionparams.cpp
     src/data/models/sessionparams.hpp
 
-    src/eventhandlers/sessionstatshandler.hpp
-
     # http
     src/http/httplistener.cpp
     src/http/httpsession.cpp
@@ -59,8 +58,8 @@ add_library(
     # http handlers
     src/http/handlers/jsonrpchandler.cpp
     src/http/handlers/jsonrpchandler.hpp
-    src/http/handlers/metricshandler.cpp
-    src/http/handlers/metricshandler.hpp
+    src/http/handlers/webroothandler.cpp
+    src/http/handlers/webroothandler.hpp
 
     # rpc
     src/rpc/configget.cpp
@@ -73,10 +72,11 @@ add_library(
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
 
-    # scripting
-    src/scripting/engine.cpp
-    src/scripting/engine.hpp
-    src/scripting/scriptengine.hpp
+    # plugins
+    src/plugins/modules/httpmodule.cpp
+    src/plugins/modules/httpmodule.hpp
+    src/plugins/pluginfactory.cpp
+    src/plugins/pluginfactory.hpp
 )
 
 target_link_libraries(
@@ -98,6 +98,7 @@ add_executable(
 target_link_libraries(
     pika
     pikacore
+    tomlplusplus::tomlplusplus
 )
 
 add_executable(

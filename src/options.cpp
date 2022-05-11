@@ -1,6 +1,7 @@
 #include "options.hpp"
 
 #include <boost/program_options.hpp>
+#include <toml++/toml.h>
 
 namespace fs = std::filesystem;
 namespace po = boost::program_options;
@@ -14,8 +15,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         ("http-addr", po::value<std::string>(), "set the http server address")
         ("http-port", po::value<int>(), "set the http server port")
         ("log-level", po::value<std::string>(), "set log level")
-        // Prometheus options
-        ("prometheus-exporter", "enable the Prometheus metrics exporter")
         ;
 
     po::variables_map vm;
@@ -28,6 +27,24 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     auto opts = std::make_shared<Options>();
     opts->m_databaseFilePath = fs::path(argv[0]).parent_path() / "pika.sqlite";
     opts->m_logLevel = boost::log::trivial::info;
+
+    if (fs::exists(fs::current_path() / "pika.toml"))
+    {
+        std::ifstream input(fs::current_path() / "pika.toml", std::ios::binary);
+        toml::table tbl = toml::parse(input);
+
+        if (toml::array* plugins = tbl["plugins"].as_array())
+        {
+            for (const auto& item : *plugins)
+            {
+                auto val = item.value<std::string>();
+                if (val.has_value())
+                {
+                    opts->m_plugins.emplace_back(val.value());
+                }
+            }
+        }
+    }
 
     if (const char* dbPath = std::getenv("PIKA_DB_FILE"))
     {
@@ -57,9 +74,6 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
         if (level == "error") { opts->m_logLevel = boost::log::trivial::error; }
         if (level == "fatal") { opts->m_logLevel = boost::log::trivial::fatal; }
     }
-
-    if (std::getenv("PIKA_PROMETHEUS_EXPORTER")) { opts->m_prometheusEnabled = true; }
-    if (vm.count("prometheus-exporter")) { opts->m_prometheusEnabled = true; }
 
     opts->m_httpEndpoint = boost::asio::ip::tcp::endpoint
         {

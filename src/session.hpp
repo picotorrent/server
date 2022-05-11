@@ -35,8 +35,7 @@ namespace pika
     public:
         static std::shared_ptr<Session> Load(
             boost::asio::io_context& io,
-            sqlite3* db,
-            const std::shared_ptr<pika::Scripting::IScriptEngine> &scripting);
+            sqlite3* db);
 
         ~Session();
 
