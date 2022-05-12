@@ -8,6 +8,6 @@ namespace pika::Plugins::Modules
     class ConfigModule
     {
     public:
-        static void Push(duk_context* ctx, toml::table tbl);
+        static void Push(duk_context* ctx, const toml::table& tbl);
     };
 }

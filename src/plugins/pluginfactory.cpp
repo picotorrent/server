@@ -22,8 +22,9 @@ struct PluginFactory::PluginMetadata
     std::shared_ptr<IPlugin> plugin;
 };
 
-PluginFactory::PluginFactory(boost::asio::io_context &io, std::shared_ptr<pika::Http::HttpListener> http)
+PluginFactory::PluginFactory(boost::asio::io_context &io, toml::table config, std::shared_ptr<pika::Http::HttpListener> http)
     : m_io(io)
+    , m_config(std::move(config))
     , m_http(std::move(http))
 {}
 
@@ -201,13 +202,13 @@ duk_ret_t PluginFactory::Func_Use(duk_context *ctx)
 
     if (module == "config/scoped")
     {
-        static constexpr std::string_view some_toml = R"(
-            [library]
-            name = "toml++"
-            authors = ["Mark Gillard <mark.gillard@outlook.com.au>"]
-            cpp = 17
-        )";
-        toml::table tbl = toml::parse(some_toml);
+        toml::table tbl;
+
+        if (auto pluginConfig = pf->m_config["plugin"]["autoadd"])
+        {
+            tbl = *pluginConfig.as_table();
+        }
+
         Modules::ConfigModule::Push(ctx, tbl);
         return 1;
     }

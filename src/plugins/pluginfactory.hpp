@@ -6,6 +6,7 @@
 
 #include <boost/asio.hpp>
 #include <duktape.h>
+#include <toml++/toml.h>
 
 #include "../sessioneventhandler.hpp"
 
@@ -21,7 +22,7 @@ namespace pika::Plugins
     class PluginFactory : public ISessionEventHandler
     {
     public:
-        explicit PluginFactory(boost::asio::io_context& io, std::shared_ptr<pika::Http::HttpListener> http);
+        explicit PluginFactory(boost::asio::io_context& io, toml::table config, std::shared_ptr<pika::Http::HttpListener> http);
         ~PluginFactory();
 
         std::shared_ptr<IPlugin> Load(const std::filesystem::path &path);
@@ -37,6 +38,7 @@ namespace pika::Plugins
         struct PluginMetadata;
 
         boost::asio::io_context& m_io;
+        toml::table m_config;
         std::shared_ptr<pika::Http::HttpListener> m_http;
         std::vector<std::unique_ptr<PluginMetadata>> m_plugins;
     };

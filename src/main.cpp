@@ -88,7 +88,7 @@ struct App
 
         http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
 
-        auto pf = std::make_shared<pika::Plugins::PluginFactory>(io, http);
+        auto pf = std::make_shared<pika::Plugins::PluginFactory>(io, options->Config(), http);
 
         for (const auto& path : options->Plugins())
         {

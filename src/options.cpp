@@ -31,9 +31,9 @@ std::shared_ptr<Options> Options::Load(int argc, char* argv[])
     if (fs::exists(fs::current_path() / "pika.toml"))
     {
         std::ifstream input(fs::current_path() / "pika.toml", std::ios::binary);
-        toml::table tbl = toml::parse(input);
+        opts->m_config = toml::parse(input);
 
-        if (toml::array* plugins = tbl["plugins"].as_array())
+        if (toml::array* plugins = opts->m_config["plugins"].as_array())
         {
             for (const auto& item : *plugins)
             {
