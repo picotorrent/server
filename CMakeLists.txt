@@ -73,8 +73,12 @@ add_library(
     src/rpc/torrentsresume.cpp
 
     # plugins
+    src/plugins/modules/configmodule.cpp
+    src/plugins/modules/configmodule.hpp
     src/plugins/modules/httpmodule.cpp
     src/plugins/modules/httpmodule.hpp
+    src/plugins/modules/loggermodule.cpp
+    src/plugins/modules/loggermodule.hpp
     src/plugins/pluginfactory.cpp
     src/plugins/pluginfactory.hpp
 )

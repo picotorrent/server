@@ -6,7 +6,9 @@
 #include <boost/log/trivial.hpp>
 #include <duktape.h>
 
+#include "modules/configmodule.hpp"
 #include "modules/httpmodule.hpp"
+#include "modules/loggermodule.hpp"
 
 namespace fs = std::filesystem;
 using pika::Plugins::IPlugin;
@@ -15,6 +17,7 @@ using pika::Plugins::PluginFactory;
 struct PluginFactory::PluginMetadata
 {
     duk_context* ctx{};
+    std::string name;
     std::filesystem::path path;
     std::shared_ptr<IPlugin> plugin;
 };
@@ -41,6 +44,10 @@ std::shared_ptr<pika::Plugins::IPlugin> PluginFactory::Load(const std::filesyste
     if (fs::is_regular_file(path)
         && path.extension() == ".js")
     {
+        meta->name = path.stem().string();
+
+        BOOST_LOG_TRIVIAL(info) << "Loading " << meta->name;
+
         std::ifstream file(path, std::ios::binary);
         std::stringstream buf;
         buf << file.rdbuf();
@@ -62,6 +69,10 @@ std::shared_ptr<pika::Plugins::IPlugin> PluginFactory::Load(const std::filesyste
                     duk_push_global_stash(meta->ctx);
                     duk_push_pointer(meta->ctx, this);
                     duk_put_prop_string(meta->ctx, -2, "\xff" "PluginFactory");
+
+                    // put plugin name in stash
+                    duk_push_string(meta->ctx, meta->name.c_str());
+                    duk_put_prop_string(meta->ctx, -2, "\xff" "Name");
 
                     duk_push_object(meta->ctx); // callbacks {}
                     // set up callbacks
@@ -188,9 +199,28 @@ duk_ret_t PluginFactory::Func_Use(duk_context *ctx)
     auto* pf = static_cast<PluginFactory*>(duk_get_pointer(ctx, -1));
     duk_pop_2(ctx);
 
+    if (module == "config/scoped")
+    {
+        static constexpr std::string_view some_toml = R"(
+            [library]
+            name = "toml++"
+            authors = ["Mark Gillard <mark.gillard@outlook.com.au>"]
+            cpp = 17
+        )";
+        toml::table tbl = toml::parse(some_toml);
+        Modules::ConfigModule::Push(ctx, tbl);
+        return 1;
+    }
+
     if (module == "http/server")
     {
         Modules::HttpModule::Push(ctx, pf->m_http);
+        return 1;
+    }
+
+    if (module == "logger")
+    {
+        Modules::LoggerModule::Push(ctx);
         return 1;
     }
 
