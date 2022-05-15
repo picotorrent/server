@@ -49,9 +49,9 @@ SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<ISession> ses
 
 json SessionAddTorrentCommand::Execute(const json& j)
 {
-    if (!j.contains("data"))
+    if (!j.contains("ti"))
     {
-        return Error(1, "Missing 'data' field");
+        return Error(1, "Missing 'ti' field");
     }
 
     if (!j.contains("save_path"))
@@ -60,7 +60,7 @@ json SessionAddTorrentCommand::Execute(const json& j)
     }
 
     std::string const& data = Base64Decode(
-        j["data"].get<std::string>());
+        j["ti"].get<std::string>());
 
     lt::error_code ec;
     lt::bdecode_node node = lt::bdecode(data, ec);

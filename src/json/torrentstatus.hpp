@@ -19,7 +19,10 @@ namespace libtorrent
             { "total_wanted", ts.total_wanted },
             { "state",        ts.state },
             { "dl",           ts.download_payload_rate },
-            { "ul",           ts.upload_payload_rate }
+            { "ul",           ts.upload_payload_rate },
+            { "num_peers",    ts.num_peers },
+            { "num_seeds",    ts.num_seeds },
+            { "flags",        static_cast<uint64_t>(ts.flags) }
         };
     }
 }
