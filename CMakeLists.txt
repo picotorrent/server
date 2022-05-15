@@ -32,8 +32,9 @@ add_library(
     pikacore
     STATIC
 
+    src/config.cpp
+    src/config.hpp
     src/log.cpp
-    src/options.cpp
     src/session.cpp
     src/session.hpp
     src/torrenthandle.hpp
@@ -92,6 +93,7 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3
+    tomlplusplus::tomlplusplus
 )
 
 add_executable(
@@ -102,7 +104,6 @@ add_executable(
 target_link_libraries(
     pika
     pikacore
-    tomlplusplus::tomlplusplus
 )
 
 add_executable(

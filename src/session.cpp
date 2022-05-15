@@ -15,7 +15,6 @@
 #include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
 #include "data/statement.hpp"
-#include "scripting/scriptengine.hpp"
 #include "sessioneventhandler.hpp"
 #include "torrenthandle.hpp"
 
@@ -33,115 +32,39 @@ struct PikaParams
     int total;
 };
 
-class SettingsPackWrapper : public pika::Scripting::Wrapper
+class TorrentHandle : public pika::ITorrentHandle
 {
 public:
-    explicit SettingsPackWrapper(lt::settings_pack sp)
-        : m_sp(std::move(sp))
+    explicit TorrentHandle(lt::torrent_status status)
+        : m_status(std::move(status))
     {
     }
 
-    duk_ret_t operator()(duk_context *ctx) override
+    ~TorrentHandle() override = default;
+
+    bool IsValid() override
     {
-        /*duk_push_object(ctx); // target
-        duk_push_pointer(ctx, this);
-        duk_put_prop_string(ctx, -2, "\xff" "SettingsPackWrapper");
-        duk_push_object(ctx); // handler
-        duk_push_c_function(ctx, Get, 3);
-        duk_put_prop_string(ctx, -2, "get");
-        duk_push_c_function(ctx, Set, 3);
-        duk_put_prop_string(ctx, -2, "set");
-        duk_push_c_function(ctx, OwnKeys, 3);
-        duk_put_prop_string(ctx, -2, "ownKeys");
-        duk_push_proxy(ctx, 0);*/
+        return m_status.handle.is_valid();
+    }
 
-        duk_push_object(ctx);
-        duk_push_pointer(ctx, new lt::settings_pack(m_sp));
-        duk_put_prop_string(ctx, -2, "\xff" "SettingsPack");
-        duk_push_c_function(ctx, Finalizer, 1);
-        duk_set_finalizer(ctx, -2);
-        duk_push_string(ctx, "enable_dht");
-        duk_push_c_function(ctx, GetEnableDht, 0 /*nargs*/);
-        duk_push_c_function(ctx, SetEnableDht, 1 /*nargs*/);
-        duk_def_prop(ctx,
-                     -4,
-                     DUK_DEFPROP_HAVE_GETTER |
-                     DUK_DEFPROP_HAVE_SETTER |
-                     DUK_DEFPROP_HAVE_CONFIGURABLE |  /* clear */
-                     DUK_DEFPROP_HAVE_ENUMERABLE | DUK_DEFPROP_ENUMERABLE);  /* set */
+    void Pause() override
+    {
+        m_status.handle.pause();
+    }
 
-        return 1;
+    void Resume() override
+    {
+        m_status.handle.resume();
     }
 
 private:
-    static duk_ret_t Finalizer(duk_context* ctx)
-    {
-        duk_push_this(ctx);
-        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
-        delete static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
-        duk_pop_2(ctx);
-
-        return 0;
-    }
-
-    static duk_ret_t GetEnableDht(duk_context* ctx)
-    {
-        duk_push_this(ctx);
-        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
-        auto sp = static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
-        duk_pop_2(ctx);
-
-        duk_push_boolean(ctx, sp->get_bool(lt::settings_pack::enable_dht));
-
-        return 1;
-    }
-
-    static duk_ret_t SetEnableDht(duk_context* ctx)
-    {
-        duk_push_this(ctx);
-        duk_get_prop_string(ctx, -1, "\xff" "SettingsPack");
-        auto sp = static_cast<lt::settings_pack*>(duk_get_pointer(ctx, -1));
-        duk_pop_2(ctx);
-
-        sp->set_bool(lt::settings_pack::enable_dht, duk_get_boolean(ctx, 0));
-
-        return 0;
-    }
-
-    static duk_ret_t Get(duk_context* ctx)
-    {
-        return 0;
-    }
-
-    static duk_ret_t OwnKeys(duk_context* ctx)
-    {
-        duk_push_array(ctx);
-        duk_push_string(ctx, "enable_dht");
-        duk_put_prop_index(ctx, -2, duk_get_length(ctx, -2));
-        return 1;
-    }
-
-    static duk_ret_t Set(duk_context* ctx)
-    {
-        // 0: target
-        // 1: property
-        // 2: value
-
-        duk_get_prop_string(ctx, 0, "\xff" "SettingsPackWrapper");
-        auto w = static_cast<SettingsPackWrapper*>(duk_get_pointer(ctx, -1));
-        duk_pop(ctx);
-
-        // TODO: Update properties
-
-        return 0;
-    }
-
-    lt::settings_pack m_sp;
+    lt::torrent_status m_status;
 };
 
 std::shared_ptr<Session> Session::Load(
     boost::asio::io_context& io,
-    sqlite3* db)
+    sqlite3* db,
+    const toml::table& config)
 {
     BOOST_LOG_TRIVIAL(info) << "Reading session params";
 
@@ -150,7 +73,47 @@ std::shared_ptr<Session> Session::Load(
     params.settings.set_int(lt::settings_pack::alert_mask, lt::alert::all_categories);
     params.settings.set_int(lt::settings_pack::alert_queue_size, 100000);
 
-    // TODO: Update settings
+    if (auto* listenInterfaces = config["listen_interfaces"].as_array())
+    {
+        std::stringstream ss;
+        for (auto&& el : *listenInterfaces)
+        {
+            std::string li = el.value<std::string>().value_or("");
+            ss << "," << li;
+        }
+
+        params.settings.set_str(lt::settings_pack::listen_interfaces, ss.str().substr(1));
+    }
+
+    if (auto* proxy = config["proxy"].as_table())
+    {
+        if ((*proxy)["host"].is_string()
+            && (*proxy)["port"].is_number()
+            && (*proxy)["type"].is_string())
+        {
+            std::string host = (*proxy)["host"].value<std::string>().value();
+            int port = (*proxy)["port"].value<int>().value();
+            std::string type = (*proxy)["type"].value<std::string>().value();
+
+            BOOST_LOG_TRIVIAL(info) << "Configuring proxy (" << type << " - " << host << ":" << port << ")";
+
+            params.settings.set_str(lt::settings_pack::proxy_hostname, host);
+            params.settings.set_int(lt::settings_pack::proxy_port, port);
+
+            params.settings.set_bool(lt::settings_pack::proxy_hostnames, (*proxy)["proxy_hostnames"].value<bool>().value_or(true));
+            params.settings.set_bool(lt::settings_pack::proxy_peer_connections, (*proxy)["proxy_peer_connections"].value<bool>().value_or(true));
+            params.settings.set_bool(lt::settings_pack::proxy_tracker_connections, (*proxy)["proxy_tracker_connections"].value<bool>().value_or(true));
+
+            if (type == "SOCKS5")
+                params.settings.set_int(lt::settings_pack::proxy_type, lt::settings_pack::proxy_type_t::socks5);
+            else
+                BOOST_LOG_TRIVIAL(error) << "Unknown proxy type: " << type;
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error) << "Invalid proxy settings. Required fields are 'host', 'port' and 'type'.";
+        }
+    }
 
     auto session = std::make_unique<lt::session>(params);
     int torrents = AddTorrentParams::Count(db);
@@ -175,8 +138,6 @@ std::shared_ptr<Session> Session::Load(
 
             session->async_add_torrent(params);
         });
-
-    BOOST_LOG_TRIVIAL(info) << "Torrents added to session";
 
     return std::shared_ptr<Session>(
         new Session(
@@ -214,8 +175,6 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
                 PostUpdates(std::forward<decltype(PH1)>(PH1));
             });
     }
-
-    BOOST_LOG_TRIVIAL(info) << "Session constructed";
 }
 
 Session::~Session()
@@ -288,35 +247,6 @@ Session::~Session()
 
     BOOST_LOG_TRIVIAL(info) << "All state saved";
 }
-
-class TorrentHandle : public pika::ITorrentHandle
-{
-public:
-    explicit TorrentHandle(lt::torrent_status status)
-        : m_status(std::move(status))
-    {
-    }
-
-    ~TorrentHandle() override = default;
-
-    bool IsValid() override
-    {
-        return m_status.handle.is_valid();
-    }
-
-    void Pause() override
-    {
-        m_status.handle.pause();
-    }
-
-    void Resume() override
-    {
-        m_status.handle.resume();
-    }
-
-private:
-    lt::torrent_status m_status;
-};
 
 void Session::AddEventHandler(std::shared_ptr<ISessionEventHandler> handler)
 {
@@ -396,7 +326,7 @@ void Session::ReadAlerts()
             if (ata->error)
             {
                 BOOST_LOG_TRIVIAL(error) << "Error when adding torrent: " << ata->error;
-                return;
+                continue;
             }
 
             auto* extra = ata->params.userdata.get<PikaParams>();
@@ -420,6 +350,8 @@ void Session::ReadAlerts()
                 {
                     BOOST_LOG_TRIVIAL(info) << "All torrents added";
                 }
+
+                delete extra;
             }
 
             auto th = std::make_shared<TorrentHandle>(ts);

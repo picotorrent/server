@@ -9,11 +9,7 @@
 #include <libtorrent/session.hpp>
 #include <nlohmann/json.hpp>
 #include <sqlite3.h>
-
-namespace pika::Scripting
-{
-    class IScriptEngine;
-}
+#include <toml++/toml.h>
 
 namespace pika
 {
@@ -35,7 +31,8 @@ namespace pika
     public:
         static std::shared_ptr<Session> Load(
             boost::asio::io_context& io,
-            sqlite3* db);
+            sqlite3* db,
+            const toml::table& config);
 
         ~Session();
 

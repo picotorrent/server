@@ -10,11 +10,27 @@ using pika::Http::HttpRequestHandler;
 
 HttpListener::HttpListener(
     boost::asio::io_context& ioc,
-    const boost::asio::ip::tcp::endpoint& endpoint)
+    const toml::table& config)
     : m_io(ioc)
     , m_acceptor(boost::asio::make_strand(ioc))
     , m_handlers(std::make_shared<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>())
 {
+    std::string host = config["http"]["addr"].value<std::string>().value_or("127.0.0.1");
+    int port = config["http"]["port"].value<int>().value_or(1337);
+
+    boost::system::error_code ec;
+    auto address = boost::asio::ip::make_address(host, ec);
+
+    if (ec)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Failed to parse HTTP address: " << ec.message() << " - defaulting to 127.0.0.1";
+        address = boost::asio::ip::make_address("127.0.0.1");
+    }
+
+    auto endpoint = boost::asio::ip::tcp::endpoint { address, static_cast<uint16_t>(port) };
+
+    BOOST_LOG_TRIVIAL(info) << "Running HTTP server on " << endpoint;
+
     m_acceptor.open(endpoint.protocol());
     m_acceptor.set_option(boost::asio::socket_base::reuse_address(true));
     m_acceptor.bind(endpoint);

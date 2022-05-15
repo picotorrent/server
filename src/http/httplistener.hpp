@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <boost/asio.hpp>
+#include <toml++/toml.h>
 
 namespace pika::Http
 {
@@ -14,7 +15,7 @@ namespace pika::Http
     public:
         HttpListener(
             boost::asio::io_context& ioc,
-            const boost::asio::ip::tcp::endpoint& endpoint);
+            const toml::table& config);
 
         void AddHandler(
             const std::string& method,
