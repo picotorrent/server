@@ -65,7 +65,6 @@ add_library(
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
-    src/rpc/sessionaddmagnetlink.cpp
     src/rpc/sessionaddtorrent.cpp
     src/rpc/sessionlisttorrents.cpp
     src/rpc/sessionlisttorrents.hpp

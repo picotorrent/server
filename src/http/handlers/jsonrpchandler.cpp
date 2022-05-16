@@ -5,7 +5,6 @@
 
 #include "../../rpc/configget.hpp"
 #include "../../rpc/configset.hpp"
-#include "../../rpc/sessionaddmagnetlink.hpp"
 #include "../../rpc/sessionaddtorrent.hpp"
 #include "../../rpc/sessionlisttorrents.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
@@ -40,14 +39,13 @@ static bool IsValidRequestObject(json const& req, std::string& errorMessage)
 
 JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pika::Session> &session)
 {
-    m_commands.insert({ "config.get",              std::make_shared<pika::RPC::ConfigGetCommand>(db) });
-    m_commands.insert({ "config.set",              std::make_shared<pika::RPC::ConfigSetCommand>(db) });
-    m_commands.insert({ "session.addMagnetLink",   std::make_shared<pika::RPC::SessionAddMagnetLinkCommand>(session) });
-    m_commands.insert({ "session.addTorrent",      std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) });
-    m_commands.insert({ "session.listTorrents",    std::make_shared<pika::RPC::SessionListTorrents>(session) });
-    m_commands.insert({ "session.removeTorrent",   std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
-    m_commands.insert({ "torrents.pause",          std::make_shared<pika::RPC::TorrentsPauseCommand>(session) });
-    m_commands.insert({ "torrents.resume",         std::make_shared<pika::RPC::TorrentsResumeCommand>(session) });
+    m_commands.insert({ "config.get",            std::make_shared<pika::RPC::ConfigGetCommand>(db) });
+    m_commands.insert({ "config.set",            std::make_shared<pika::RPC::ConfigSetCommand>(db) });
+    m_commands.insert({ "session.addTorrent",    std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) });
+    m_commands.insert({ "session.listTorrents",  std::make_shared<pika::RPC::SessionListTorrents>(session) });
+    m_commands.insert({ "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
+    m_commands.insert({ "torrents.pause",        std::make_shared<pika::RPC::TorrentsPauseCommand>(session) });
+    m_commands.insert({ "torrents.resume",       std::make_shared<pika::RPC::TorrentsResumeCommand>(session) });
 }
 
 void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)
