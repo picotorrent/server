@@ -47,6 +47,12 @@ public:
         return m_status.handle.is_valid();
     }
 
+    void MoveStorage(const std::string& path) override
+    {
+        BOOST_LOG_TRIVIAL(info) << "Moving " << m_status.name << " to " << path;
+        m_status.handle.move_storage(path);
+    }
+
     void Pause() override
     {
         m_status.handle.pause();
@@ -205,7 +211,9 @@ Session::~Session()
         }
 
         st.handle.save_resume_data(
-            lt::torrent_handle::flush_disk_cache);
+            lt::torrent_handle::flush_disk_cache
+            | lt::torrent_handle::save_info_dict
+            | lt::torrent_handle::only_if_modified);
 
         ++num_outstanding_resume;
     }
@@ -230,10 +238,16 @@ Session::~Session()
                 continue;
             }
 
-            if (lt::alert_cast<lt::save_resume_data_failed_alert>(a))
+            if (auto fail = lt::alert_cast<lt::save_resume_data_failed_alert>(a))
             {
                 ++num_failed;
                 --num_outstanding_resume;
+
+                BOOST_LOG_TRIVIAL(error)
+                    << "Failed to save resume data for "
+                    << fail->torrent_name()
+                    << ": " << fail->message();
+
                 continue;
             }
 
@@ -241,7 +255,10 @@ Session::~Session()
             if (!rd) { continue; }
             --num_outstanding_resume;
 
-            AddTorrentParams::Update(m_db, rd->params);
+            AddTorrentParams::Update(
+                m_db,
+                rd->params,
+                static_cast<int>(rd->handle.status().queue_position));
         }
     }
 
@@ -382,11 +399,47 @@ void Session::ReadAlerts()
 
             break;
         }
+        case lt::storage_moved_alert::alert_type:
+        {
+            auto* sma = lt::alert_cast<lt::storage_moved_alert>(alert);
+
+            BOOST_LOG_TRIVIAL(info)
+                << "Torrent "
+                << sma->torrent_name()
+                << " moved to "
+                << sma->storage_path();
+
+            m_torrents.at(sma->handle.info_hashes()) = sma->handle.status();
+
+            sma->handle.save_resume_data(
+                lt::torrent_handle::flush_disk_cache
+                | lt::torrent_handle::save_info_dict
+                | lt::torrent_handle::only_if_modified);
+
+            break;
+        }
+        case lt::storage_moved_failed_alert::alert_type:
+        {
+            auto* smfa = lt::alert_cast<lt::storage_moved_failed_alert>(alert);
+
+            BOOST_LOG_TRIVIAL(error)
+                << "Failed to move torrent "
+                << smfa->torrent_name()
+                << " to "
+                << smfa->file_path()
+                << ": " << smfa->message();
+
+            break;
+        }
         case lt::save_resume_data_alert::alert_type:
         {
             auto* a = lt::alert_cast<lt::save_resume_data_alert>(alert);
 
-            AddTorrentParams::Update(m_db, a->params);
+            AddTorrentParams::Update(
+                m_db,
+                a->params,
+                static_cast<int>(a->handle.status().queue_position));
+
             BOOST_LOG_TRIVIAL(info) << "Resume data saved for " << a->params.name;
 
             break;

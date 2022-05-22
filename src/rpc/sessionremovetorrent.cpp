@@ -24,6 +24,16 @@ json SessionRemoveTorrentCommand::Execute(const json& j)
             m_session->RemoveTorrent(hash);
         }
     }
+    else if (j.is_object())
+    {
+        lt::info_hash_t hash = j["info_hash"].get<lt::info_hash_t>();
+        bool removeFiles = j["remove_files"].get<bool>();
+        m_session->RemoveTorrent(hash, removeFiles);
 
-    return Ok();
+        return Ok({
+            { "ok", true }
+        });
+    }
+
+    return Error(1, "Invalid request params. Expected either an array or object.");
 }

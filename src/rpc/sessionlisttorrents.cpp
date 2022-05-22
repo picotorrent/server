@@ -15,7 +15,7 @@ SessionListTorrents::SessionListTorrents(std::shared_ptr<ISession> session)
 
 json SessionListTorrents::Execute(const json &req)
 {
-    json j;
+    json::array_t j;
 
     m_session->ForEachTorrent(
         [&j](const lt::torrent_status &status)

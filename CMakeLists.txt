@@ -69,6 +69,7 @@ add_library(
     src/rpc/sessionlisttorrents.cpp
     src/rpc/sessionlisttorrents.hpp
     src/rpc/sessionremovetorrent.cpp
+        src/rpc/torrentsmovestorage.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
 
