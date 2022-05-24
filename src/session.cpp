@@ -42,6 +42,11 @@ public:
 
     ~TorrentHandle() override = default;
 
+    lt::info_hash_t InfoHash() override
+    {
+        return m_status.info_hashes;
+    }
+
     bool IsValid() override
     {
         return m_status.handle.is_valid();

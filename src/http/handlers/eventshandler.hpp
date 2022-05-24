@@ -20,9 +20,11 @@ namespace pika::Http::Handlers
 
         // Session events
         void OnSessionStats(const std::map<std::string, int64_t> &stats) override;
+        void OnTorrentAdded(const std::shared_ptr<ITorrentHandle>& handle) override;
+        void OnTorrentRemoved(const lt::info_hash_t& hash) override;
 
     private:
-        void Broadcast(const std::string& data);
+        void Broadcast(const std::string& name, const std::string& data);
         void OnHeartbeatExpired(boost::system::error_code ec);
 
         class ContextState;

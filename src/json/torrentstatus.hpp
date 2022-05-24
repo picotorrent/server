@@ -12,7 +12,8 @@ namespace libtorrent
     static void to_json(json& j, const libtorrent::torrent_status& ts)
     {
         j = json {
-            { "info_hash",    ts.info_hashes },
+            { "info_hash_v1", ts.info_hashes.v1 },
+            { "info_hash_v2", ts.info_hashes.v2 },
             { "name",         ts.name },
             { "progress",     ts.progress },
             { "save_path",    ts.save_path },

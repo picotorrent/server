@@ -2,9 +2,10 @@
 
 #include <queue>
 
-#include <boost/bind.hpp>
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
+
+#include "../../torrenthandle.hpp"
 
 using json = nlohmann::json;
 using pika::Http::Handlers::EventsHandler;
@@ -98,22 +99,33 @@ void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context
 
 void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)
 {
-    json j;
-
-    for (const auto& [key, value] : stats)
-    {
-        j[key] = value;
-    }
-
-    std::string evt;
-    evt += "event: session_stats\n";
-    evt += "data: " + j.dump() + "\n\n";
-
-    Broadcast(evt);
+    Broadcast("session_stats", json(stats).dump());
 }
 
-void EventsHandler::Broadcast(const std::string& data)
+void EventsHandler::OnTorrentAdded(const std::shared_ptr<ITorrentHandle> &handle)
 {
+    json j;
+    j["info_hash_v1"] = handle->InfoHash().v1;
+    j["info_hash_v2"] = handle->InfoHash().v2;
+
+    Broadcast("torrent_added", j.dump());
+}
+
+void EventsHandler::OnTorrentRemoved(const lt::info_hash_t &hash)
+{
+    json j;
+    j["info_hash_v1"] = hash.v1;
+    j["info_hash_v2"] = hash.v2;
+
+    Broadcast("torrent_removed", j.dump());
+}
+
+void EventsHandler::Broadcast(const std::string& name, const std::string& data)
+{
+    std::stringstream evt;
+    evt << "event: "<< name << "\n";
+    evt << "data: " << data << "\n\n";
+
     m_ctxs.erase(
         std::remove_if(
             m_ctxs.begin(),
@@ -123,7 +135,7 @@ void EventsHandler::Broadcast(const std::string& data)
 
     for (auto& ctx : m_ctxs)
     {
-        ctx->QueueWrite(data);
+        ctx->QueueWrite(evt.str());
     }
 }
 
@@ -136,8 +148,5 @@ void EventsHandler::OnHeartbeatExpired(boost::system::error_code ec)
             OnHeartbeatExpired(std::forward<decltype(PH1)>(PH1));
         });
 
-    std::string heartbeat = "event: heartbeat\n"
-                            "data: {}\n\n";
-
-    Broadcast(heartbeat);
+    Broadcast("heartbeat", "{}");
 }
