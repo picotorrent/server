@@ -8,6 +8,7 @@
 #include "log.hpp"
 #include "session.hpp"
 
+#include "http/handlers/eventshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
 #include "http/httplistener.hpp"
 #include "plugins/pluginfactory.hpp"
@@ -16,6 +17,7 @@ namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
 using pika::Data::Migrator;
+using pika::Http::Handlers::EventsHandler;
 using pika::Http::Handlers::JsonRpcHandler;
 using pika::Http::HttpListener;
 using pika::Log;
@@ -96,7 +98,9 @@ struct App
 
         auto sm = Session::Load(io, db.get(), config);
         auto http = std::make_shared<HttpListener>(io, config);
+        auto events = std::make_shared<EventsHandler>(io);
 
+        http->AddHandler("GET",  "/api/events",  events);
         http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
 
         auto pf = std::make_shared<pika::Plugins::PluginFactory>(io, config, http);
@@ -106,7 +110,9 @@ struct App
         //    pf->Load(path);
         //}
 
+        sm->AddEventHandler(events);
         sm->AddEventHandler(pf);
+
         http->Run();
 
         io.run();

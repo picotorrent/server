@@ -56,7 +56,9 @@ add_library(
     src/http/httplistener.cpp
     src/http/httpsession.cpp
 
-    # http handlers
+    # http handler
+    src/http/handlers/eventshandler.cpp
+    src/http/handlers/eventshandler.hpp
     src/http/handlers/jsonrpchandler.cpp
     src/http/handlers/jsonrpchandler.hpp
     src/http/handlers/webroothandler.cpp
@@ -69,7 +71,7 @@ add_library(
     src/rpc/sessionlisttorrents.cpp
     src/rpc/sessionlisttorrents.hpp
     src/rpc/sessionremovetorrent.cpp
-        src/rpc/torrentsmovestorage.cpp
+    src/rpc/torrentsmovestorage.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
 
