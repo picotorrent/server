@@ -61,8 +61,6 @@ add_library(
     src/http/handlers/eventshandler.hpp
     src/http/handlers/jsonrpchandler.cpp
     src/http/handlers/jsonrpchandler.hpp
-    src/http/handlers/webroothandler.cpp
-    src/http/handlers/webroothandler.hpp
 
     # rpc
     src/rpc/configget.cpp
