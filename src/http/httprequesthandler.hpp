@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/beast.hpp>
+#include <nlohmann/json.hpp>
 
 namespace pika::Http
 {
@@ -15,6 +16,7 @@ namespace pika::Http
 
             virtual void Write(boost::beast::http::response<boost::beast::http::file_body> res) = 0;
             virtual void Write(boost::beast::http::response<boost::beast::http::string_body> res) = 0;
+            virtual void WriteJson(const nlohmann::json& j) = 0;
         };
 
         virtual void Execute(std::shared_ptr<Context> context) = 0;

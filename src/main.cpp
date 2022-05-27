@@ -98,7 +98,7 @@ struct App
 
         auto sm = Session::Load(io, db.get(), config);
         auto http = std::make_shared<HttpListener>(io, config);
-        auto events = std::make_shared<EventsHandler>(io);
+        auto events = std::make_shared<EventsHandler>(io, sm);
 
         http->AddHandler("GET",  "/api/events",  events);
         http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));

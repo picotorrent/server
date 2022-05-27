@@ -6,6 +6,7 @@
 #include "../../rpc/configget.hpp"
 #include "../../rpc/configset.hpp"
 #include "../../rpc/sessionaddtorrent.hpp"
+#include "../../rpc/sessiongettorrent.hpp"
 #include "../../rpc/sessionlisttorrents.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
 #include "../../rpc/torrentsmovestorage.hpp"
@@ -43,6 +44,7 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pika::Session>
     m_commands.insert({ "config.get",            std::make_shared<pika::RPC::ConfigGetCommand>(db) });
     m_commands.insert({ "config.set",            std::make_shared<pika::RPC::ConfigSetCommand>(db) });
     m_commands.insert({ "session.addTorrent",    std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) });
+    m_commands.insert({ "session.getTorrent",    std::make_shared<pika::RPC::SessionGetTorrentCommand>(session) });
     m_commands.insert({ "session.listTorrents",  std::make_shared<pika::RPC::SessionListTorrents>(session) });
     m_commands.insert({ "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
     m_commands.insert({ "torrents.moveStorage",  std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) });

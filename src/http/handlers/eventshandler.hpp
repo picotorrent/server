@@ -8,6 +8,11 @@
 #include "../httprequesthandler.hpp"
 #include "../../sessioneventhandler.hpp"
 
+namespace pika
+{
+    class ISession;
+}
+
 namespace pika::Http::Handlers
 {
     class EventsHandler
@@ -15,11 +20,12 @@ namespace pika::Http::Handlers
         , public pika::ISessionEventHandler
     {
     public:
-        explicit EventsHandler(boost::asio::io_context& io);
+        explicit EventsHandler(boost::asio::io_context& io, std::shared_ptr<ISession> session);
         void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
 
         // Session events
         void OnSessionStats(const std::map<std::string, int64_t> &stats) override;
+        void OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &) override;
         void OnTorrentAdded(const std::shared_ptr<ITorrentHandle>& handle) override;
         void OnTorrentRemoved(const lt::info_hash_t& hash) override;
 
@@ -31,5 +37,6 @@ namespace pika::Http::Handlers
 
         boost::asio::steady_timer m_heartbeat;
         std::vector<std::shared_ptr<ContextState>> m_ctxs;
+        std::shared_ptr<ISession> m_session;
     };
 }

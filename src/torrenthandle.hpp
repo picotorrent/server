@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libtorrent/info_hash.hpp>
+#include <libtorrent/torrent_status.hpp>
 
 namespace pika
 {
@@ -14,5 +15,6 @@ namespace pika
         virtual void MoveStorage(const std::string& path) = 0;
         virtual void Pause() = 0;
         virtual void Resume() = 0;
+        virtual const libtorrent::torrent_status& Status() = 0;
     };
 }

@@ -46,6 +46,20 @@ public:
         m_session->m_queue(std::move(res));
     }
 
+    void WriteJson(const nlohmann::json& j) override
+    {
+        namespace http = boost::beast::http;
+
+        http::response<http::string_body> res{http::status::ok, m_req.version()};
+        res.set(http::field::server, "pika/1.0");
+        res.set(http::field::content_type, "application/json");
+        res.keep_alive(m_req.keep_alive());
+        res.body() = j.dump();
+        res.prepare_payload();
+
+        m_session->m_queue(std::move(res));
+    }
+
 private:
     std::shared_ptr<HttpSession> m_session;
     BasicHttpRequest m_req;
@@ -112,6 +126,15 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
     auto req = m_parser->release();
     auto method = req.method_string();
     auto path = req.target();
+
+    // If we have a query string, remove it when looking
+    // for handlers
+
+    if (path.find_first_of("?") != std::string_view::npos)
+    {
+        path = path.substr(0, path.find_first_of("?"));
+    }
+
     auto handler = m_handlers->find({ method.to_string(), path.to_string() });
 
     if (handler != m_handlers->end())

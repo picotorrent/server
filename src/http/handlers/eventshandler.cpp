@@ -5,6 +5,9 @@
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
 
+#include "../../json/infohash.hpp"
+#include "../../json/torrentstatus.hpp"
+#include "../../session.hpp"
 #include "../../torrenthandle.hpp"
 
 using json = nlohmann::json;
@@ -19,6 +22,8 @@ public:
     }
 
     bool IsDead() const { return m_dead; }
+
+    int64_t SentBytes() const { return m_sent; }
 
     void QueueWrite(std::string data)
     {
@@ -54,7 +59,8 @@ private:
         {
             m_dead = true;
 
-            if (ec == boost::asio::error::broken_pipe)
+            if (ec == boost::asio::error::broken_pipe
+                || ec == boost::asio::error::timed_out)
             {
                 // Client disconnected
                 return;
@@ -64,17 +70,21 @@ private:
             return;
         }
 
+        m_sent += bytes;
+
         MaybeWrite();
     }
 
     bool m_dead {false};
     bool m_isWriting {false};
+    int64_t m_sent{0};
     std::queue<std::string> m_sendData;
     std::shared_ptr<pika::Http::HttpRequestHandler::Context> m_ctx;
 };
 
-EventsHandler::EventsHandler(boost::asio::io_context &io)
+EventsHandler::EventsHandler(boost::asio::io_context &io, std::shared_ptr<pika::ISession> session)
     : m_heartbeat(io)
+    , m_session(std::move(session))
 {
     m_heartbeat.expires_after(std::chrono::seconds(5));
     m_heartbeat.async_wait(
@@ -86,13 +96,42 @@ EventsHandler::EventsHandler(boost::asio::io_context &io)
 
 void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)
 {
+    if (context->Request().target().ends_with("?stats"))
+    {
+        json::array_t j;
+
+        for (const auto& ctx : m_ctxs)
+        {
+            j.push_back({
+                {"is_dead", ctx->IsDead()},
+                {"sent",    ctx->SentBytes()}
+            });
+        }
+
+        context->WriteJson(j);
+
+        return;
+    }
+
     std::string headers = "HTTP/1.1 200 OK\n"
                           "Connection: keep-alive\n"
                           "Content-Type: text/event-stream\n"
                           "Cache-Control: no-cache, no-transform\n\n";
 
+    json initial;
+    m_session->ForEachTorrent(
+        [&initial](const auto& ts)
+        {
+            initial.push_back(ts);
+        });
+
+    std::stringstream evt;
+    evt << "event: initial_state\n";
+    evt << "data: " << initial.dump() << "\n\n";
+
     auto state = std::make_shared<ContextState>(std::move(context));
     state->QueueWrite(headers);
+    state->QueueWrite(evt.str());
 
     m_ctxs.push_back(state);
 }
@@ -102,20 +141,54 @@ void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)
     Broadcast("session_stats", json(stats).dump());
 }
 
+void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &torrents)
+{
+    json state;
+
+    for (const auto& torrent : torrents)
+    {
+        json sha1;
+        libtorrent::to_json(sha1, torrent->InfoHash().v1);
+
+        json sha2;
+        libtorrent::to_json(sha2, torrent->InfoHash().v2);
+
+        json j;
+        j["info_hash_v1"] = sha1;
+        j["info_hash_v2"] = sha2;
+
+        state.push_back(j);
+    }
+
+    Broadcast("state_update", state.dump());
+}
+
 void EventsHandler::OnTorrentAdded(const std::shared_ptr<ITorrentHandle> &handle)
 {
+    json sha1;
+    libtorrent::to_json(sha1, handle->InfoHash().v1);
+
+    json sha2;
+    libtorrent::to_json(sha2, handle->InfoHash().v2);
+
     json j;
-    j["info_hash_v1"] = handle->InfoHash().v1;
-    j["info_hash_v2"] = handle->InfoHash().v2;
+    j["info_hash_v1"] = sha1;
+    j["info_hash_v2"] = sha2;
 
     Broadcast("torrent_added", j.dump());
 }
 
 void EventsHandler::OnTorrentRemoved(const lt::info_hash_t &hash)
 {
+    json sha1;
+    libtorrent::to_json(sha1, hash.v1);
+
+    json sha2;
+    libtorrent::to_json(sha2, hash.v2);
+
     json j;
-    j["info_hash_v1"] = hash.v1;
-    j["info_hash_v2"] = hash.v2;
+    j["info_hash_v1"] = sha1;
+    j["info_hash_v2"] = sha2;
 
     Broadcast("torrent_removed", j.dump());
 }

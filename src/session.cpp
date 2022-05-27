@@ -68,6 +68,11 @@ public:
         m_status.handle.resume();
     }
 
+    const lt::torrent_status& Status() override
+    {
+        return m_status;
+    }
+
 private:
     lt::torrent_status m_status;
 };

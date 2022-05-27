@@ -16,7 +16,9 @@ int InitialSetup::Migrate(sqlite3* db)
             "info_hash_v2 TEXT,"
             "queue_position INTEGER NOT NULL,"
             "resume_data_buf TEXT NOT NULL,"
-            "CHECK (info_hash_v1 IS NOT NULL OR info_hash_v2 IS NOT NULL)"
+            "CHECK (info_hash_v1 IS NOT NULL OR info_hash_v2 IS NOT NULL),"
+            "UNIQUE (info_hash_v1),"
+            "UNIQUE (info_hash_v2)"
         ");",
         nullptr,
         nullptr,

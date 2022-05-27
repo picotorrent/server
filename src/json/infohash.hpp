@@ -22,6 +22,16 @@ namespace libtorrent
         }
     }
 
+    static void from_json(const json& j, libtorrent::sha1_hash& sha1)
+    {
+        auto str = j.get<std::string>();
+
+        if (str.size() == 40)
+        {
+            lt::aux::from_hex({ str.c_str(), 40 }, sha1.data());
+        }
+    }
+
     static void to_json(json& j, const libtorrent::sha1_hash& ih)
     {
         if (ih.is_all_zeros())
