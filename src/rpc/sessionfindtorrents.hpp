@@ -6,10 +6,10 @@ namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class SessionGetTorrentCommand : public Command
+    class SessionFindTorrents : public Command
     {
     public:
-        explicit SessionGetTorrentCommand(std::shared_ptr<ISession> session);
+        explicit SessionFindTorrents(std::shared_ptr<ISession> session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

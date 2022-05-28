@@ -27,7 +27,9 @@ namespace pika::Http::Handlers
         void OnSessionStats(const std::map<std::string, int64_t> &stats) override;
         void OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &) override;
         void OnTorrentAdded(const std::shared_ptr<ITorrentHandle>& handle) override;
+        void OnTorrentPaused(const lt::info_hash_t& hash) override;
         void OnTorrentRemoved(const lt::info_hash_t& hash) override;
+        void OnTorrentResumed(const lt::info_hash_t& hash) override;
 
     private:
         void Broadcast(const std::string& name, const std::string& data);

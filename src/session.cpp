@@ -60,11 +60,17 @@ public:
 
     void Pause() override
     {
+        m_status.handle.unset_flags(
+            lt::torrent_flags::auto_managed);
+
         m_status.handle.pause();
     }
 
     void Resume() override
     {
+        m_status.handle.set_flags(
+            lt::torrent_flags::auto_managed);
+
         m_status.handle.resume();
     }
 
@@ -497,6 +503,18 @@ void Session::ReadAlerts()
 
             break;
         }
+        case lt::torrent_paused_alert::alert_type:
+        {
+            auto* tpa = lt::alert_cast<lt::torrent_paused_alert>(alert);
+
+            TriggerEvent(
+                [&tpa](ISessionEventHandler* seh)
+                {
+                    seh->OnTorrentPaused(tpa->handle.info_hashes());
+                });
+
+            break;
+        }
         case lt::torrent_removed_alert::alert_type:
         {
             auto* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
@@ -512,6 +530,18 @@ void Session::ReadAlerts()
                 });
 
             BOOST_LOG_TRIVIAL(info) << "Torrent " << tra->torrent_name() << " removed";
+
+            break;
+        }
+        case lt::torrent_resumed_alert::alert_type:
+        {
+            auto* tra = lt::alert_cast<lt::torrent_resumed_alert>(alert);
+
+            TriggerEvent(
+                [&tra](ISessionEventHandler* seh)
+                {
+                    seh->OnTorrentResumed(tra->handle.info_hashes());
+                });
 
             break;
         }

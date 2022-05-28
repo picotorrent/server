@@ -66,10 +66,10 @@ add_library(
     src/rpc/configget.cpp
     src/rpc/configset.cpp
     src/rpc/sessionaddtorrent.cpp
-    src/rpc/sessiongettorrent.cpp
-    src/rpc/sessiongettorrent.hpp
-    src/rpc/sessionlisttorrents.cpp
-    src/rpc/sessionlisttorrents.hpp
+    src/rpc/sessiongettorrents.cpp
+    src/rpc/sessiongettorrents.hpp
+    src/rpc/sessionfindtorrents.cpp
+    src/rpc/sessionfindtorrents.hpp
     src/rpc/sessionremovetorrent.cpp
     src/rpc/torrentsmovestorage.cpp
     src/rpc/torrentspause.cpp

@@ -35,7 +35,12 @@ public:
 private:
     void MaybeWrite()
     {
-        if (m_isWriting || m_sendData.empty()) { return; }
+        if (m_dead
+            || m_isWriting
+            || m_sendData.empty())
+        {
+            return;
+        }
 
         const std::string& data = m_sendData.front();
 
@@ -66,7 +71,11 @@ private:
                 return;
             }
 
-            BOOST_LOG_TRIVIAL(error) << "Failed to write " << bytes << " bytes: " << ec.message();
+            BOOST_LOG_TRIVIAL(error)
+                << "Failed to write " << bytes
+                << " bytes: " << ec.message()
+                << " (" << ec.value() << ")";
+
             return;
         }
 
@@ -118,12 +127,18 @@ void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context
                           "Content-Type: text/event-stream\n"
                           "Cache-Control: no-cache, no-transform\n\n";
 
-    json initial;
+    json::array_t torrents;
     m_session->ForEachTorrent(
-        [&initial](const auto& ts)
+        [&torrents](const auto& ts)
         {
-            initial.push_back(ts);
+            torrents.push_back({
+                {"info_hash", ts.info_hashes}
+            });
         });
+
+    json initial = {
+        {"torrents", torrents}
+    };
 
     std::stringstream evt;
     evt << "event: initial_state\n";
@@ -138,7 +153,8 @@ void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context
 
 void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)
 {
-    Broadcast("session_stats", json(stats).dump());
+    // Move fetching of metrics to a JSONRPC method
+    Broadcast("session_metrics_updated", "{}");
 }
 
 void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &torrents)
@@ -147,15 +163,9 @@ void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHand
 
     for (const auto& torrent : torrents)
     {
-        json sha1;
-        libtorrent::to_json(sha1, torrent->InfoHash().v1);
-
-        json sha2;
-        libtorrent::to_json(sha2, torrent->InfoHash().v2);
-
-        json j;
-        j["info_hash_v1"] = sha1;
-        j["info_hash_v2"] = sha2;
+        json j = {
+            {"info_hash", torrent->InfoHash()}
+        };
 
         state.push_back(j);
     }
@@ -165,32 +175,38 @@ void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHand
 
 void EventsHandler::OnTorrentAdded(const std::shared_ptr<ITorrentHandle> &handle)
 {
-    json sha1;
-    libtorrent::to_json(sha1, handle->InfoHash().v1);
-
-    json sha2;
-    libtorrent::to_json(sha2, handle->InfoHash().v2);
-
-    json j;
-    j["info_hash_v1"] = sha1;
-    j["info_hash_v2"] = sha2;
+    json j = {
+        {"info_hash", handle->InfoHash()}
+    };
 
     Broadcast("torrent_added", j.dump());
 }
 
+void EventsHandler::OnTorrentPaused(const lt::info_hash_t &hash)
+{
+    json j = {
+        {"info_hash", hash}
+    };
+
+    Broadcast("torrent_paused", j.dump());
+}
+
 void EventsHandler::OnTorrentRemoved(const lt::info_hash_t &hash)
 {
-    json sha1;
-    libtorrent::to_json(sha1, hash.v1);
-
-    json sha2;
-    libtorrent::to_json(sha2, hash.v2);
-
-    json j;
-    j["info_hash_v1"] = sha1;
-    j["info_hash_v2"] = sha2;
+    json j = {
+        {"info_hash", hash}
+    };
 
     Broadcast("torrent_removed", j.dump());
+}
+
+void EventsHandler::OnTorrentResumed(const lt::info_hash_t &hash)
+{
+    json j = {
+        {"info_hash", hash}
+    };
+
+    Broadcast("torrent_resumed", j.dump());
 }
 
 void EventsHandler::Broadcast(const std::string& name, const std::string& data)

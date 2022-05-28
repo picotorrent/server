@@ -50,13 +50,8 @@ json TorrentsPauseCommand::Execute(const json& j)
             pause(hash);
         }
 
-        return Ok({});
-    }
-    else if (j.is_string())
-    {
-        pause(j.get<lt::info_hash_t>());
-        return Ok({});
+        return Ok(true);
     }
 
-    return Error(1, "'params' not a string or array of strings");
+    return Error(1, "Params needs to be an array of info hash arrays");
 }
