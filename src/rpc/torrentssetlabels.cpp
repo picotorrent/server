@@ -3,6 +3,7 @@
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
 
+#include "../data/models/labels.hpp"
 #include "../json/infohash.hpp"
 #include "../session.hpp"
 #include "../torrenthandle.hpp"
@@ -10,11 +11,13 @@
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
+using pika::Data::Models::Labels;
 using pika::RPC::TorrentsSetLabelsCommand;
 using pika::ISession;
 
-TorrentsSetLabelsCommand::TorrentsSetLabelsCommand(std::weak_ptr<ISession> session)
-    : m_session(std::move(session))
+TorrentsSetLabelsCommand::TorrentsSetLabelsCommand(sqlite3* db, std::weak_ptr<ISession> session)
+    : m_db(db)
+    , m_session(std::move(session))
 {
 }
 
@@ -34,10 +37,8 @@ json TorrentsSetLabelsCommand::Execute(const json& j)
             lt::info_hash_t hash = item["info_hash"].get<lt::info_hash_t>();
             auto labels = item["labels"].get<std::map<std::string, std::string>>();
 
-            if (auto torrent = session->FindTorrent(hash))
-            {
-                torrent->Labels() = labels;
-            }
+            Labels::Delete(m_db, hash);
+            Labels::Set(m_db, hash, labels);
         }
 
         return Ok(true);

@@ -13,6 +13,31 @@ static std::string ToString(const T &hash)
     return ss.str();
 }
 
+void Labels::Delete(sqlite3 *db, const libtorrent::info_hash_t &hash)
+{
+    // Clear existing labels
+    Statement::ForEach(
+        db,
+        "DELETE FROM labels WHERE addtorrentparams_id = \n"
+        "   (SELECT id FROM addtorrentparams p\n"
+        "       WHERE (p.info_hash_v1 = $1 AND p.info_hash_v2 IS NULL)\n"
+        "       OR (p.info_hash_v1 IS NULL AND p.info_hash_v2 = $2)\n"
+        "       OR (p.info_hash_v1 = $1 AND p.info_hash_v2 = $2));",
+        [](const auto&) {},
+        [&hash](sqlite3_stmt* stmt)
+        {
+            CHECK_OK(hash.has_v1()
+                     ? sqlite3_bind_text(stmt, 1, ToString(hash.v1).c_str(), -1, SQLITE_TRANSIENT)
+                     : sqlite3_bind_null(stmt, 1))
+
+            CHECK_OK(hash.has_v2()
+                     ? sqlite3_bind_text(stmt, 2, ToString(hash.v2).c_str(), -1, SQLITE_TRANSIENT)
+                     : sqlite3_bind_null(stmt, 2))
+
+            return SQLITE_OK;
+        });
+}
+
 std::map<std::string, std::string> Labels::Get(
     sqlite3 *db,
     const libtorrent::info_hash_t &hash)

@@ -25,8 +25,7 @@ namespace pika
             { "ul",           ts.upload_payload_rate },
             { "num_peers",    ts.num_peers },
             { "num_seeds",    ts.num_seeds },
-            { "flags",        static_cast<uint64_t>(ts.flags) },
-            { "labels",       handle->Labels() }
+            { "flags",        static_cast<uint64_t>(ts.flags) }
         };
     }
 }

@@ -9,7 +9,7 @@
 #include "../../rpc/sessiongettorrents.hpp"
 #include "../../rpc/sessionfindtorrents.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
-#include "../../rpc/torrentsaddlabels.hpp"
+#include "../../rpc/torrentsgetlabels.hpp"
 #include "../../rpc/torrentsmovestorage.hpp"
 #include "../../rpc/torrentspause.hpp"
 #include "../../rpc/torrentsresume.hpp"
@@ -49,11 +49,11 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::weak_ptr<pika::Session> &
     m_commands.insert({ "session.getTorrents",   std::make_shared<pika::RPC::SessionGetTorrentsCommand>(session) });
     m_commands.insert({ "session.findTorrents",  std::make_shared<pika::RPC::SessionFindTorrents>(session) });
     m_commands.insert({ "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
-    m_commands.insert({ "torrents.addLabels",    std::make_shared<pika::RPC::TorrentsAddLabelsCommand>(db, session) });
+    m_commands.insert({ "torrents.getLabels",    std::make_shared<pika::RPC::TorrentsGetLabelsCommand>(db, session) });
     m_commands.insert({ "torrents.moveStorage",  std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) });
     m_commands.insert({ "torrents.pause",        std::make_shared<pika::RPC::TorrentsPauseCommand>(session) });
     m_commands.insert({ "torrents.resume",       std::make_shared<pika::RPC::TorrentsResumeCommand>(session) });
-    m_commands.insert({ "torrents.setLabels",    std::make_shared<pika::RPC::TorrentsSetLabelsCommand>(session) });
+    m_commands.insert({ "torrents.setLabels",    std::make_shared<pika::RPC::TorrentsSetLabelsCommand>(db, session) });
 }
 
 void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)
