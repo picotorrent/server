@@ -1,5 +1,7 @@
 #include "labels.hpp"
 
+#include <sstream>
+
 #include "../statement.hpp"
 #include "../sqliteexception.hpp"
 
