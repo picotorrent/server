@@ -12,6 +12,7 @@
 
 #include "data/datareader.hpp"
 #include "data/models/addtorrentparams.hpp"
+#include "data/models/labels.hpp"
 #include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
 #include "data/statement.hpp"
@@ -21,6 +22,7 @@
 namespace lt = libtorrent;
 using json = nlohmann::json;
 using pika::Data::Models::AddTorrentParams;
+using pika::Data::Models::Labels;
 using pika::Data::Models::SessionParams;
 using pika::Data::Statement;
 using pika::Data::SQLiteException;
@@ -35,8 +37,9 @@ struct PikaParams
 class TorrentHandle : public pika::ITorrentHandle
 {
 public:
-    explicit TorrentHandle(lt::torrent_status status)
+    explicit TorrentHandle(lt::torrent_status status, std::map<std::string, std::string>& labels)
         : m_status(std::move(status))
+        , m_labels(labels)
     {
     }
 
@@ -50,6 +53,11 @@ public:
     bool IsValid() override
     {
         return m_status.handle.is_valid();
+    }
+
+    std::map<std::string, std::string>& Labels() override
+    {
+        return m_labels;
     }
 
     void MoveStorage(const std::string& path) override
@@ -81,6 +89,7 @@ public:
 
 private:
     lt::torrent_status m_status;
+    std::map<std::string, std::string>& m_labels;
 };
 
 std::shared_ptr<Session> Session::Load(
@@ -152,6 +161,7 @@ std::shared_ptr<Session> Session::Load(
         [&session, &added, &torrents](lt::add_torrent_params &params)
         {
             added++;
+
             auto ap = new PikaParams();
             ap->current = added;
             ap->total = torrents;
@@ -201,6 +211,8 @@ Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::s
 
 Session::~Session()
 {
+    BOOST_LOG_TRIVIAL(info) << "Shutting down session";
+
     m_session->set_alert_notify([] {});
     m_timer.cancel();
 
@@ -278,10 +290,17 @@ Session::~Session()
         }
     }
 
+    BOOST_LOG_TRIVIAL(info) << "Saving labels";
+
+    for (const auto& [hash, labels] : m_labels)
+    {
+        Labels::Set(m_db, hash, labels);
+    }
+
     BOOST_LOG_TRIVIAL(info) << "All state saved";
 }
 
-void Session::AddEventHandler(std::shared_ptr<ISessionEventHandler> handler)
+void Session::AddEventHandler(std::weak_ptr<ISessionEventHandler> handler)
 {
     m_eventHandlers.push_back(handler);
 }
@@ -295,7 +314,9 @@ std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t
         return nullptr;
     }
 
-    return std::make_shared<TorrentHandle>(status->second);
+    return std::make_shared<TorrentHandle>(
+        status->second,
+        GetOrCreateLabelsMap(status->second.info_hashes));
 }
 
 void Session::ForEachTorrent(const std::function<void(const libtorrent::torrent_status &)> &cb)
@@ -341,6 +362,16 @@ void Session::RemoveTorrent(lt::info_hash_t const& hash, bool remove_files)
     m_session->remove_torrent(find->second.handle, flags);
 }
 
+std::map<std::string, std::string>& Session::GetOrCreateLabelsMap(const lt::info_hash_t &hash)
+{
+    if (m_labels.find(hash) == m_labels.end())
+    {
+        m_labels.insert({ hash, {} });
+    }
+
+    return m_labels.at(hash);
+}
+
 void Session::ReadAlerts()
 {
     std::vector<lt::alert*> alerts;
@@ -362,10 +393,12 @@ void Session::ReadAlerts()
                 continue;
             }
 
-            auto* extra = ata->params.userdata.get<PikaParams>();
-
             lt::torrent_status ts = ata->handle.status();
+
+            m_labels.insert({ ts.info_hashes, Labels::Get(m_db, ts.info_hashes) });
             m_torrents.insert({ ts.info_hashes, ts });
+
+            auto* extra = ata->params.userdata.get<PikaParams>();
 
             if (extra == nullptr)
             {
@@ -387,7 +420,9 @@ void Session::ReadAlerts()
                 delete extra;
             }
 
-            auto th = std::make_shared<TorrentHandle>(ts);
+            auto th = std::make_shared<TorrentHandle>(
+                ts,
+                GetOrCreateLabelsMap(ts.info_hashes));
 
             TriggerEvent(
                 [&th](ISessionEventHandler* seh)
@@ -489,7 +524,11 @@ void Session::ReadAlerts()
             for (auto const& status : sua->status)
             {
                 m_torrents.at(status.info_hashes) = status;
-                torrents.push_back(std::make_shared<TorrentHandle>(status));
+
+                torrents.push_back(
+                    std::make_shared<TorrentHandle>(
+                        status,
+                        GetOrCreateLabelsMap(status.info_hashes)));
             }
 
             if (!sua->status.empty())
@@ -519,6 +558,7 @@ void Session::ReadAlerts()
         {
             auto* tra = lt::alert_cast<lt::torrent_removed_alert>(alert);
 
+            m_labels.erase(tra->info_hashes);
             m_torrents.erase(tra->info_hashes);
 
             AddTorrentParams::Remove(m_db, tra->info_hashes);

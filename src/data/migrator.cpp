@@ -3,6 +3,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "migrations/0001_initialsetup.hpp"
+#include "migrations/0002_labels.hpp"
 #include "transaction.hpp"
 
 using pika::Data::Migrator;
@@ -32,7 +33,8 @@ bool Migrator::Run(sqlite3 *db)
 {
     static std::vector<std::function<int(sqlite3*)>> migrations =
     {
-        &Migrations::InitialSetup::Migrate
+        &Migrations::InitialSetup::Migrate,
+        &Migrations::Labels::Migrate,
     };
 
     int userVersion = GetUserVersion(db);

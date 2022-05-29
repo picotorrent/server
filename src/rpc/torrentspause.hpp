@@ -12,10 +12,10 @@ namespace pika::RPC
     class TorrentsPauseCommand : public Command
     {
     public:
-        TorrentsPauseCommand(std::shared_ptr<ISession>);
+        TorrentsPauseCommand(std::weak_ptr<ISession> session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<ISession> m_session;
+        std::weak_ptr<ISession> m_session;
     };
 }

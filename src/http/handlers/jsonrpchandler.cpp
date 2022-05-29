@@ -9,9 +9,11 @@
 #include "../../rpc/sessiongettorrents.hpp"
 #include "../../rpc/sessionfindtorrents.hpp"
 #include "../../rpc/sessionremovetorrent.hpp"
+#include "../../rpc/torrentsaddlabels.hpp"
 #include "../../rpc/torrentsmovestorage.hpp"
 #include "../../rpc/torrentspause.hpp"
 #include "../../rpc/torrentsresume.hpp"
+#include "../../rpc/torrentssetlabels.hpp"
 
 using json = nlohmann::json;
 using pika::Http::Handlers::JsonRpcHandler;
@@ -39,7 +41,7 @@ static bool IsValidRequestObject(json const& req, std::string& errorMessage)
     return true;
 }
 
-JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pika::Session> &session)
+JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::weak_ptr<pika::Session> &session)
 {
     m_commands.insert({ "config.get",            std::make_shared<pika::RPC::ConfigGetCommand>(db) });
     m_commands.insert({ "config.set",            std::make_shared<pika::RPC::ConfigSetCommand>(db) });
@@ -47,9 +49,11 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::shared_ptr<pika::Session>
     m_commands.insert({ "session.getTorrents",   std::make_shared<pika::RPC::SessionGetTorrentsCommand>(session) });
     m_commands.insert({ "session.findTorrents",  std::make_shared<pika::RPC::SessionFindTorrents>(session) });
     m_commands.insert({ "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
+    m_commands.insert({ "torrents.addLabels",    std::make_shared<pika::RPC::TorrentsAddLabelsCommand>(db, session) });
     m_commands.insert({ "torrents.moveStorage",  std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) });
     m_commands.insert({ "torrents.pause",        std::make_shared<pika::RPC::TorrentsPauseCommand>(session) });
     m_commands.insert({ "torrents.resume",       std::make_shared<pika::RPC::TorrentsResumeCommand>(session) });
+    m_commands.insert({ "torrents.setLabels",    std::make_shared<pika::RPC::TorrentsSetLabelsCommand>(session) });
 }
 
 void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)

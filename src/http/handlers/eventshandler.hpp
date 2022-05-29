@@ -20,7 +20,7 @@ namespace pika::Http::Handlers
         , public pika::ISessionEventHandler
     {
     public:
-        explicit EventsHandler(boost::asio::io_context& io, std::shared_ptr<ISession> session);
+        explicit EventsHandler(boost::asio::io_context& io, std::weak_ptr<ISession> session);
         void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
 
         // Session events
@@ -39,6 +39,6 @@ namespace pika::Http::Handlers
 
         boost::asio::steady_timer m_heartbeat;
         std::vector<std::shared_ptr<ContextState>> m_ctxs;
-        std::shared_ptr<ISession> m_session;
+        std::weak_ptr<ISession> m_session;
     };
 }

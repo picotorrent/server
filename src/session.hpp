@@ -19,11 +19,11 @@ namespace pika
     class ISession
     {
     public:
-        virtual void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) = 0;
+        virtual void AddEventHandler(std::weak_ptr<ISessionEventHandler> handler) = 0;
         virtual libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params &params) = 0;
         virtual std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) = 0;
         virtual void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) = 0;
-        virtual void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles = false) = 0;
+        virtual void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles) = 0;
     };
 
     class Session : public ISession
@@ -36,7 +36,7 @@ namespace pika
 
         ~Session();
 
-        void AddEventHandler(std::shared_ptr<ISessionEventHandler> handler) override;
+        void AddEventHandler(std::weak_ptr<ISessionEventHandler> handler) override;
         libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params& params) override;
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
         void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) override;
@@ -45,6 +45,7 @@ namespace pika
     private:
         Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<libtorrent::session> session);
 
+        std::map<std::string, std::string>& GetOrCreateLabelsMap(const libtorrent::info_hash_t& hash);
         void ReadAlerts();
         void PostUpdates(boost::system::error_code ec);
         void TriggerEvent(const std::function<void(ISessionEventHandler*)> &func);
@@ -55,9 +56,8 @@ namespace pika
         sqlite3* m_db;
         std::unique_ptr<libtorrent::session> m_session;
         std::map<libtorrent::info_hash_t, libtorrent::torrent_status> m_torrents;
-        std::vector<std::weak_ptr<std::function<void(nlohmann::json&)>>> m_subscribers;
+        std::map<libtorrent::info_hash_t, std::map<std::string, std::string>> m_labels;
         std::vector<libtorrent::stats_metric> m_stats;
-
         std::vector<std::weak_ptr<ISessionEventHandler>> m_eventHandlers;
     };
 }

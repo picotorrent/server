@@ -12,10 +12,10 @@ namespace pika::RPC
     class SessionRemoveTorrentCommand : public Command
     {
     public:
-        explicit SessionRemoveTorrentCommand(std::shared_ptr<ISession>);
+        explicit SessionRemoveTorrentCommand(std::weak_ptr<ISession> session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<ISession> m_session;
+        std::weak_ptr<ISession> m_session;
     };
 }

@@ -109,9 +109,10 @@ namespace pika::Http
     public:
         HttpSession(
             boost::asio::ip::tcp::socket&& socket,
-            std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers);
+            std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers);
 
         void Run();
+        void Stop();
 
     private:
         void BeginRead();
@@ -121,7 +122,7 @@ namespace pika::Http
 
         boost::beast::tcp_stream m_stream;
         boost::beast::flat_buffer m_buffer;
-        std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
+        std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
 
         Queue m_queue;
 

@@ -67,7 +67,7 @@ private:
 
 HttpSession::HttpSession(
     boost::asio::ip::tcp::socket&& socket,
-    std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers)
+    std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers)
     : m_stream(std::move(socket))
     , m_handlers(std::move(handlers))
     , m_queue(*this)
@@ -85,6 +85,11 @@ void HttpSession::Run()
         boost::beast::bind_front_handler(
             &HttpSession::BeginRead,
             shared_from_this()));
+}
+
+void HttpSession::Stop()
+{
+    m_stream.close();
 }
 
 void HttpSession::BeginRead()
@@ -135,15 +140,18 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
         path = path.substr(0, path.find_first_of("?"));
     }
 
-    auto handler = m_handlers->find({ method.to_string(), path.to_string() });
-
-    if (handler != m_handlers->end())
+    if (auto handlers = m_handlers.lock())
     {
-        handler->second->Execute(
-            std::make_shared<DefaultContext>(
-                shared_from_this(),
-                std::move(req)));
-        return;
+        auto handler = handlers->find({method.to_string(), path.to_string()});
+
+        if (handler != handlers->end())
+        {
+            handler->second->Execute(
+                std::make_shared<DefaultContext>(
+                    shared_from_this(),
+                    std::move(req)));
+            return;
+        }
     }
 
     auto const not_found = [&req](boost::beast::string_view target)

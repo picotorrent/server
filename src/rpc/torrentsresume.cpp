@@ -2,9 +2,6 @@
 
 #include <boost/log/trivial.hpp>
 #include <libtorrent/info_hash.hpp>
-#include <libtorrent/session.hpp>
-#include <libtorrent/torrent_handle.hpp>
-#include <libtorrent/torrent_status.hpp>
 #include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
@@ -17,16 +14,23 @@ using json = nlohmann::json;
 using pika::RPC::TorrentsResumeCommand;
 using pika::ISession;
 
-TorrentsResumeCommand::TorrentsResumeCommand(std::shared_ptr<ISession> session)
+TorrentsResumeCommand::TorrentsResumeCommand(std::weak_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }
 
 json TorrentsResumeCommand::Execute(const json& j)
 {
-    auto resume = [this](const lt::info_hash_t& hash)
+    auto session = m_session.lock();
+
+    if (!session)
     {
-        auto handle = m_session->FindTorrent(hash);
+        return Error(99, "Failed to lock session");
+    }
+
+    auto resume = [&session](const lt::info_hash_t& hash)
+    {
+        auto handle = session->FindTorrent(hash);
 
         if (handle == nullptr)
         {

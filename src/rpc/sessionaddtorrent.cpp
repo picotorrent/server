@@ -43,7 +43,7 @@ using json = nlohmann::json;
 using pika::Session;
 using pika::RPC::SessionAddTorrentCommand;
 
-SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<ISession> session)
+SessionAddTorrentCommand::SessionAddTorrentCommand(std::weak_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }
@@ -99,7 +99,12 @@ json SessionAddTorrentCommand::Execute(const json& j)
 
     p.save_path = j["save_path"].get<std::string>();
 
-    return Ok({
-        { "info_hash", m_session->AddTorrent(p) }
-    });
+    if (auto session = m_session.lock())
+    {
+        return Ok({
+            { "info_hash", session->AddTorrent(p) }
+        });
+    }
+
+    return Error(99, "Failed to lock session");
 }

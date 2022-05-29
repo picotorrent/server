@@ -11,7 +11,7 @@ using json = nlohmann::json;
 using pika::ISession;
 using pika::RPC::TorrentsMoveStorageCommand;
 
-TorrentsMoveStorageCommand::TorrentsMoveStorageCommand(std::shared_ptr<ISession> session)
+TorrentsMoveStorageCommand::TorrentsMoveStorageCommand(std::weak_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }
@@ -27,7 +27,14 @@ json TorrentsMoveStorageCommand::Execute(const json& j)
     lt::info_hash_t hash = j["info_hash"].get<lt::info_hash_t>();
     std::string savePath = j["save_path"].get<std::string>();
 
-    if (auto torrent = m_session->FindTorrent(hash))
+    auto session = m_session.lock();
+
+    if (!session)
+    {
+        return Error(99, "Failed to lock session");
+    }
+
+    if (auto torrent = session->FindTorrent(hash))
     {
         torrent->MoveStorage(savePath);
         return Ok({});

@@ -90,32 +90,27 @@ struct App
         boost::asio::io_context io;
         boost::asio::signal_set signals(io, SIGINT, SIGTERM);
         signals.async_wait(
-                [&io](boost::system::error_code const& ec, int signal)
-                {
-                    BOOST_LOG_TRIVIAL(info) << "Interrupt received (" << signal << ") - stopping...";
-                    io.stop();
-                });
+            [&io](boost::system::error_code const& ec, int signal)
+            {
+                BOOST_LOG_TRIVIAL(info) << "Interrupt received (" << signal << ") - stopping...";
+                io.stop();
+            });
 
         auto sm = Session::Load(io, db.get(), config);
-        auto http = std::make_shared<HttpListener>(io, config);
         auto events = std::make_shared<EventsHandler>(io, sm);
 
-        http->AddHandler("GET",  "/api/events",  events);
-        http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
-
-        auto pf = std::make_shared<pika::Plugins::PluginFactory>(io, config, http);
-
-        //for (const auto& path : options->Plugins())
-        //{
-        //    pf->Load(path);
-        //}
-
         sm->AddEventHandler(events);
-        sm->AddEventHandler(pf);
 
-        http->Run();
+        {
+            auto http = std::make_shared<HttpListener>(io, config);
+            http->AddHandler("GET", "/api/events", events);
+            http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db.get(), sm));
+            http->Run();
 
-        io.run();
+            io.run();
+
+            http->Stop();
+        }
 
         return 0;
     }

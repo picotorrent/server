@@ -91,7 +91,7 @@ private:
     std::shared_ptr<pika::Http::HttpRequestHandler::Context> m_ctx;
 };
 
-EventsHandler::EventsHandler(boost::asio::io_context &io, std::shared_ptr<pika::ISession> session)
+EventsHandler::EventsHandler(boost::asio::io_context &io, std::weak_ptr<pika::ISession> session)
     : m_heartbeat(io)
     , m_session(std::move(session))
 {
@@ -127,28 +127,35 @@ void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context
                           "Content-Type: text/event-stream\n"
                           "Cache-Control: no-cache, no-transform\n\n";
 
-    json::array_t torrents;
-    m_session->ForEachTorrent(
-        [&torrents](const auto& ts)
-        {
-            torrents.push_back({
-                {"info_hash", ts.info_hashes}
+    if (auto session = m_session.lock())
+    {
+        json::array_t torrents;
+        session->ForEachTorrent(
+            [&torrents](const auto &ts)
+            {
+                torrents.push_back({
+                                       {"info_hash", ts.info_hashes}
+                                   });
             });
-        });
 
-    json initial = {
-        {"torrents", torrents}
-    };
+        json initial = {
+            {"torrents", torrents}
+        };
 
-    std::stringstream evt;
-    evt << "event: initial_state\n";
-    evt << "data: " << initial.dump() << "\n\n";
+        std::stringstream evt;
+        evt << "event: initial_state\n";
+        evt << "data: " << initial.dump() << "\n\n";
 
-    auto state = std::make_shared<ContextState>(std::move(context));
-    state->QueueWrite(headers);
-    state->QueueWrite(evt.str());
+        auto state = std::make_shared<ContextState>(std::move(context));
+        state->QueueWrite(headers);
+        state->QueueWrite(evt.str());
 
-    m_ctxs.push_back(state);
+        m_ctxs.push_back(state);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << "Could not get session lock";
+    }
 }
 
 void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)

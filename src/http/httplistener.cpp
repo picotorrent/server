@@ -37,6 +37,11 @@ HttpListener::HttpListener(
     m_acceptor.listen(boost::asio::socket_base::max_listen_connections);
 }
 
+HttpListener::~HttpListener()
+{
+    BOOST_LOG_TRIVIAL(info) << "Shutting down HTTP server";
+}
+
 void HttpListener::AddHandler(
     const std::string& method,
     const std::string& path,
@@ -52,6 +57,23 @@ void HttpListener::Run()
         boost::beast::bind_front_handler(
             &HttpListener::BeginAccept,
             shared_from_this()));
+}
+
+void HttpListener::Stop()
+{
+    for (const auto& session : m_sessions)
+    {
+        if (auto lock = session.lock())
+        {
+            lock->Stop();
+        }
+    }
+
+    m_sessions.clear();
+    m_handlers->clear();
+    m_acceptor.close();
+
+    BOOST_LOG_TRIVIAL(info) << "HTTP server stopped";
 }
 
 void HttpListener::BeginAccept()
@@ -71,9 +93,13 @@ void HttpListener::EndAccept(boost::system::error_code ec, boost::asio::ip::tcp:
     }
     else
     {
-        std::make_shared<HttpSession>(
+        auto session = std::make_shared<HttpSession>(
             std::move(socket),
-            m_handlers)->Run();
+            m_handlers);
+
+        m_sessions.push_back(session);
+
+        session->Run();
     }
 
     BeginAccept();

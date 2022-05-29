@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "../json/infohash.hpp"
+#include "../json/torrenthandle.hpp"
 #include "../json/torrentstatus.hpp"
 #include "../session.hpp"
 #include "../torrenthandle.hpp"
@@ -10,13 +11,20 @@
 using json = nlohmann::json;
 using pika::RPC::SessionGetTorrentsCommand;
 
-SessionGetTorrentsCommand::SessionGetTorrentsCommand(std::shared_ptr<ISession> session)
+SessionGetTorrentsCommand::SessionGetTorrentsCommand(std::weak_ptr<ISession> session)
     : m_session(std::move(session))
 {
 }
 
 json SessionGetTorrentsCommand::Execute(const json &req)
 {
+    auto session = m_session.lock();
+
+    if (!session)
+    {
+        return Error(99, "Failed to lock session");
+    }
+
     if (req.is_array())
     {
         json::array_t j;
@@ -24,9 +32,9 @@ json SessionGetTorrentsCommand::Execute(const json &req)
         {
             lt::info_hash_t hash = item.get<lt::info_hash_t>();
 
-            if (auto torrent = m_session->FindTorrent(hash))
+            if (auto torrent = session->FindTorrent(hash))
             {
-                j.push_back(torrent->Status());
+                j.push_back(torrent);
             }
             else
             {

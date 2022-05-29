@@ -43,12 +43,16 @@ add_library(
     src/data/migrator.cpp
     src/data/migrator.hpp
     src/data/migrations/0001_initialsetup.cpp
+    src/data/migrations/0002_labels.cpp
+    src/data/migrations/0002_labels.hpp
     src/data/statement.cpp
     src/data/transaction.cpp
     src/data/models/addtorrentparams.cpp
     src/data/models/addtorrentparams.hpp
     src/data/models/config.cpp
     src/data/models/config.hpp
+    src/data/models/labels.cpp
+    src/data/models/labels.hpp
     src/data/models/sessionparams.cpp
     src/data/models/sessionparams.hpp
 
@@ -62,6 +66,9 @@ add_library(
     src/http/handlers/jsonrpchandler.cpp
     src/http/handlers/jsonrpchandler.hpp
 
+    # json
+    src/json/torrenthandle.hpp
+
     # rpc
     src/rpc/configget.cpp
     src/rpc/configset.cpp
@@ -71,9 +78,13 @@ add_library(
     src/rpc/sessionfindtorrents.cpp
     src/rpc/sessionfindtorrents.hpp
     src/rpc/sessionremovetorrent.cpp
+    src/rpc/torrentsaddlabels.cpp
+    src/rpc/torrentsaddlabels.hpp
     src/rpc/torrentsmovestorage.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
+    src/rpc/torrentssetlabels.cpp
+    src/rpc/torrentssetlabels.hpp
 
     # plugins
     src/plugins/modules/configmodule.cpp
