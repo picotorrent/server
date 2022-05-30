@@ -104,6 +104,12 @@ std::shared_ptr<Session> Session::Load(
     params.settings.set_int(lt::settings_pack::alert_mask, lt::alert::all_categories);
     params.settings.set_int(lt::settings_pack::alert_queue_size, 100000);
 
+    params.settings.set_bool(lt::settings_pack::anonymous_mode, config["anonymous_mode"].value_or(false));
+    params.settings.set_bool(lt::settings_pack::enable_dht,     config["enable_dht"].value_or(true));
+    params.settings.set_bool(lt::settings_pack::enable_lsd,     config["enable_lsd"].value_or(true));
+    params.settings.set_bool(lt::settings_pack::enable_natpmp,  config["enable_natpmp"].value_or(true));
+    params.settings.set_bool(lt::settings_pack::enable_upnp,    config["enable_upnp"].value_or(true));
+
     if (auto* listenInterfaces = config["listen_interfaces"].as_array())
     {
         std::stringstream ss;
