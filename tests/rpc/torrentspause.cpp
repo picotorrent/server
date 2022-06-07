@@ -46,7 +46,7 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHash_PausesTorrent)
     EXPECT_CALL(*handle, Pause())
         .Times(1);
 
-    auto result = cmd->Execute("0101010101010101010101010101010101010101");
+    auto result = cmd->Execute(R"([[ "0101010101010101010101010101010101010101", null ]])"_json);
 
     EXPECT_TRUE(result.is_object());
 }
@@ -79,9 +79,9 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHashArray_PausesTorrents)
     }
 
     auto result = cmd->Execute(
-        { "0101010101010101010101010101010101010101",
-          "0202020202020202020202020202020202020202",
-          "0303030303030303030303030303030303030303" });
+        R"([ [ "0101010101010101010101010101010101010101", null ],
+             [ "0202020202020202020202020202020202020202", null ],
+             [ "0303030303030303030303030303030303030303", null ] ])"_json);
 
     EXPECT_TRUE(result.is_object());
 }
