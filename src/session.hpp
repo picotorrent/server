@@ -20,7 +20,7 @@ namespace pika
     {
     public:
         virtual void AddEventHandler(std::weak_ptr<ISessionEventHandler> handler) = 0;
-        virtual lt::span<const int64_t>& Counters() = 0;
+        virtual std::map<std::string, int64_t> Counters() = 0;
         virtual libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params &params) = 0;
         virtual std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) = 0;
         virtual void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) = 0;
@@ -39,7 +39,7 @@ namespace pika
 
         void AddEventHandler(std::weak_ptr<ISessionEventHandler> handler) override;
         libtorrent::info_hash_t AddTorrent(const libtorrent::add_torrent_params& params) override;
-        lt::span<const int64_t>& Counters();
+        std::map<std::string, int64_t> Counters() override;
         std::shared_ptr<ITorrentHandle> FindTorrent(const libtorrent::info_hash_t& hash) override;
         void ForEachTorrent(const std::function<void(const libtorrent::torrent_status&)> &cb) override;
         void RemoveTorrent(libtorrent::info_hash_t const& hash, bool removeFiles) override;
@@ -57,7 +57,7 @@ namespace pika
 
         sqlite3* m_db;
         std::unique_ptr<libtorrent::session> m_session;
-        lt::span<const int64_t> m_counters;
+        std::map<std::string, int64_t> m_metrics;
         std::map<libtorrent::info_hash_t, libtorrent::torrent_status> m_torrents;
         std::map<libtorrent::info_hash_t, std::map<std::string, std::string>> m_labels;
         std::vector<libtorrent::stats_metric> m_stats;

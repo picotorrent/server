@@ -311,9 +311,9 @@ void Session::AddEventHandler(std::weak_ptr<ISessionEventHandler> handler)
     m_eventHandlers.push_back(handler);
 }
 
-lt::span<const int64_t>& Session::Counters()
+std::map<std::string, int64_t> Session::Counters()
 {
-    return m_counters;
+    return m_metrics;
 }
 
 std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t& hash)
@@ -509,19 +509,19 @@ void Session::ReadAlerts()
         case lt::session_stats_alert::alert_type:
         {
             auto* ssa = lt::alert_cast<lt::session_stats_alert>(alert);
-            m_counters = ssa->counters();
+            auto counters = ssa->counters();
 
-            std::map<std::string, int64_t> data;
+            m_metrics.clear();
 
             for (auto const& stats : m_stats)
             {
-                data.insert({ stats.name, m_counters[stats.value_index] });
+                m_metrics.insert({ stats.name, ssa->counters()[stats.value_index] });
             }
 
             TriggerEvent(
-                [data](ISessionEventHandler* seh)
+                [this](ISessionEventHandler* seh)
                 {
-                    seh->OnSessionStats(data);
+                    seh->OnSessionStats(m_metrics);
                 });
 
             break;
