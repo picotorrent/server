@@ -78,6 +78,8 @@ add_library(
     src/rpc/sessionfindtorrents.cpp
     src/rpc/sessionfindtorrents.hpp
     src/rpc/sessionremovetorrent.cpp
+    src/rpc/sessionstats.cpp
+    src/rpc/sessionstats.hpp
     src/rpc/torrentsgetlabels.cpp
     src/rpc/torrentsgetlabels.hpp
     src/rpc/torrentsmovestorage.cpp
