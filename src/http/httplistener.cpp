@@ -3,6 +3,7 @@
 #include <boost/log/trivial.hpp>
 #include <utility>
 
+#include "context.hpp"
 #include "httpsession.hpp"
 
 using pika::Http::HttpListener;
@@ -13,7 +14,6 @@ HttpListener::HttpListener(
     const toml::table& config)
     : m_io(ioc)
     , m_acceptor(boost::asio::make_strand(ioc))
-    , m_handlers(std::make_shared<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>>())
 {
     std::string host = config["http"]["addr"].value<std::string>().value_or("127.0.0.1");
     int port = config["http"]["port"].value<int>().value_or(1337);
@@ -42,14 +42,6 @@ HttpListener::~HttpListener()
     BOOST_LOG_TRIVIAL(info) << "Shutting down HTTP server";
 }
 
-void HttpListener::AddHandler(
-    const std::string& method,
-    const std::string& path,
-    const std::shared_ptr<HttpRequestHandler>& handler)
-{
-    m_handlers->insert({ { method, path }, handler });
-}
-
 void HttpListener::Run()
 {
     boost::asio::dispatch(
@@ -70,10 +62,16 @@ void HttpListener::Stop()
     }
 
     m_sessions.clear();
-    m_handlers->clear();
+    m_middlewares.clear();
+
     m_acceptor.close();
 
     BOOST_LOG_TRIVIAL(info) << "HTTP server stopped";
+}
+
+void HttpListener::Use(const std::function<void(std::shared_ptr<Context>)> &middleware)
+{
+    m_middlewares.emplace_back(middleware);
 }
 
 void HttpListener::BeginAccept()
@@ -95,7 +93,7 @@ void HttpListener::EndAccept(boost::system::error_code ec, boost::asio::ip::tcp:
     {
         auto session = std::make_shared<HttpSession>(
             std::move(socket),
-            m_handlers);
+            m_middlewares);
 
         m_sessions.push_back(session);
 

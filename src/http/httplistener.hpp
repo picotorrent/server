@@ -4,10 +4,12 @@
 #include <memory>
 
 #include <boost/asio.hpp>
+#include <boost/beast.hpp>
 #include <toml++/toml.h>
 
 namespace pika::Http
 {
+    class Context;
     class HttpRequestHandler;
     class HttpSession;
 
@@ -20,13 +22,10 @@ namespace pika::Http
 
         ~HttpListener();
 
-        void AddHandler(
-            const std::string& method,
-            const std::string& path,
-            const std::shared_ptr<HttpRequestHandler>& handler);
-
         void Run();
         void Stop();
+
+        void Use(const std::function<void(std::shared_ptr<Context>)>& middleware);
 
     private:
         void BeginAccept();
@@ -35,6 +34,6 @@ namespace pika::Http
         boost::asio::io_context& m_io;
         boost::asio::ip::tcp::acceptor m_acceptor;
         std::vector<std::weak_ptr<HttpSession>> m_sessions;
-        std::shared_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
+        std::vector<std::function<void(std::shared_ptr<Context>)>> m_middlewares;
     };
 }

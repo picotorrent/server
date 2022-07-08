@@ -57,8 +57,11 @@ add_library(
     src/data/models/sessionparams.hpp
 
     # http
+    src/http/context.hpp
+    src/http/httpfuncs.hpp
     src/http/httplistener.cpp
     src/http/httpsession.cpp
+    src/http/middleware.hpp
 
     # http handler
     src/http/handlers/eventshandler.cpp
@@ -89,16 +92,6 @@ add_library(
     src/rpc/torrentsresume.cpp
     src/rpc/torrentssetlabels.cpp
     src/rpc/torrentssetlabels.hpp
-
-    # plugins
-    src/plugins/modules/configmodule.cpp
-    src/plugins/modules/configmodule.hpp
-    src/plugins/modules/httpmodule.cpp
-    src/plugins/modules/httpmodule.hpp
-    src/plugins/modules/loggermodule.cpp
-    src/plugins/modules/loggermodule.hpp
-    src/plugins/pluginfactory.cpp
-    src/plugins/pluginfactory.hpp
 )
 
 target_link_libraries(

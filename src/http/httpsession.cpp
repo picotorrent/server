@@ -7,7 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <utility>
 
-#include "httprequesthandler.hpp"
+#include "context.hpp"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -17,16 +17,34 @@ using pika::SessionManager;
 
 using BasicHttpRequest = boost::beast::http::request<boost::beast::http::string_body>;
 
-class HttpSession::DefaultContext : public pika::Http::HttpRequestHandler::Context
+class HttpSession::MiddlewareContext : public pika::Http::Context
 {
 public:
-    explicit DefaultContext(std::shared_ptr<HttpSession> session, BasicHttpRequest request)
-        : m_session(std::move(session)),
-        m_req(std::move(request))
+    explicit MiddlewareContext(
+        std::shared_ptr<HttpSession> session,
+        BasicHttpRequest req,
+        std::vector<std::function<void(std::shared_ptr<Context>)>> mws,
+        std::vector<std::function<void(std::shared_ptr<Context>)>>::const_iterator current)
+        : m_session(std::move(session))
+        , m_req(std::move(req))
+        , m_mws(std::move(mws))
+        , m_curr(current)
     {
     }
 
-    BasicHttpRequest& Request() override
+    void Next() override
+    {
+        auto next = m_curr + 1;
+        auto ctx = std::make_shared<MiddlewareContext>(
+            m_session,
+            m_req,
+            m_mws,
+            next);
+
+        (*next)(ctx);
+    }
+
+    boost::beast::http::request<boost::beast::http::string_body>& Request() override
     {
         return m_req;
     }
@@ -34,6 +52,20 @@ public:
     boost::beast::tcp_stream& Stream() override
     {
         return m_session->m_stream;
+    }
+
+    void Write(std::string body) override
+    {
+        namespace http = boost::beast::http;
+
+        http::response<http::string_body> res{http::status::ok, m_req.version()};
+        res.set(http::field::server, "pika/1.0");
+        res.set(http::field::content_type, "text/plain");
+        res.keep_alive(m_req.keep_alive());
+        res.body() = body;
+        res.prepare_payload();
+
+        m_session->m_queue(std::move(res));
     }
 
     void Write(boost::beast::http::response<boost::beast::http::file_body> res) override
@@ -63,14 +95,16 @@ public:
 private:
     std::shared_ptr<HttpSession> m_session;
     BasicHttpRequest m_req;
+    std::vector<std::function<void(std::shared_ptr<Context>)>> m_mws;
+    std::vector<std::function<void(std::shared_ptr<Context>)>>::const_iterator m_curr;
 };
 
 HttpSession::HttpSession(
     boost::asio::ip::tcp::socket&& socket,
-    std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers)
+    std::vector<std::function<void(std::shared_ptr<Context>)>> middlewares)
     : m_stream(std::move(socket))
-    , m_handlers(std::move(handlers))
     , m_queue(*this)
+    , m_middlewares(std::move(middlewares))
 {
 }
 
@@ -129,29 +163,20 @@ void HttpSession::EndRead(boost::beast::error_code ec, std::size_t bytes_transfe
 
     // Check for matching handler
     auto req = m_parser->release();
-    auto method = req.method_string();
-    auto path = req.target();
 
-    // If we have a query string, remove it when looking
-    // for handlers
-
-    if (path.find_first_of("?") != std::string_view::npos)
+    if (!m_middlewares.empty())
     {
-        path = path.substr(0, path.find_first_of("?"));
-    }
+        auto ctx = std::make_shared<MiddlewareContext>(
+            shared_from_this(),
+            std::move(req),
+            m_middlewares,
+            m_middlewares.begin());
 
-    if (auto handlers = m_handlers.lock())
-    {
-        auto handler = handlers->find({method.to_string(), path.to_string()});
+        auto first = m_middlewares.begin();
 
-        if (handler != handlers->end())
-        {
-            handler->second->Execute(
-                std::make_shared<DefaultContext>(
-                    shared_from_this(),
-                    std::move(req)));
-            return;
-        }
+        (*first)(ctx);
+
+        return;
     }
 
     auto const not_found = [&req](boost::beast::string_view target)

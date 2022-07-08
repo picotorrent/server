@@ -16,7 +16,7 @@ using pika::Http::Handlers::EventsHandler;
 class EventsHandler::ContextState : public std::enable_shared_from_this<EventsHandler::ContextState>
 {
 public:
-    explicit ContextState(std::shared_ptr<pika::Http::HttpRequestHandler::Context> context)
+    explicit ContextState(std::shared_ptr<pika::Http::Context> context)
         : m_ctx(std::move(context))
     {
     }
@@ -88,7 +88,7 @@ private:
     bool m_isWriting {false};
     int64_t m_sent{0};
     std::queue<std::string> m_sendData;
-    std::shared_ptr<pika::Http::HttpRequestHandler::Context> m_ctx;
+    std::shared_ptr<pika::Http::Context> m_ctx;
 };
 
 EventsHandler::EventsHandler(boost::asio::io_context &io, std::weak_ptr<pika::ISession> session)
@@ -103,7 +103,7 @@ EventsHandler::EventsHandler(boost::asio::io_context &io, std::weak_ptr<pika::IS
         });
 }
 
-void EventsHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)
+void EventsHandler::operator()(std::shared_ptr<Http::Context> context)
 {
     if (context->Request().target().ends_with("?stats"))
     {

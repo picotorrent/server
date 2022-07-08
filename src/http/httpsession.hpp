@@ -18,11 +18,13 @@ namespace pika::RPC { class Command; }
 
 namespace pika::Http
 {
+    class Context;
     class HttpRequestHandler;
 
     class HttpSession : public std::enable_shared_from_this<HttpSession>
     {
         class DefaultContext;
+        class MiddlewareContext;
 
         class Queue
         {
@@ -109,7 +111,7 @@ namespace pika::Http
     public:
         HttpSession(
             boost::asio::ip::tcp::socket&& socket,
-            std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> handlers);
+            std::vector<std::function<void(std::shared_ptr<Context>)>> middlewares);
 
         void Run();
         void Stop();
@@ -122,7 +124,7 @@ namespace pika::Http
 
         boost::beast::tcp_stream m_stream;
         boost::beast::flat_buffer m_buffer;
-        std::weak_ptr<std::map<std::tuple<std::string, std::string>, std::shared_ptr<HttpRequestHandler>>> m_handlers;
+        std::vector<std::function<void(std::shared_ptr<Context>)>> m_middlewares;
 
         Queue m_queue;
 

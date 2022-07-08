@@ -5,7 +5,7 @@
 
 #include <boost/asio.hpp>
 
-#include "../httprequesthandler.hpp"
+#include "../context.hpp"
 #include "../../sessioneventhandler.hpp"
 
 namespace pika
@@ -16,12 +16,12 @@ namespace pika
 namespace pika::Http::Handlers
 {
     class EventsHandler
-        : public pika::Http::HttpRequestHandler
-        , public pika::ISessionEventHandler
+        : public pika::ISessionEventHandler
     {
     public:
         explicit EventsHandler(boost::asio::io_context& io, std::weak_ptr<ISession> session);
-        void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
+
+        void operator()(std::shared_ptr<Http::Context> ctx);
 
         // Session events
         void OnSessionStats(const std::map<std::string, int64_t> &stats) override;

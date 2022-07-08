@@ -60,7 +60,7 @@ JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::weak_ptr<pika::Session> &
     m_commands.insert({ "torrents.setLabels",    std::make_shared<pika::RPC::TorrentsSetLabelsCommand>(db, session) });
 }
 
-void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> context)
+void JsonRpcHandler::operator()(const std::shared_ptr<Http::Context>& context)
 {
     namespace http = boost::beast::http;
 
@@ -86,7 +86,7 @@ void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> contex
         return out;
     };
 
-    auto const buildError = [&](int code, std::string message, json data = {})
+    auto const buildError = [&](int code, std::string message, const json& data = {})
     {
         json res =
         {
@@ -97,7 +97,7 @@ void JsonRpcHandler::Execute(std::shared_ptr<HttpRequestHandler::Context> contex
         if (!data.is_null())
         {
             res["data"] = data;
-        };
+        }
 
         json err = {
             { "error", res }
