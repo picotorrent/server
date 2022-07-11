@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "middleware.hpp"
+#include <libpika/http/middleware.hpp>
 
 namespace libpika::http
 {

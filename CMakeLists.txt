@@ -16,6 +16,25 @@ find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
+    pikahttp
+    STATIC
+    src/libpika/http/src/httpsession.cpp
+    src/libpika/http/src/httpserver.cpp
+)
+
+target_include_directories(
+    pikahttp
+    PUBLIC
+    src/libpika/http/include
+)
+
+target_link_libraries(
+    pikahttp
+    Boost::boost
+    nlohmann_json::nlohmann_json
+)
+
+add_library(
     pikacore
     STATIC
 
@@ -42,15 +61,6 @@ add_library(
     src/data/models/labels.hpp
     src/data/models/sessionparams.cpp
     src/data/models/sessionparams.hpp
-
-    # http
-    src/http/context.hpp
-    src/http/httpfuncs.hpp
-    src/http/httpsession.cpp
-    src/http/httpsession.hpp
-    src/http/middleware.hpp
-    src/http/server.cpp
-    src/http/server.hpp
 
     # http handler
     src/http/handlers/eventshandler.cpp
@@ -85,6 +95,7 @@ add_library(
 
 target_link_libraries(
     pikacore
+    pikahttp
 
     Boost::boost
     Boost::log

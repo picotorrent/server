@@ -5,9 +5,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
+#include <libpika/http/context.hpp>
 #include <libtorrent/info_hash.hpp>
-
-#include "../context.hpp"
 
 namespace lt = libtorrent;
 

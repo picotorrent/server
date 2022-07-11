@@ -1,4 +1,4 @@
-#include "httpsession.hpp"
+#include <libpika/http/httpsession.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -7,7 +7,7 @@
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
 
-#include "context.hpp"
+#include <libpika/http/context.hpp>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;

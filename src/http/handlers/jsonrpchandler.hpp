@@ -1,8 +1,8 @@
 #pragma once
 
+#include <libpika/http/context.hpp>
 #include <sqlite3.h>
 
-#include "../context.hpp"
 #include "../../rpc/command.hpp"
 
 namespace pika

@@ -3,8 +3,7 @@
 #include <memory>
 
 #include <boost/asio/io_context.hpp>
-
-#include "middleware.hpp"
+#include <libpika/http/middleware.hpp>
 
 namespace libpika::http
 {

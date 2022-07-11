@@ -1,11 +1,11 @@
-#include "server.hpp"
+#include <libpika/http/server.hpp>
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "context.hpp"
-#include "httpsession.hpp"
+#include <libpika/http/context.hpp>
+#include <libpika/http/httpsession.hpp>
 
 using libpika::http::HttpServer;
 

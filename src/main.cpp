@@ -11,8 +11,8 @@
 #include "http/handlers/eventshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
 
-#include "http/httpfuncs.hpp"
-#include "http/server.hpp"
+#include <libpika/http/httpfuncs.hpp>
+#include <libpika/http/server.hpp>
 
 #include "rpc/configget.hpp"
 #include "rpc/configset.hpp"

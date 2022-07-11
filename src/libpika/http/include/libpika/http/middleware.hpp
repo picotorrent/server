@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "context.hpp"
+#include <libpika/http/context.hpp>
 
 namespace libpika::http
 {
