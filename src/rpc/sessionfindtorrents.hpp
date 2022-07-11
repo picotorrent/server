@@ -9,10 +9,10 @@ namespace pika::RPC
     class SessionFindTorrents : public Command
     {
     public:
-        explicit SessionFindTorrents(std::weak_ptr<ISession> session);
+        explicit SessionFindTorrents(ISession& session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::weak_ptr<ISession> m_session;
+        ISession& m_session;
     };
 }

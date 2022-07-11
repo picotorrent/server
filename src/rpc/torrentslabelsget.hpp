@@ -10,14 +10,14 @@ namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class TorrentsGetLabelsCommand : public Command
+    class TorrentsLabelsGetCommand : public Command
     {
     public:
-        TorrentsGetLabelsCommand(sqlite3* db, std::weak_ptr<ISession>);
+        TorrentsLabelsGetCommand(sqlite3* db, ISession&);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
         sqlite3* m_db;
-        std::weak_ptr<ISession> m_session;
+        ISession& m_session;
     };
 }

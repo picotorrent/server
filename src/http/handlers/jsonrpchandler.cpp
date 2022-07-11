@@ -2,20 +2,7 @@
 
 #include <boost/beast.hpp>
 #include <nlohmann/json.hpp>
-
-#include "../../rpc/configget.hpp"
-#include "../../rpc/configset.hpp"
-#include "../../rpc/sessionaddtorrent.hpp"
-#include "../../rpc/sessiongettorrents.hpp"
-#include "../../rpc/sessionfindtorrents.hpp"
-#include "../../rpc/sessionremovetorrent.hpp"
-#include "../../rpc/sessionstats.hpp"
-#include "../../rpc/torrentsfilesget.hpp"
-#include "../../rpc/torrentsgetlabels.hpp"
-#include "../../rpc/torrentsmovestorage.hpp"
-#include "../../rpc/torrentspause.hpp"
-#include "../../rpc/torrentsresume.hpp"
-#include "../../rpc/torrentssetlabels.hpp"
+#include <utility>
 
 using json = nlohmann::json;
 using pika::Http::Handlers::JsonRpcHandler;
@@ -43,31 +30,19 @@ static bool IsValidRequestObject(json const& req, std::string& errorMessage)
     return true;
 }
 
-JsonRpcHandler::JsonRpcHandler(sqlite3* db, const std::weak_ptr<pika::Session> &session)
+JsonRpcHandler::JsonRpcHandler(std::map<std::string, std::shared_ptr<pika::RPC::Command>>  cmds)
+    : m_commands(std::move(cmds))
 {
-    m_commands.insert({ "config.get",            std::make_shared<pika::RPC::ConfigGetCommand>(db) });
-    m_commands.insert({ "config.set",            std::make_shared<pika::RPC::ConfigSetCommand>(db) });
-    m_commands.insert({ "session.addTorrent",    std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) });
-    m_commands.insert({ "session.getTorrents",   std::make_shared<pika::RPC::SessionGetTorrentsCommand>(session) });
-    m_commands.insert({ "session.findTorrents",  std::make_shared<pika::RPC::SessionFindTorrents>(session) });
-    m_commands.insert({ "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) });
-    m_commands.insert({ "session.stats",         std::make_shared<pika::RPC::SessionStatsCommand>(session) });
-    m_commands.insert({ "torrents.files.get",    std::make_shared<pika::RPC::TorrentsFilesGetCommand>(session) });
-    m_commands.insert({ "torrents.getLabels",    std::make_shared<pika::RPC::TorrentsGetLabelsCommand>(db, session) });
-    m_commands.insert({ "torrents.moveStorage",  std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) });
-    m_commands.insert({ "torrents.pause",        std::make_shared<pika::RPC::TorrentsPauseCommand>(session) });
-    m_commands.insert({ "torrents.resume",       std::make_shared<pika::RPC::TorrentsResumeCommand>(session) });
-    m_commands.insert({ "torrents.setLabels",    std::make_shared<pika::RPC::TorrentsSetLabelsCommand>(db, session) });
 }
 
-void JsonRpcHandler::operator()(const std::shared_ptr<Http::Context>& context)
+void JsonRpcHandler::operator()(const std::shared_ptr<libpika::http::Context>& context)
 {
     namespace http = boost::beast::http;
 
     auto const response = [context](std::string const& body)
     {
         http::response<http::string_body> res{http::status::ok, context->Request().version()};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(http::field::server, "pika/1.0");
         res.set(http::field::content_type, "application/json");
         res.keep_alive(context->Request().keep_alive());
         res.body() = body;

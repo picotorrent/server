@@ -1,23 +1,22 @@
 #include "httpsession.hpp"
 
 #include <filesystem>
-
 #include <memory>
+#include <utility>
+
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
-#include <utility>
 
 #include "context.hpp"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
-using pika::Http::HttpRequestHandler;
-using pika::Http::HttpSession;
-using pika::SessionManager;
+using libpika::http::HttpRequestHandler;
+using libpika::http::HttpSession;
 
 using BasicHttpRequest = boost::beast::http::request<boost::beast::http::string_body>;
 
-class HttpSession::MiddlewareContext : public pika::Http::Context
+class HttpSession::MiddlewareContext : public libpika::http::Context
 {
 public:
     explicit MiddlewareContext(

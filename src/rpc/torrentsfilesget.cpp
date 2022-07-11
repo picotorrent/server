@@ -14,20 +14,13 @@ using json = nlohmann::json;
 using pika::RPC::TorrentsFilesGetCommand;
 using pika::ISession;
 
-TorrentsFilesGetCommand::TorrentsFilesGetCommand(std::weak_ptr<ISession> session)
-    : m_session(std::move(session))
+TorrentsFilesGetCommand::TorrentsFilesGetCommand(ISession& session)
+    : m_session(session)
 {
 }
 
 json TorrentsFilesGetCommand::Execute(const json& j)
 {
-    auto session = m_session.lock();
-
-    if (!session)
-    {
-        return Error(99, "Failed to lock session");
-    }
-
     if (j.is_array())
     {
         json result;
@@ -38,7 +31,7 @@ json TorrentsFilesGetCommand::Execute(const json& j)
                 {"info_hash", hash}
             };
 
-            if (auto torrent = session->FindTorrent(hash))
+            if (auto torrent = m_session.FindTorrent(hash))
             {
                 const lt::torrent_status& ts = torrent->Status();
 

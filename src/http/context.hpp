@@ -5,7 +5,7 @@
 #include <boost/beast.hpp>
 #include <nlohmann/json.hpp>
 
-namespace pika::Http
+namespace libpika::http
 {
     class Context
     {

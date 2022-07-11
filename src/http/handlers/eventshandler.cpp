@@ -4,6 +4,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <nlohmann/json.hpp>
+#include <utility>
 
 #include "../../json/infohash.hpp"
 #include "../../json/torrentstatus.hpp"
@@ -16,7 +17,7 @@ using pika::Http::Handlers::EventsHandler;
 class EventsHandler::ContextState : public std::enable_shared_from_this<EventsHandler::ContextState>
 {
 public:
-    explicit ContextState(std::shared_ptr<pika::Http::Context> context)
+    explicit ContextState(std::shared_ptr<libpika::http::Context>  context)
         : m_ctx(std::move(context))
     {
     }
@@ -88,12 +89,13 @@ private:
     bool m_isWriting {false};
     int64_t m_sent{0};
     std::queue<std::string> m_sendData;
-    std::shared_ptr<pika::Http::Context> m_ctx;
+    std::shared_ptr<libpika::http::Context> m_ctx;
 };
 
-EventsHandler::EventsHandler(boost::asio::io_context &io, std::weak_ptr<pika::ISession> session)
-    : m_heartbeat(io)
-    , m_session(std::move(session))
+EventsHandler::EventsHandler(boost::asio::io_context &io, pika::ISession& session)
+    : m_io(io)
+    , m_heartbeat(io)
+    , m_session(session)
 {
     m_heartbeat.expires_after(std::chrono::seconds(5));
     m_heartbeat.async_wait(
@@ -101,9 +103,36 @@ EventsHandler::EventsHandler(boost::asio::io_context &io, std::weak_ptr<pika::IS
         {
             OnHeartbeatExpired(std::forward<decltype(PH1)>(PH1));
         });
+
+    m_sessionStatsConnection = m_session.OnSessionStats([this](auto ss) { OnSessionStats(ss); });
+    m_stateUpdateConnection = m_session.OnStateUpdate([this](auto s) { OnStateUpdate(s); });
+    m_torrentAddedConnection = m_session.OnTorrentAdded([this](auto th) { OnTorrentAdded(th); });
 }
 
-void EventsHandler::operator()(std::shared_ptr<Http::Context> context)
+EventsHandler::EventsHandler(const EventsHandler& eh)
+    : m_io(eh.m_io)
+    , m_heartbeat(eh.m_io)
+    , m_session(eh.m_session)
+{
+    m_heartbeat.expires_after(std::chrono::seconds(5));
+    m_heartbeat.async_wait(
+        [this](auto &&PH1)
+        {
+            OnHeartbeatExpired(std::forward<decltype(PH1)>(PH1));
+        });
+
+    m_sessionStatsConnection = m_session.OnSessionStats([this](auto ss) { OnSessionStats(ss); });
+    m_stateUpdateConnection = m_session.OnStateUpdate([this](auto s) { OnStateUpdate(s); });
+    m_torrentAddedConnection = m_session.OnTorrentAdded([this](auto th) { OnTorrentAdded(th); });
+}
+
+EventsHandler::~EventsHandler() noexcept
+{
+    m_heartbeat.expires_after(std::chrono::seconds(0));
+    m_heartbeat.cancel();
+}
+
+void EventsHandler::operator()(const std::shared_ptr<libpika::http::Context>& context)
 {
     if (context->Request().target().ends_with("?stats"))
     {
@@ -127,35 +156,30 @@ void EventsHandler::operator()(std::shared_ptr<Http::Context> context)
                           "Content-Type: text/event-stream\n"
                           "Cache-Control: no-cache, no-transform\n\n";
 
-    if (auto session = m_session.lock())
-    {
-        json::array_t torrents;
-        session->ForEachTorrent(
-            [&torrents](const auto &ts)
-            {
-                torrents.push_back({
-                                       {"info_hash", ts.info_hashes}
-                                   });
-            });
+    json::array_t torrents;
 
-        json initial = {
-            {"torrents", torrents}
-        };
+    m_session.ForEachTorrent(
+        [&torrents](const auto &ts)
+        {
+            torrents.push_back(
+                {
+                    {"info_hash", ts.info_hashes}
+                });
+        });
 
-        std::stringstream evt;
-        evt << "event: initial_state\n";
-        evt << "data: " << initial.dump() << "\n\n";
+    json initial = {
+        {"torrents", torrents}
+    };
 
-        auto state = std::make_shared<ContextState>(std::move(context));
-        state->QueueWrite(headers);
-        state->QueueWrite(evt.str());
+    std::stringstream evt;
+    evt << "event: initial_state\n";
+    evt << "data: " << initial.dump() << "\n\n";
 
-        m_ctxs.push_back(state);
-    }
-    else
-    {
-        BOOST_LOG_TRIVIAL(error) << "Could not get session lock";
-    }
+    auto state = std::make_shared<ContextState>(context);
+    state->QueueWrite(headers);
+    state->QueueWrite(evt.str());
+
+    m_ctxs.push_back(state);
 }
 
 void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)
@@ -237,6 +261,17 @@ void EventsHandler::Broadcast(const std::string& name, const std::string& data)
 
 void EventsHandler::OnHeartbeatExpired(boost::system::error_code ec)
 {
+    if (ec == boost::system::errc::operation_canceled)
+    {
+        return;
+    }
+
+    if (ec)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Error on heartbeat expiration: " << ec.message();
+        return;
+    }
+
     m_heartbeat.expires_after(std::chrono::seconds(5));
     m_heartbeat.async_wait(
         [this](auto &&PH1)

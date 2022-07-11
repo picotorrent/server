@@ -3,13 +3,11 @@
 #include <gmock/gmock.h>
 
 #include "../src/session.hpp"
-#include "../src/sessioneventhandler.hpp"
 #include "../src/torrenthandle.hpp"
 
 class MockSession : public pika::ISession
 {
 public:
-    MOCK_METHOD(void, AddEventHandler, (std::weak_ptr<pika::ISessionEventHandler> handler));
     MOCK_METHOD(libtorrent::info_hash_t, AddTorrent, (const libtorrent::add_torrent_params &params));
     MOCK_METHOD((std::map<std::string, int64_t>), Counters, ());
     MOCK_METHOD(std::shared_ptr<pika::ITorrentHandle>, FindTorrent, (const libtorrent::info_hash_t& hash));

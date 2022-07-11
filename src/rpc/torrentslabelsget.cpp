@@ -1,4 +1,4 @@
-#include "torrentsgetlabels.hpp"
+#include "torrentslabelsget.hpp"
 
 #include <libtorrent/info_hash.hpp>
 
@@ -9,23 +9,16 @@
 namespace lt = libtorrent;
 using json = nlohmann::json;
 using pika::Data::Models::Labels;
-using pika::RPC::TorrentsGetLabelsCommand;
+using pika::RPC::TorrentsLabelsGetCommand;
 
-TorrentsGetLabelsCommand::TorrentsGetLabelsCommand(sqlite3 *db, std::weak_ptr<ISession> session)
+TorrentsLabelsGetCommand::TorrentsLabelsGetCommand(sqlite3 *db, ISession& session)
     : m_db(db)
-    , m_session(std::move(session))
+    , m_session(session)
 {
 }
 
-json TorrentsGetLabelsCommand::Execute(const json& req)
+json TorrentsLabelsGetCommand::Execute(const json& req)
 {
-    auto session = m_session.lock();
-
-    if (!session)
-    {
-        return Error(99, "Could not lock session");
-    }
-
     if (req.is_array())
     {
         json::array_t result;
@@ -34,7 +27,7 @@ json TorrentsGetLabelsCommand::Execute(const json& req)
         {
             lt::info_hash_t hash = item.get<lt::info_hash_t>();
 
-            if (auto torrent = session->FindTorrent(hash))
+            if (auto torrent = m_session.FindTorrent(hash))
             {
                 result.push_back({
                     {"info_hash", hash},

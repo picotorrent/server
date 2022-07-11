@@ -16,7 +16,6 @@
 #include "data/models/sessionparams.hpp"
 #include "data/sqliteexception.hpp"
 #include "data/statement.hpp"
-#include "sessioneventhandler.hpp"
 #include "torrenthandle.hpp"
 
 namespace lt = libtorrent;
@@ -177,21 +176,17 @@ std::shared_ptr<Session> Session::Load(
             session->async_add_torrent(params);
         });
 
-    return std::shared_ptr<Session>(
-        new Session(
-            io,
-            db,
-            std::move(session)));
+    return nullptr;
 }
 
-Session::Session(boost::asio::io_context& io, sqlite3* db, std::unique_ptr<lt::session> session)
-    : m_io(io),
-    m_db(db),
-    m_session(std::move(session)),
-    m_torrents(),
-    m_timer(io),
-    m_stats(lt::session_stats_metrics())
+Session::Session(boost::asio::io_context& io, sqlite3* db, const Options& opts)
+    : m_io(io)
+    , m_db(db)
+    , m_torrents()
+    , m_timer(io)
+    , m_stats(lt::session_stats_metrics())
 {
+    m_session = std::make_unique<lt::session>();
     m_session->set_alert_notify(
         [this]()
         {
@@ -304,11 +299,6 @@ Session::~Session()
     }
 
     BOOST_LOG_TRIVIAL(info) << "All state saved";
-}
-
-void Session::AddEventHandler(std::weak_ptr<ISessionEventHandler> handler)
-{
-    m_eventHandlers.push_back(handler);
 }
 
 std::map<std::string, int64_t> Session::Counters()
@@ -435,11 +425,7 @@ void Session::ReadAlerts()
                 ts,
                 GetOrCreateLabelsMap(ts.info_hashes));
 
-            TriggerEvent(
-                [&th](ISessionEventHandler* seh)
-                {
-                    seh->OnTorrentAdded(th);
-                });
+            m_torrentAdded(th);
 
             break;
         }
@@ -515,14 +501,10 @@ void Session::ReadAlerts()
 
             for (auto const& stats : m_stats)
             {
-                m_metrics.insert({ stats.name, ssa->counters()[stats.value_index] });
+                m_metrics.insert({ stats.name, counters[stats.value_index] });
             }
 
-            TriggerEvent(
-                [this](ISessionEventHandler* seh)
-                {
-                    seh->OnSessionStats(m_metrics);
-                });
+            m_sessionStats(m_metrics);
 
             break;
         }
@@ -544,11 +526,7 @@ void Session::ReadAlerts()
 
             if (!sua->status.empty())
             {
-                TriggerEvent(
-                    [&torrents](ISessionEventHandler* seh)
-                    {
-                        seh->OnStateUpdate(torrents);
-                    });
+                m_stateUpdate(torrents);
             }
 
             break;
@@ -556,13 +534,7 @@ void Session::ReadAlerts()
         case lt::torrent_paused_alert::alert_type:
         {
             auto* tpa = lt::alert_cast<lt::torrent_paused_alert>(alert);
-
-            TriggerEvent(
-                [&tpa](ISessionEventHandler* seh)
-                {
-                    seh->OnTorrentPaused(tpa->handle.info_hashes());
-                });
-
+            m_torrentPaused(tpa->handle.info_hashes());
             break;
         }
         case lt::torrent_removed_alert::alert_type:
@@ -574,11 +546,7 @@ void Session::ReadAlerts()
 
             AddTorrentParams::Remove(m_db, tra->info_hashes);
 
-            TriggerEvent(
-                [&tra](ISessionEventHandler* seh)
-                {
-                    seh->OnTorrentRemoved(tra->info_hashes);
-                });
+            m_torrentRemoved(tra->info_hashes);
 
             BOOST_LOG_TRIVIAL(info) << "Torrent " << tra->torrent_name() << " removed";
 
@@ -587,13 +555,7 @@ void Session::ReadAlerts()
         case lt::torrent_resumed_alert::alert_type:
         {
             auto* tra = lt::alert_cast<lt::torrent_resumed_alert>(alert);
-
-            TriggerEvent(
-                [&tra](ISessionEventHandler* seh)
-                {
-                    seh->OnTorrentResumed(tra->handle.info_hashes());
-                });
-
+            m_torrentResumed(tra->handle.info_hashes());
             break;
         }
         }
@@ -614,33 +576,4 @@ void Session::PostUpdates(boost::system::error_code ec)
 
     m_timer.expires_from_now(boost::posix_time::seconds(1), ec);
     m_timer.async_wait([this](auto && PH1) { PostUpdates(std::forward<decltype(PH1)>(PH1)); });
-}
-
-void Session::TriggerEvent(const std::function<void(ISessionEventHandler*)> &func)
-{
-    size_t sz = m_eventHandlers.size();
-
-    m_eventHandlers.erase(
-        std::remove_if(
-            m_eventHandlers.begin(),
-            m_eventHandlers.end(),
-            [](auto& ptr) { return ptr.expired(); }),
-        m_eventHandlers.end());
-
-    size_t pruned = sz - m_eventHandlers.size();
-
-    if (pruned > 0)
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Pruned " << pruned << " event handlers";
-    }
-
-    auto tmp = m_eventHandlers;
-
-    for (auto& pf : tmp)
-    {
-        if (auto s = pf.lock())
-        {
-            func(s.get());
-        }
-    }
 }

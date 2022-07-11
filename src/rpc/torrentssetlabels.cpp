@@ -12,24 +12,17 @@ namespace lt = libtorrent;
 
 using json = nlohmann::json;
 using pika::Data::Models::Labels;
-using pika::RPC::TorrentsSetLabelsCommand;
+using pika::RPC::TorrentsLabelsSetCommand;
 using pika::ISession;
 
-TorrentsSetLabelsCommand::TorrentsSetLabelsCommand(sqlite3* db, std::weak_ptr<ISession> session)
+TorrentsLabelsSetCommand::TorrentsLabelsSetCommand(sqlite3* db, ISession& session)
     : m_db(db)
-    , m_session(std::move(session))
+    , m_session(session)
 {
 }
 
-json TorrentsSetLabelsCommand::Execute(const json& j)
+json TorrentsLabelsSetCommand::Execute(const json& j)
 {
-    auto session = m_session.lock();
-
-    if (!session)
-    {
-        return Error(99, "Failed to lock session");
-    }
-
     if (j.is_array())
     {
         for (const auto& item : j)

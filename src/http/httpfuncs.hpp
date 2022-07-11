@@ -4,7 +4,7 @@
 
 #include "middleware.hpp"
 
-namespace pika::Http
+namespace libpika::http
 {
     class HttpMethod
     {
@@ -16,7 +16,7 @@ namespace pika::Http
         {
         }
 
-        void operator()(const std::shared_ptr<Http::Context> &ctx)
+        void operator()(const std::shared_ptr<libpika::http::Context> &ctx)
         {
             if (ctx->Request().target() == m_route
                 && ctx->Request().method() == m_verb)

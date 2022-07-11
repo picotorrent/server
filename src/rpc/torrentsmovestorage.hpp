@@ -12,10 +12,10 @@ namespace pika::RPC
     class TorrentsMoveStorageCommand : public Command
     {
     public:
-        explicit TorrentsMoveStorageCommand(std::weak_ptr<ISession>);
+        explicit TorrentsMoveStorageCommand(ISession&);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::weak_ptr<ISession> m_session;
+        ISession& m_session;
     };
 }

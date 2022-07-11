@@ -5,7 +5,7 @@
 
 #include "context.hpp"
 
-namespace pika::Http
+namespace libpika::http
 {
     typedef std::function<void(std::shared_ptr<Context> ctx)> Middleware;
 }

@@ -16,19 +16,6 @@ find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
-    duktape
-    STATIC
-    vendor/duktape/src/duktape.c
-    vendor/duktape/src/duktape.h
-)
-
-target_include_directories(
-    duktape
-    INTERFACE
-    vendor/duktape/src
-)
-
-add_library(
     pikacore
     STATIC
 
@@ -59,9 +46,11 @@ add_library(
     # http
     src/http/context.hpp
     src/http/httpfuncs.hpp
-    src/http/httplistener.cpp
     src/http/httpsession.cpp
+    src/http/httpsession.hpp
     src/http/middleware.hpp
+    src/http/server.cpp
+    src/http/server.hpp
 
     # http handler
     src/http/handlers/eventshandler.cpp
@@ -85,8 +74,8 @@ add_library(
     src/rpc/sessionstats.hpp
     src/rpc/torrentsfilesget.cpp
     src/rpc/torrentsfilesget.hpp
-    src/rpc/torrentsgetlabels.cpp
-    src/rpc/torrentsgetlabels.hpp
+    src/rpc/torrentslabelsget.cpp
+    src/rpc/torrentslabelsget.hpp
     src/rpc/torrentsmovestorage.cpp
     src/rpc/torrentspause.cpp
     src/rpc/torrentsresume.cpp
@@ -96,10 +85,10 @@ add_library(
 
 target_link_libraries(
     pikacore
+
     Boost::boost
     Boost::log
     Boost::program_options
-    duktape
     nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
     unofficial::sqlite3::sqlite3

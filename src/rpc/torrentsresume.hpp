@@ -12,10 +12,10 @@ namespace pika::RPC
     class TorrentsResumeCommand : public Command
     {
     public:
-        TorrentsResumeCommand(std::weak_ptr<ISession> session);
+        TorrentsResumeCommand(ISession& session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::weak_ptr<ISession> m_session;
+        ISession& m_session;
     };
 }

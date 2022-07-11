@@ -7,10 +7,10 @@ namespace pika::RPC
     class Command
     {
     public:
-        virtual ~Command() {}
+        virtual ~Command() = default;
         virtual nlohmann::json Execute(const nlohmann::json&) = 0;
 
-        nlohmann::json Error(int code, std::string const& message, nlohmann::json data = {})
+        static nlohmann::json Error(int code, std::string const& message, nlohmann::json data = {})
         {
             return {
                 {

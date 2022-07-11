@@ -14,23 +14,16 @@ using json = nlohmann::json;
 using pika::RPC::TorrentsResumeCommand;
 using pika::ISession;
 
-TorrentsResumeCommand::TorrentsResumeCommand(std::weak_ptr<ISession> session)
-    : m_session(std::move(session))
+TorrentsResumeCommand::TorrentsResumeCommand(ISession& session)
+    : m_session(session)
 {
 }
 
 json TorrentsResumeCommand::Execute(const json& j)
 {
-    auto session = m_session.lock();
-
-    if (!session)
+    auto resume = [this](const lt::info_hash_t& hash)
     {
-        return Error(99, "Failed to lock session");
-    }
-
-    auto resume = [&session](const lt::info_hash_t& hash)
-    {
-        auto handle = session->FindTorrent(hash);
+        auto handle = m_session.FindTorrent(hash);
 
         if (handle == nullptr)
         {

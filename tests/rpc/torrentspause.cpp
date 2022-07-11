@@ -13,12 +13,11 @@ class TorrentsPauseCommandTests : public ::testing::Test
 protected:
     void SetUp() override
     {
-        session = std::make_shared<MockSession>();
         cmd = std::make_unique<TorrentsPauseCommand>(session);
     }
 
     std::unique_ptr<TorrentsPauseCommand> cmd;
-    std::shared_ptr<MockSession> session;
+    MockSession session;
 };
 
 TEST_F(TorrentsPauseCommandTests, Execute_WithInvalidParams_ReturnsError)
@@ -35,7 +34,7 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHash_PausesTorrent)
 
     auto handle = std::make_shared<MockTorrentHandle>();
 
-    EXPECT_CALL(*session, FindTorrent(ih))
+    EXPECT_CALL(session, FindTorrent(ih))
         .Times(1)
         .WillOnce(::testing::Return(handle));
 
@@ -66,7 +65,7 @@ TEST_F(TorrentsPauseCommandTests, Execute_WithValidInfoHashArray_PausesTorrents)
 
     for (auto const& itm : items)
     {
-        EXPECT_CALL(*session, FindTorrent(itm.ih))
+        EXPECT_CALL(session, FindTorrent(itm.ih))
                 .Times(1)
                 .WillOnce(::testing::Return(itm.handle));
 
