@@ -1,18 +1,16 @@
 #pragma once
 
-#include <memory>
+#include <libpika/jsonrpc/method.hpp>
 #include <nlohmann/json.hpp>
-
-#include "command.hpp"
 
 namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class TorrentsFilesGetCommand : public Command
+    class TorrentsFilesGetCommand : public libpika::jsonrpc::Method
     {
     public:
-        TorrentsFilesGetCommand(ISession& session);
+        explicit TorrentsFilesGetCommand(ISession& session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

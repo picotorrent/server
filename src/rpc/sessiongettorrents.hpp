@@ -1,12 +1,12 @@
 #pragma once
 
-#include "command.hpp"
+#include <libpika/jsonrpc/method.hpp>
 
 namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class SessionGetTorrentsCommand : public Command
+    class SessionGetTorrentsCommand : public libpika::jsonrpc::Method
     {
     public:
         explicit SessionGetTorrentsCommand(ISession& session);

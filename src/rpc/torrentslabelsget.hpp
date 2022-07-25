@@ -1,19 +1,16 @@
 #pragma once
 
-#include <memory>
-#include <nlohmann/json.hpp>
+#include <libpika/jsonrpc/method.hpp>
 #include <sqlite3.h>
-
-#include "command.hpp"
 
 namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class TorrentsLabelsGetCommand : public Command
+    class TorrentsLabelsGetCommand : public libpika::jsonrpc::Method
     {
     public:
-        TorrentsLabelsGetCommand(sqlite3* db, ISession&);
+        explicit TorrentsLabelsGetCommand(sqlite3* db, ISession&);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

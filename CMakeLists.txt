@@ -16,6 +16,24 @@ find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
+    pikajsonrpc
+    STATIC
+    src/libpika/jsonrpc/src/jsonrpcserver.cpp
+)
+
+target_include_directories(
+    pikajsonrpc
+    PUBLIC
+    src/libpika/jsonrpc/include
+)
+
+target_link_libraries(
+    pikajsonrpc
+    Boost::boost
+    nlohmann_json::nlohmann_json
+)
+
+add_library(
     pikahttp
     STATIC
     src/libpika/http/src/httpsession.cpp
@@ -95,6 +113,7 @@ add_library(
 
 target_link_libraries(
     pikacore
+    pikajsonrpc
     pikahttp
 
     Boost::boost
@@ -114,12 +133,14 @@ add_executable(
 target_link_libraries(
     pika
     pikacore
+    pikajsonrpc
 )
 
 add_executable(
     pikatests
     tests/main.cpp
     tests/data/models.cpp
+    tests/jsonrpc/jsonrpcserver.cpp
     tests/rpc/configget.cpp
     tests/rpc/configset.cpp
     tests/rpc/torrentspause.cpp
@@ -130,6 +151,7 @@ target_link_libraries(
     pikatests
     PRIVATE
     pikacore
+    pikajsonrpc
     GTest::gmock
     GTest::gtest
     GTest::gmock_main

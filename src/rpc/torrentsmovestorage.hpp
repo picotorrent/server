@@ -1,15 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <nlohmann/json.hpp>
-
-#include "command.hpp"
+#include <libpika/jsonrpc/method.hpp>
 
 namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class TorrentsMoveStorageCommand : public Command
+    class TorrentsMoveStorageCommand : public libpika::jsonrpc::Method
     {
     public:
         explicit TorrentsMoveStorageCommand(ISession&);

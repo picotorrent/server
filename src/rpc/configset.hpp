@@ -1,15 +1,14 @@
 #pragma once
 
-#include "command.hpp"
-
+#include <libpika/jsonrpc/method.hpp>
 #include <sqlite3.h>
 
 namespace pika::RPC
 {
-    class ConfigSetCommand : public Command
+    class ConfigSetCommand : public libpika::jsonrpc::Method
     {
     public:
-        ConfigSetCommand(sqlite3* db);
+        explicit ConfigSetCommand(sqlite3* db);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:

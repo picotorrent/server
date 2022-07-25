@@ -8,6 +8,13 @@
 class MockSession : public pika::ISession
 {
 public:
+    MOCK_METHOD(boost::signals2::connection, OnSessionStats, (const SessionStatsSignal::slot_type& subscriber));
+    MOCK_METHOD(boost::signals2::connection, OnStateUpdate, (const TorrentHandleListSignal::slot_type& subscriber));
+    MOCK_METHOD(boost::signals2::connection, OnTorrentAdded, (const TorrentHandleSignal::slot_type& subscriber));
+    MOCK_METHOD(boost::signals2::connection, OnTorrentPaused, (const InfoHashSignal::slot_type& subscriber));
+    MOCK_METHOD(boost::signals2::connection, OnTorrentRemoved, (const InfoHashSignal::slot_type& subscriber));
+    MOCK_METHOD(boost::signals2::connection, OnTorrentResumed, (const InfoHashSignal::slot_type& subscriber));
+
     MOCK_METHOD(libtorrent::info_hash_t, AddTorrent, (const libtorrent::add_torrent_params &params));
     MOCK_METHOD((std::map<std::string, int64_t>), Counters, ());
     MOCK_METHOD(std::shared_ptr<pika::ITorrentHandle>, FindTorrent, (const libtorrent::info_hash_t& hash));

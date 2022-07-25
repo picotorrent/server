@@ -1,16 +1,13 @@
 #pragma once
 
-#include <memory>
-
+#include <libpika/jsonrpc/method.hpp>
 #include <nlohmann/json.hpp>
-
-#include "command.hpp"
 
 namespace pika { class ISession; }
 
 namespace pika::RPC
 {
-    class SessionStatsCommand : public Command
+    class SessionStatsCommand : public libpika::jsonrpc::Method
     {
     public:
         explicit SessionStatsCommand(ISession& session);

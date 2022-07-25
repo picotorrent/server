@@ -1,37 +1,14 @@
 #include "jsonrpchandler.hpp"
 
 #include <boost/beast.hpp>
+#include <libpika/jsonrpc/jsonrpcserver.hpp>
 #include <nlohmann/json.hpp>
-#include <utility>
 
 using json = nlohmann::json;
 using pika::Http::Handlers::JsonRpcHandler;
 
-static bool IsValidRequestObject(json const& req, std::string& errorMessage)
-{
-    if (!req.contains("jsonrpc")) { errorMessage = "Missing 'jsonrpc' key"; return false; }
-    if (!req["jsonrpc"].is_string()) { errorMessage = "'jsonrpc' is not a string"; return false; }
-    if (req["jsonrpc"].get<std::string>() != "2.0") { errorMessage = "Invalid JSONRPC version"; return false; }
-
-    if (!req.contains("method")) { errorMessage = "Missing 'method' key"; return false; }
-    if (!req["method"].is_string()) { errorMessage = "'method' is not a string"; return false; }
-
-    if (req.contains("id"))
-    {
-        if (!req["id"].is_null()
-            && !req["id"].is_number()
-            && !req["id"].is_string())
-        {
-            errorMessage = "'id' is not a number, string or null";
-            return false;
-        }
-    }
-
-    return true;
-}
-
-JsonRpcHandler::JsonRpcHandler(std::map<std::string, std::shared_ptr<pika::RPC::Command>>  cmds)
-    : m_commands(std::move(cmds))
+JsonRpcHandler::JsonRpcHandler(libpika::jsonrpc::JsonRpcServer& rpcServer)
+    : m_rpc(rpcServer)
 {
 }
 
@@ -81,28 +58,6 @@ void JsonRpcHandler::operator()(const std::shared_ptr<libpika::http::Context>& c
         return createResponse(err);
     };
 
-    auto const executeRequest = [&](json& req)
-    {
-        std::string errorMessage;
-        if (!IsValidRequestObject(req, errorMessage))
-        {
-            return buildError(-32600, "Invalid request", json(errorMessage));
-        }
-
-        std::string method = req["method"].get<std::string>();
-        auto command = m_commands.find(method);
-
-        if (command == m_commands.end())
-        {
-            return buildError(-32601, "Method not found");
-        }
-
-        auto& params = req["params"];
-        auto const& result = command->second->Execute(params);
-
-        return result;
-    };
-
     json request;
 
     try
@@ -116,25 +71,5 @@ void JsonRpcHandler::operator()(const std::shared_ptr<libpika::http::Context>& c
         return;
     }
 
-    if (request.is_array())
-    {
-        json batch = json::array();
-
-        for (auto& req : request)
-        {
-            batch.push_back(executeRequest(req));
-        }
-
-        context->Write(response(batch.dump()));
-        return;
-    }
-    else if (request.is_object())
-    {
-        context->Write(response(
-            createResponse(
-                executeRequest(request)).dump()));
-        return;
-    }
-
-    context->Write(response(buildError(-32600, "Invalid request").dump()));
+    context->WriteJson(m_rpc.Execute(request));
 }

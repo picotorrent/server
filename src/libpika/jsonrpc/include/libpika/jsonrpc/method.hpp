@@ -2,14 +2,15 @@
 
 #include <nlohmann/json.hpp>
 
-namespace pika::RPC
+namespace libpika::jsonrpc
 {
-    class Command
+    class Method
     {
     public:
-        virtual ~Command() = default;
-        virtual nlohmann::json Execute(const nlohmann::json&) = 0;
+        virtual ~Method() = default;
+        virtual nlohmann::json Execute(const nlohmann::json &params) = 0;
 
+    protected:
         static nlohmann::json Error(int code, std::string const& message, nlohmann::json data = {})
         {
             return {
@@ -24,7 +25,7 @@ namespace pika::RPC
             };
         }
 
-        nlohmann::json Ok(nlohmann::json result = {})
+        static nlohmann::json Ok(nlohmann::json result = {})
         {
             return {
                 { "result", result }
