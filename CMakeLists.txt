@@ -21,6 +21,10 @@ add_library(
     src/libpika/bittorrent/src/session.cpp
     src/libpika/bittorrent/src/_aux/models/addtorrentparams.cpp
     src/libpika/bittorrent/src/_aux/models/addtorrentparams.hpp
+    src/libpika/bittorrent/src/_aux/models/labels.cpp
+    src/libpika/bittorrent/src/_aux/models/labels.hpp
+    src/libpika/bittorrent/src/_aux/models/sessionparams.cpp
+    src/libpika/bittorrent/src/_aux/models/sessionparams.hpp
     src/libpika/bittorrent/src/_aux/torrenthandle.cpp
     src/libpika/bittorrent/src/_aux/torrenthandle.hpp
 )
@@ -40,6 +44,10 @@ target_link_libraries(
 add_library(
     pikadata
     STATIC
+    src/libpika/data/src/_aux/row.cpp
+    src/libpika/data/src/_aux/row.hpp
+    src/libpika/data/src/_aux/statement.cpp
+    src/libpika/data/src/_aux/statement.hpp
     src/libpika/data/src/_aux/transaction.cpp
     src/libpika/data/src/_aux/transaction.hpp
     src/libpika/data/src/database.cpp

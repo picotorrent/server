@@ -1,16 +1,15 @@
 #include "sessionremovetorrent.hpp"
 
+#include <libpika/bittorrent/session.hpp>
 #include <libtorrent/info_hash.hpp>
 
 #include "../json/infohash.hpp"
-#include "../session.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::ISession;
 using pika::RPC::SessionRemoveTorrentCommand;
 
-SessionRemoveTorrentCommand::SessionRemoveTorrentCommand(ISession& session)
+SessionRemoveTorrentCommand::SessionRemoveTorrentCommand(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }

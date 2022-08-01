@@ -1,12 +1,13 @@
 #include "sessionfindtorrents.hpp"
 
+#include <libpika/bittorrent/session.hpp>
+
 #include "../json/torrentstatus.hpp"
-#include "../session.hpp"
 
 using json = nlohmann::json;
 using pika::RPC::SessionFindTorrents;
 
-SessionFindTorrents::SessionFindTorrents(ISession& session)
+SessionFindTorrents::SessionFindTorrents(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }

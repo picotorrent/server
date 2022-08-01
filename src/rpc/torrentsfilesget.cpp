@@ -1,20 +1,18 @@
 #include "torrentsfilesget.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
-#include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
-#include "../session.hpp"
-#include "../torrenthandle.hpp"
 
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
 using pika::RPC::TorrentsFilesGetCommand;
-using pika::ISession;
 
-TorrentsFilesGetCommand::TorrentsFilesGetCommand(ISession& session)
+TorrentsFilesGetCommand::TorrentsFilesGetCommand(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }

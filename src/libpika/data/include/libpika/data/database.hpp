@@ -12,7 +12,7 @@ namespace libpika::data
     {
     public:
         explicit Database(const std::string_view& file);
-        ~Database() = default;
+        ~Database();
 
         std::unique_ptr<ITransaction> BeginTransaction();
         std::unique_ptr<IStatement> PrepareStatement(const std::string_view& sql);

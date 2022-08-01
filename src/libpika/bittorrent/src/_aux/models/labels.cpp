@@ -75,7 +75,7 @@ void Labels::Set(
                                     "VALUES($1, $2, (SELECT id FROM addtorrentparams p\n"
                                     "WHERE (p.info_hash_v1 = $3 AND p.info_hash_v2 IS NULL)\n"
                                     "OR (p.info_hash_v1 IS NULL AND p.info_hash_v2 = $4)\n"
-                                    "OR (p.info_hash_v1 = $3 AND p.info_hash_v2 = $4)));";
+                                    "OR (p.info_hash_v1 = $3 AND p.info_hash_v2 = $4)));");
 
     for (const auto& [key, val] : labels)
     {

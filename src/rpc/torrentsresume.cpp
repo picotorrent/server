@@ -1,20 +1,19 @@
 #include "torrentsresume.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
 #include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
-#include "../session.hpp"
-#include "../torrenthandle.hpp"
 
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
 using pika::RPC::TorrentsResumeCommand;
-using pika::ISession;
 
-TorrentsResumeCommand::TorrentsResumeCommand(ISession& session)
+TorrentsResumeCommand::TorrentsResumeCommand(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }

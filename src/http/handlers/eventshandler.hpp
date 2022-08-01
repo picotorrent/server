@@ -10,7 +10,7 @@
 
 namespace lt = libtorrent;
 
-namespace pika
+namespace libpika::bittorrent
 {
     class ISession;
     class ITorrentHandle;
@@ -21,7 +21,7 @@ namespace pika::Http::Handlers
     class EventsHandler
     {
     public:
-        explicit EventsHandler(boost::asio::io_context& io, ISession& session);
+        explicit EventsHandler(boost::asio::io_context& io, libpika::bittorrent::ISession& session);
         explicit EventsHandler(const EventsHandler& eh);
 
         ~EventsHandler() noexcept;
@@ -30,8 +30,8 @@ namespace pika::Http::Handlers
 
     private:
         void OnSessionStats(const std::map<std::string, int64_t> &stats);
-        void OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &);
-        void OnTorrentAdded(const std::shared_ptr<ITorrentHandle>& handle);
+        void OnStateUpdate(const std::vector<std::shared_ptr<libpika::bittorrent::ITorrentHandle>> &);
+        void OnTorrentAdded(const std::shared_ptr<libpika::bittorrent::ITorrentHandle>& handle);
         void OnTorrentPaused(const lt::info_hash_t& hash);
         void OnTorrentRemoved(const lt::info_hash_t& hash);
         void OnTorrentResumed(const lt::info_hash_t& hash);
@@ -49,6 +49,6 @@ namespace pika::Http::Handlers
         boost::signals2::connection m_stateUpdateConnection;
         boost::signals2::connection m_torrentAddedConnection;
 
-        ISession& m_session;
+        libpika::bittorrent::ISession& m_session;
     };
 }

@@ -3,13 +3,12 @@
 #include <queue>
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <nlohmann/json.hpp>
-#include <utility>
 
 #include "../../json/infohash.hpp"
 #include "../../json/torrentstatus.hpp"
-#include "../../session.hpp"
-#include "../../torrenthandle.hpp"
 
 using json = nlohmann::json;
 using pika::Http::Handlers::EventsHandler;
@@ -92,7 +91,7 @@ private:
     std::shared_ptr<libpika::http::Context> m_ctx;
 };
 
-EventsHandler::EventsHandler(boost::asio::io_context &io, pika::ISession& session)
+EventsHandler::EventsHandler(boost::asio::io_context &io, libpika::bittorrent::ISession& session)
     : m_io(io)
     , m_heartbeat(io)
     , m_session(session)
@@ -188,7 +187,7 @@ void EventsHandler::OnSessionStats(const std::map<std::string, int64_t> &stats)
     Broadcast("session_metrics_updated", "{}");
 }
 
-void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHandle>> &torrents)
+void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<libpika::bittorrent::ITorrentHandle>> &torrents)
 {
     json state;
 
@@ -204,7 +203,7 @@ void EventsHandler::OnStateUpdate(const std::vector<std::shared_ptr<ITorrentHand
     Broadcast("state_update", state.dump());
 }
 
-void EventsHandler::OnTorrentAdded(const std::shared_ptr<ITorrentHandle> &handle)
+void EventsHandler::OnTorrentAdded(const std::shared_ptr<libpika::bittorrent::ITorrentHandle> &handle)
 {
     json j = {
         {"info_hash", handle->InfoHash()}

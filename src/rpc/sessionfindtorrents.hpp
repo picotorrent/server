@@ -2,17 +2,17 @@
 
 #include <libpika/jsonrpc/method.hpp>
 
-namespace pika { class ISession; }
+namespace libpika::bittorrent { class ISession; }
 
 namespace pika::RPC
 {
     class SessionFindTorrents : public libpika::jsonrpc::Method
     {
     public:
-        explicit SessionFindTorrents(ISession& session);
+        explicit SessionFindTorrents(libpika::bittorrent::ISession& session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        ISession& m_session;
+        libpika::bittorrent::ISession& m_session;
     };
 }

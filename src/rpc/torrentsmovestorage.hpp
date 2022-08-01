@@ -2,17 +2,17 @@
 
 #include <libpika/jsonrpc/method.hpp>
 
-namespace pika { class ISession; }
+namespace libpika::bittorrent { class ISession; }
 
 namespace pika::RPC
 {
     class TorrentsMoveStorageCommand : public libpika::jsonrpc::Method
     {
     public:
-        explicit TorrentsMoveStorageCommand(ISession&);
+        explicit TorrentsMoveStorageCommand(libpika::bittorrent::ISession&);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        ISession& m_session;
+        libpika::bittorrent::ISession& m_session;
     };
 }

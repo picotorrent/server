@@ -1,13 +1,13 @@
 #include "sessionaddtorrent.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/bdecode.hpp>
 #include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/torrent_info.hpp>
 
 #include "../json/infohash.hpp"
-#include "../session.hpp"
 
 static std::string Base64Decode(const std::string_view in)
 {
@@ -40,7 +40,7 @@ static std::string Base64Decode(const std::string_view in)
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::Session;
+using libpika::bittorrent::ISession;
 using pika::RPC::SessionAddTorrentCommand;
 
 SessionAddTorrentCommand::SessionAddTorrentCommand(ISession& session)

@@ -1,16 +1,16 @@
 #pragma once
 
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/torrent_status.hpp>
 #include <nlohmann/json.hpp>
 
 #include "infohash.hpp"
-#include "../torrenthandle.hpp"
 
 using nlohmann::json;
 
 namespace pika
 {
-    static void to_json(json& j, const std::shared_ptr<pika::ITorrentHandle> &handle)
+    static void to_json(json& j, const std::shared_ptr<libpika::bittorrent::ITorrentHandle> &handle)
     {
         const lt::torrent_status& ts = handle->Status();
 

@@ -86,8 +86,8 @@ int main(int argc, char* argv[])
         { "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) },
         { "session.stats", std::make_shared<pika::RPC::SessionStatsCommand>(session) },
         { "torrents.files.get", std::make_shared<pika::RPC::TorrentsFilesGetCommand>(session) },
-        { "torrents.labels.get", std::make_shared<pika::RPC::TorrentsLabelsGetCommand>(db.get(), session) },
-        { "torrents.labels.set", std::make_shared<pika::RPC::TorrentsLabelsSetCommand>(db.get(), session) },
+        { "torrents.labels.get", std::make_shared<pika::RPC::TorrentsLabelsGetCommand>(session) },
+        { "torrents.labels.set", std::make_shared<pika::RPC::TorrentsLabelsSetCommand>(session) },
         { "torrents.moveStorage", std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) },
         { "torrents.pause", std::make_shared<pika::RPC::TorrentsPauseCommand>(session) },
         { "torrents.resume", std::make_shared<pika::RPC::TorrentsResumeCommand>(session) }

@@ -1,19 +1,17 @@
 #include "torrentslabelsget.hpp"
 
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
 
-#include "../data/models/labels.hpp"
 #include "../json/infohash.hpp"
-#include "../session.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::Data::Models::Labels;
 using pika::RPC::TorrentsLabelsGetCommand;
 
-TorrentsLabelsGetCommand::TorrentsLabelsGetCommand(sqlite3 *db, ISession& session)
-    : m_db(db)
-    , m_session(session)
+TorrentsLabelsGetCommand::TorrentsLabelsGetCommand(libpika::bittorrent::ISession& session)
+    : m_session(session)
 {
 }
 
@@ -29,10 +27,10 @@ json TorrentsLabelsGetCommand::Execute(const json& req)
 
             if (auto torrent = m_session.FindTorrent(hash))
             {
-                result.push_back({
+                /*result.push_back({
                     {"info_hash", hash},
                     {"labels", Labels::Get(m_db, hash)}
-                });
+                });*/
             }
         }
 

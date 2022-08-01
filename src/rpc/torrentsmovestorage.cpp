@@ -1,17 +1,16 @@
 #include "torrentsmovestorage.hpp"
 
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
 
 #include "../json/infohash.hpp"
-#include "../session.hpp"
-#include "../torrenthandle.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::ISession;
 using pika::RPC::TorrentsMoveStorageCommand;
 
-TorrentsMoveStorageCommand::TorrentsMoveStorageCommand(ISession& session)
+TorrentsMoveStorageCommand::TorrentsMoveStorageCommand(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }

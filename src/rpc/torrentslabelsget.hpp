@@ -3,18 +3,17 @@
 #include <libpika/jsonrpc/method.hpp>
 #include <sqlite3.h>
 
-namespace pika { class ISession; }
+namespace libpika::bittorrent { class ISession; }
 
 namespace pika::RPC
 {
     class TorrentsLabelsGetCommand : public libpika::jsonrpc::Method
     {
     public:
-        explicit TorrentsLabelsGetCommand(sqlite3* db, ISession&);
+        explicit TorrentsLabelsGetCommand(libpika::bittorrent::ISession&);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        sqlite3* m_db;
-        ISession& m_session;
+        libpika::bittorrent::ISession& m_session;
     };
 }

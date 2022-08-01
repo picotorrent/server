@@ -1,11 +1,11 @@
 #include "sessionstats.hpp"
 
-#include "../session.hpp"
+#include <libpika/bittorrent/session.hpp>
 
 using json = nlohmann::json;
 using pika::RPC::SessionStatsCommand;
 
-SessionStatsCommand::SessionStatsCommand(ISession& session)
+SessionStatsCommand::SessionStatsCommand(libpika::bittorrent::ISession& session)
         : m_session(session)
 {
 }

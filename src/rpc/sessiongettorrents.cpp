@@ -1,17 +1,16 @@
 #include "sessiongettorrents.hpp"
 
-#include <utility>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 
 #include "../json/infohash.hpp"
 #include "../json/torrenthandle.hpp"
 #include "../json/torrentstatus.hpp"
-#include "../session.hpp"
-#include "../torrenthandle.hpp"
 
 using json = nlohmann::json;
 using pika::RPC::SessionGetTorrentsCommand;
 
-SessionGetTorrentsCommand::SessionGetTorrentsCommand(ISession& session)
+SessionGetTorrentsCommand::SessionGetTorrentsCommand(libpika::bittorrent::ISession& session)
     : m_session(session)
 {
 }
@@ -27,7 +26,7 @@ json SessionGetTorrentsCommand::Execute(const json &req)
 
             if (auto torrent = m_session.FindTorrent(hash))
             {
-                j.push_back(torrent);
+                // TODO: j.push_back(torrent);
             }
             else
             {
