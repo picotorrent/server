@@ -16,95 +16,51 @@ find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
-    pikabittorrent
+    pikacore
     STATIC
-    src/libpika/bittorrent/src/session.cpp
-    src/libpika/bittorrent/src/_aux/models/addtorrentparams.cpp
-    src/libpika/bittorrent/src/_aux/models/addtorrentparams.hpp
-    src/libpika/bittorrent/src/_aux/models/labels.cpp
-    src/libpika/bittorrent/src/_aux/models/labels.hpp
-    src/libpika/bittorrent/src/_aux/models/sessionparams.cpp
-    src/libpika/bittorrent/src/_aux/models/sessionparams.hpp
-    src/libpika/bittorrent/src/_aux/torrenthandle.cpp
-    src/libpika/bittorrent/src/_aux/torrenthandle.hpp
+    src/libpika/src/bittorrent/session.cpp
+    src/libpika/src/bittorrent/_aux/models/addtorrentparams.cpp
+    src/libpika/src/bittorrent/_aux/models/addtorrentparams.hpp
+    src/libpika/src/bittorrent/_aux/models/labels.cpp
+    src/libpika/src/bittorrent/_aux/models/labels.hpp
+    src/libpika/src/bittorrent/_aux/models/sessionparams.cpp
+    src/libpika/src/bittorrent/_aux/models/sessionparams.hpp
+    src/libpika/src/bittorrent/_aux/torrenthandle.cpp
+    src/libpika/src/bittorrent/_aux/torrenthandle.hpp
+
+    src/libpika/src/data/_aux/row.cpp
+    src/libpika/src/data/_aux/row.hpp
+    src/libpika/src/data/_aux/statement.cpp
+    src/libpika/src/data/_aux/statement.hpp
+    src/libpika/src/data/_aux/transaction.cpp
+    src/libpika/src/data/_aux/transaction.hpp
+    src/libpika/src/data/database.cpp
+    src/libpika/src/data/migrator.cpp
+
+    src/libpika/src/jsonrpc/jsonrpcserver.cpp
+
+    src/libpika/src/http/httpsession.cpp
+    src/libpika/src/http/httpserver.cpp
 )
 
 target_include_directories(
-    pikabittorrent
+    pikacore
     PUBLIC
-    src/libpika/bittorrent/include
+    src/libpika/include
 )
 
 target_link_libraries(
-    pikabittorrent
-    pikadata
+    pikacore
+    PUBLIC
+    Boost::boost
+    nlohmann_json::nlohmann_json
     LibtorrentRasterbar::torrent-rasterbar
-)
-
-add_library(
-    pikadata
-    STATIC
-    src/libpika/data/src/_aux/row.cpp
-    src/libpika/data/src/_aux/row.hpp
-    src/libpika/data/src/_aux/statement.cpp
-    src/libpika/data/src/_aux/statement.hpp
-    src/libpika/data/src/_aux/transaction.cpp
-    src/libpika/data/src/_aux/transaction.hpp
-    src/libpika/data/src/database.cpp
-    src/libpika/data/src/migrator.cpp
-)
-
-target_include_directories(
-    pikadata
-    PUBLIC
-    src/libpika/data/include
-)
-
-target_link_libraries(
-    pikadata
     unofficial::sqlite3::sqlite3
 )
 
-add_library(
-    pikajsonrpc
-    STATIC
-    src/libpika/jsonrpc/src/jsonrpcserver.cpp
-)
-
-target_include_directories(
-    pikajsonrpc
-    PUBLIC
-    src/libpika/jsonrpc/include
-)
-
-target_link_libraries(
-    pikajsonrpc
-    Boost::boost
-    nlohmann_json::nlohmann_json
-)
-
-add_library(
-    pikahttp
-    STATIC
-    src/libpika/http/src/httpsession.cpp
-    src/libpika/http/src/httpserver.cpp
-)
-
-target_include_directories(
-    pikahttp
-    PUBLIC
-    src/libpika/http/include
-)
-
-target_link_libraries(
-    pikahttp
-    Boost::boost
-    nlohmann_json::nlohmann_json
-)
-
-add_library(
-    pikacore
-    STATIC
+add_executable(
+    pika
+    src/main.cpp
 
     src/config.cpp
     src/config.hpp
@@ -114,7 +70,6 @@ add_library(
     src/data/migrations/0001_initialsetup.cpp
     src/data/migrations/0002_labels.cpp
     src/data/migrations/0002_labels.hpp
-    src/data/statement.cpp
     src/data/models/config.cpp
     src/data/models/config.hpp
 
@@ -150,30 +105,12 @@ add_library(
 )
 
 target_link_libraries(
-    pikacore
-    pikabittorrent
-    pikadata
-    pikajsonrpc
-    pikahttp
-
-    Boost::boost
+    pika
+    PRIVATE
     Boost::log
     Boost::program_options
-    nlohmann_json::nlohmann_json
-    LibtorrentRasterbar::torrent-rasterbar
-    unofficial::sqlite3::sqlite3
-    tomlplusplus::tomlplusplus
-)
-
-add_executable(
-    pika
-    src/main.cpp
-)
-
-target_link_libraries(
-    pika
     pikacore
-    pikajsonrpc
+    tomlplusplus::tomlplusplus
 )
 
 add_executable(

@@ -1,20 +1,18 @@
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/log/trivial.hpp>
-#include <sqlite3.h>
-
-#include "config.hpp"
-#include "log.hpp"
-
-#include "http/handlers/eventshandler.hpp"
-#include "http/handlers/jsonrpchandler.hpp"
-
 #include <libpika/bittorrent/session.hpp>
 #include <libpika/data/database.hpp>
 #include <libpika/data/migrator.hpp>
 #include <libpika/http/httpfuncs.hpp>
 #include <libpika/http/server.hpp>
 #include <libpika/jsonrpc/jsonrpcserver.hpp>
+
+#include "config.hpp"
+#include "log.hpp"
+
+#include "http/handlers/eventshandler.hpp"
+#include "http/handlers/jsonrpchandler.hpp"
 
 #include "rpc/configget.hpp"
 #include "rpc/configset.hpp"

@@ -35,7 +35,7 @@ Database::~Database() = default;
 
 std::unique_ptr<libpika::data::ITransaction> Database::BeginTransaction()
 {
-    return nullptr;
+    return std::make_unique<libpika::data::_aux::Transaction>(m_state->db);
 }
 
 std::unique_ptr<libpika::data::IStatement> Database::PrepareStatement(const std::string_view &sql)

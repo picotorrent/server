@@ -14,7 +14,7 @@ class HttpServer::State : public std::enable_shared_from_this<HttpServer::State>
 public:
     State(boost::asio::io_context& io, const std::string& host, uint16_t port)
         : m_io(io)
-        , m_acceptor(boost::asio::make_strand(io))
+        , m_acceptor(boost::asio::make_strand(m_io))
     {
         boost::system::error_code ec;
         auto address = boost::asio::ip::make_address(host, ec);
@@ -77,8 +77,15 @@ public:
 private:
     void BeginAccept()
     {
+        BOOST_LOG_TRIVIAL(info) << "HTTP begin accept " << &m_io;
+
+        auto strand = boost::asio::make_strand(m_io);
+        auto bind = boost::beast::bind_front_handler(
+            &State::EndAccept,
+            shared_from_this());
+
         m_acceptor.async_accept(
-            boost::asio::make_strand(m_io),
+            strand,
             boost::beast::bind_front_handler(
                 &State::EndAccept,
                 shared_from_this()));
