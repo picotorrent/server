@@ -1,106 +1,105 @@
 #include <boost/asio.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/log/trivial.hpp>
-#include <sqlite3.h>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/data/database.hpp>
+#include <libpika/data/migrator.hpp>
+#include <libpika/http/httpfuncs.hpp>
+#include <libpika/http/server.hpp>
+#include <libpika/jsonrpc/jsonrpcserver.hpp>
 
-#include "database.hpp"
+#include "config.hpp"
 #include "log.hpp"
-#include "options.hpp"
-#include "sessionmanager.hpp"
 
+#include "http/handlers/eventshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
-#include "http/handlers/websockethandler.hpp"
-#include "http/httplistener.hpp"
-#include "http/httprequesthandler.hpp"
-#include "tsdb/influxdb.hpp"
-#include "tsdb/prometheus.hpp"
-#include "tsdb/timeseriesdatabase.hpp"
+
+#include "rpc/configget.hpp"
+#include "rpc/configset.hpp"
+#include "rpc/sessionaddtorrent.hpp"
+#include "rpc/sessiongettorrents.hpp"
+#include "rpc/sessionfindtorrents.hpp"
+#include "rpc/sessionremovetorrent.hpp"
+#include "rpc/sessionstats.hpp"
+#include "rpc/torrentsfilesget.hpp"
+#include "rpc/torrentslabelsget.hpp"
+#include "rpc/torrentsmovestorage.hpp"
+#include "rpc/torrentspause.hpp"
+#include "rpc/torrentsresume.hpp"
+#include "rpc/torrentssetlabels.hpp"
 
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
-using pt::Server::Database;
-using pt::Server::Http::Handlers::JsonRpcHandler;
-using pt::Server::Http::Handlers::WebSocketHandler;
-using pt::Server::Http::HttpListener;
-using pt::Server::Log;
-using pt::Server::Options;
-using pt::Server::SessionManager;
+using pika::Http::Handlers::EventsHandler;
+using pika::Http::Handlers::JsonRpcHandler;
+using pika::Log;
 
-void Run(sqlite3* db, std::shared_ptr<Options> const& options)
+int main(int argc, char* argv[])
 {
+    auto tbl = pika::Config::Load(argc, argv);
+
+    auto boostLevel = boost::log::trivial::info;
+    auto level = tbl["log_level"].value<std::string>().value_or("info");
+
+    if (level == "trace")   { boostLevel = boost::log::trivial::trace; }
+    if (level == "debug")   { boostLevel = boost::log::trivial::debug; }
+    if (level == "info")    { boostLevel = boost::log::trivial::info; }
+    if (level == "warning") { boostLevel = boost::log::trivial::warning; }
+    if (level == "error")   { boostLevel = boost::log::trivial::error; }
+    if (level == "fatal")   { boostLevel = boost::log::trivial::fatal; }
+
+    Log::Setup(boostLevel);
+
+    BOOST_LOG_TRIVIAL(info) << "Pika starting up";
+
     boost::asio::io_context io;
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
     signals.async_wait(
         [&io](boost::system::error_code const& ec, int signal)
         {
+            BOOST_LOG_TRIVIAL(info) << "Interrupt received (" << signal << ") - stopping...";
             io.stop();
         });
 
-    std::shared_ptr<pt::Server::TSDB::TimeSeriesDatabase> tsdb = nullptr;
+    libpika::data::Database database(tbl["db"].value<const char*>().value_or("pika.sqlite"));
 
-    auto http = std::make_shared<HttpListener>(
-        io,
-        boost::asio::ip::tcp::endpoint
-        {
-            boost::asio::ip::make_address(options->Host()),
-            options->Port()
-        },
-        options->WebRoot());
-
-    if (options->IsValidInfluxDbConfig())
-    {
-        BOOST_LOG_TRIVIAL(info) << "InfluxDb configuration seems legit. Configuring reporter...";
-
-        tsdb = std::make_shared<pt::Server::TSDB::InfluxDb>(
-            io,
-            options->InfluxDbHost().value(),
-            options->InfluxDbPort().value(),
-            options->InfluxDbOrganization().value(),
-            options->InfluxDbBucket().value(),
-            options->InfluxDbToken().value());
-    }
-    else if (options->PrometheusExporterEnabled())
-    {
-        BOOST_LOG_TRIVIAL(info) << "Enabling Prometheus metrics exporter";
-
-        auto prometheus = std::make_shared<pt::Server::TSDB::Prometheus>();
-        http->AddHandler("GET", "/metrics", prometheus);
-        tsdb = prometheus;
-    }
-
-    auto sm = SessionManager::Load(io, db, tsdb);
-
-    http->AddHandler("POST", "/api/jsonrpc", std::make_shared<JsonRpcHandler>(db, sm));
-    http->AddHandler("GET", "/api/ws", std::make_shared<WebSocketHandler>(sm));
-    http->Run();
-
-    io.run();
-}
-
-int main(int argc, char* argv[])
-{
-    auto options = Options::Load(argc, argv);
-    if (!options) { return 1; }
-
-    Log::Setup(options->LogLevel());
-
-    BOOST_LOG_TRIVIAL(info) << "PicoTorrent Server starting up...";
-    BOOST_LOG_TRIVIAL(info) << "Opening database from " << options->DatabaseFilePath();
-
-    sqlite3* db = nullptr;
-    sqlite3_open(options->DatabaseFilePath().c_str(), &db);
-
-    if (!Database::Migrate(db))
+    if (!libpika::data::Migrator::Run(database, {}))
     {
         BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
         return 1;
     }
 
-    Run(db, options);
+    libpika::bittorrent::Session session(io, libpika::bittorrent::Session::Options{
+        .db = database,
+        .settings = lt::default_settings()
+    });
 
-    BOOST_LOG_TRIVIAL(info) << "Closing database...";
-    sqlite3_close(db);
+    libpika::jsonrpc::JsonRpcServer rpcServer({
+        { "config.get", std::make_shared<pika::RPC::ConfigGetCommand>(database) },
+        { "config.set", std::make_shared<pika::RPC::ConfigSetCommand>(database) },
+        { "session.addTorrent", std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) },
+        { "session.findTorrents", std::make_shared<pika::RPC::SessionFindTorrents>(session) },
+        { "session.getTorrents", std::make_shared<pika::RPC::SessionGetTorrentsCommand>(session) },
+        { "session.removeTorrent", std::make_shared<pika::RPC::SessionRemoveTorrentCommand>(session) },
+        { "session.stats", std::make_shared<pika::RPC::SessionStatsCommand>(session) },
+        { "torrents.files.get", std::make_shared<pika::RPC::TorrentsFilesGetCommand>(session) },
+        { "torrents.labels.get", std::make_shared<pika::RPC::TorrentsLabelsGetCommand>(session) },
+        { "torrents.labels.set", std::make_shared<pika::RPC::TorrentsLabelsSetCommand>(session) },
+        { "torrents.moveStorage", std::make_shared<pika::RPC::TorrentsMoveStorageCommand>(session) },
+        { "torrents.pause", std::make_shared<pika::RPC::TorrentsPauseCommand>(session) },
+        { "torrents.resume", std::make_shared<pika::RPC::TorrentsResumeCommand>(session) }
+    });
+
+    libpika::http::HttpServer httpServer(io, libpika::http::HttpServer::Options{
+        .host = "127.0.0.1",
+        .port = 1338
+    });
+
+    httpServer.Use(libpika::http::HttpGet("/api/events", EventsHandler(io, session)));
+    httpServer.Use(libpika::http::HttpPost("/api/jsonrpc", JsonRpcHandler(rpcServer)));
+
+    io.run();
 
     return 0;
 }

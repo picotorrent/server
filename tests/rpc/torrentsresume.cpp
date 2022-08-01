@@ -2,26 +2,24 @@
 #include <boost/log/trivial.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <sqlite3.h>
 
 #include "../helpers.hpp"
 #include "../mocks.hpp"
 #include "../../src/json/infohash.hpp"
 #include "../../src/rpc/torrentsresume.hpp"
 
-using pt::Server::RPC::TorrentsResumeCommand;
+using pika::RPC::TorrentsResumeCommand;
 
 class TorrentsResumeCommandTests : public ::testing::Test
 {
 protected:
     void SetUp() override
     {
-        finder = std::make_shared<MockTorrentHandleFinder>();
-        cmd = std::make_unique<TorrentsResumeCommand>(finder);
+        cmd = std::make_unique<TorrentsResumeCommand>(session);
     }
 
     std::unique_ptr<TorrentsResumeCommand> cmd;
-    std::shared_ptr<MockTorrentHandleFinder> finder;
+    MockSession session;
 };
 
 TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
@@ -35,9 +33,9 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithInvalidParams_ReturnsError)
 TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
 {
     auto hash = pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924");
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    auto handle = std::make_shared<MockTorrentHandle>();
 
-    EXPECT_CALL(*finder, Find(hash))
+    EXPECT_CALL(session, FindTorrent(hash))
         .Times(1)
         .WillOnce(::testing::Return(handle));
 
@@ -48,7 +46,7 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHash_ResumesTorrent)
     EXPECT_CALL(*handle, Resume())
         .Times(1);
 
-    auto result = cmd->Execute("7cf55428325617fdde910fe55b79ab72be937924");
+    auto result = cmd->Execute(R"([["7cf55428325617fdde910fe55b79ab72be937924", null ]])"_json);
 
     EXPECT_TRUE(result.is_object());
 }
@@ -58,19 +56,17 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
     struct F
     {
         lt::info_hash_t ih;
-        std::shared_ptr<MockTorrentHandleActor> handle;
+        std::shared_ptr<MockTorrentHandle> handle;
     };
 
     std::vector<F> items;
-    items.push_back({ pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandleActor>() });
-    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandleActor>() });
-
-    auto handle = std::make_shared<MockTorrentHandleActor>();
+    items.push_back({ pt::InfoHashFromString("7cf55428325617fdde910fe55b79ab72be937924"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0202020202020202020202020202020202020202"), std::make_shared<MockTorrentHandle>() });
+    items.push_back({ pt::InfoHashFromString("0303030303030303030303030303030303030303"), std::make_shared<MockTorrentHandle>() });
 
     for (auto const& itm : items)
     {
-        EXPECT_CALL(*finder, Find(itm.ih))
+        EXPECT_CALL(session, FindTorrent(itm.ih))
                 .Times(1)
                 .WillOnce(::testing::Return(itm.handle));
 
@@ -83,9 +79,9 @@ TEST_F(TorrentsResumeCommandTests, Execute_WithValidInfoHashArray_ResumesTorrent
     }
 
     auto result = cmd->Execute(
-        { "7cf55428325617fdde910fe55b79ab72be937924",
-          "0202020202020202020202020202020202020202",
-          "0303030303030303030303030303030303030303" });
+        R"([ [ "7cf55428325617fdde910fe55b79ab72be937924", null ],
+             [ "0202020202020202020202020202020202020202", null ],
+             [ "0303030303030303030303030303030303030303", null ] ])"_json);
 
     EXPECT_TRUE(result.is_object());
 }

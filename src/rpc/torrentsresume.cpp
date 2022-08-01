@@ -1,23 +1,20 @@
 #include "torrentsresume.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
-#include <libtorrent/session.hpp>
-#include <libtorrent/torrent_handle.hpp>
-#include <libtorrent/torrent_status.hpp>
 #include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
-using pt::Server::RPC::TorrentsResumeCommand;
-using pt::Server::ITorrentHandleFinder;
+using pika::RPC::TorrentsResumeCommand;
 
-TorrentsResumeCommand::TorrentsResumeCommand(std::shared_ptr<ITorrentHandleFinder> finder)
-    : m_finder(std::move(finder))
+TorrentsResumeCommand::TorrentsResumeCommand(libpika::bittorrent::ISession& session)
+    : m_session(session)
 {
 }
 
@@ -25,7 +22,7 @@ json TorrentsResumeCommand::Execute(const json& j)
 {
     auto resume = [this](const lt::info_hash_t& hash)
     {
-        auto handle = m_finder->Find(hash);
+        auto handle = m_session.FindTorrent(hash);
 
         if (handle == nullptr)
         {

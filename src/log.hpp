@@ -2,7 +2,7 @@
 
 #include <boost/log/trivial.hpp>
 
-namespace pt::Server
+namespace pika
 {
     class Log
     {

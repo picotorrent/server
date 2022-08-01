@@ -1,21 +1,22 @@
 #pragma once
 
-#include <sqlite3.h>
+#include <libpika/http/context.hpp>
 
-#include "../httprequesthandler.hpp"
-#include "../../rpc/command.hpp"
-#include "../../sessionmanager.hpp"
-
-namespace pt::Server::Http::Handlers
+namespace libpika::jsonrpc
 {
-    class JsonRpcHandler : public HttpRequestHandler
+    class JsonRpcServer;
+}
+
+namespace pika::Http::Handlers
+{
+    class JsonRpcHandler
     {
     public:
-        explicit JsonRpcHandler(sqlite3* db, const std::shared_ptr<pt::Server::SessionManager>& sm);
+        explicit JsonRpcHandler(libpika::jsonrpc::JsonRpcServer& rpcServer);
 
-        void Execute(std::shared_ptr<HttpRequestHandler::Context> context) override;
+        void operator()(const std::shared_ptr<libpika::http::Context>& context);
 
     private:
-        std::map<std::string, std::shared_ptr<pt::Server::RPC::Command>> m_commands;
+        libpika::jsonrpc::JsonRpcServer& m_rpc;
     };
 }

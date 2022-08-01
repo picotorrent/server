@@ -1,12 +1,13 @@
 #include "sessionaddtorrent.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/bdecode.hpp>
+#include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/torrent_info.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
 
 static std::string Base64Decode(const std::string_view in)
 {
@@ -39,19 +40,19 @@ static std::string Base64Decode(const std::string_view in)
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pt::Server::SessionManager;
-using pt::Server::RPC::SessionAddTorrentCommand;
+using libpika::bittorrent::ISession;
+using pika::RPC::SessionAddTorrentCommand;
 
-SessionAddTorrentCommand::SessionAddTorrentCommand(std::shared_ptr<SessionManager> session)
-    : m_session(std::move(session))
+SessionAddTorrentCommand::SessionAddTorrentCommand(ISession& session)
+    : m_session(session)
 {
 }
 
 json SessionAddTorrentCommand::Execute(const json& j)
 {
-    if (!j.contains("data"))
+    if (!j.contains("ti") && !j.contains("magnet_uri"))
     {
-        return Error(1, "Missing 'data' field");
+        return Error(1, "Missing 'ti' or 'magnet_uri' field");
     }
 
     if (!j.contains("save_path"))
@@ -59,23 +60,46 @@ json SessionAddTorrentCommand::Execute(const json& j)
         return Error(1, "Missing 'save_path' field");
     }
 
-    std::string const& data = Base64Decode(
-        j["data"].get<std::string>());
+    lt::add_torrent_params p;
 
-    lt::error_code ec;
-    lt::bdecode_node node = lt::bdecode(data, ec);
-
-    if (ec)
+    if (j.contains("magnet_uri"))
     {
-        BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec.message();
-        return Error(1, ec.message());
+        lt::error_code ec;
+        lt::parse_magnet_uri(
+            j["magnet_uri"].get<std::string>(),
+                p,
+                ec);
+
+        if (ec)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse magnet URI: " << ec.message();
+            return Error(1, ec.message());
+        }
+    }
+    else if (j.contains("ti"))
+    {
+        std::string const& data = Base64Decode(
+            j["ti"].get<std::string>());
+
+        lt::error_code ec;
+        lt::bdecode_node node = lt::bdecode(data, ec);
+
+        if (ec)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Failed to bdecode torrent: " << ec.message();
+            return Error(1, ec.message());
+        }
+
+        p.ti = std::make_shared<lt::torrent_info>(node);
+    }
+    else
+    {
+        return Error(2, "Required field 'magnet_uri' or 'ti' not found");
     }
 
-    lt::add_torrent_params p;
     p.save_path = j["save_path"].get<std::string>();
-    p.ti = std::make_shared<lt::torrent_info>(node);
 
     return Ok({
-        { "info_hash", m_session->AddTorrent(p) }
+        { "info_hash", m_session.AddTorrent(p) }
     });
 }

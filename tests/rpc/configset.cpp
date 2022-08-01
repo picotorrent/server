@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <sqlite3.h>
 
-#include "../../src/database.hpp"
+#include "../../src/data/migrator.hpp"
 #include "../../src/data/statement.hpp"
 #include "../../src/rpc/configset.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Data::Statement;
-using pt::Server::RPC::ConfigSetCommand;
+using pika::Data::Statement;
+using pika::RPC::ConfigSetCommand;
 
 class ConfigSetCommandTests : public ::testing::Test
 {
@@ -15,7 +15,7 @@ protected:
     void SetUp() override
     {
         sqlite3_open(":memory:", &db);
-        EXPECT_TRUE(pt::Server::Database::Migrate(db));
+        EXPECT_TRUE(pika::Data::Migrator::Run(db));
 
         cmd = std::make_unique<ConfigSetCommand>(db);
     }
@@ -37,7 +37,8 @@ protected:
             },
             [&key](auto stmt)
             {
-                sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+                CHECK_OK(sqlite3_bind_text(stmt, 1, key.data(), static_cast<int>(key.size()), SQLITE_TRANSIENT))
+                return SQLITE_OK;
             });
         return v;
     }

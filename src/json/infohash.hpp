@@ -12,22 +12,36 @@ namespace libtorrent
 {
     static void from_json(const json& j, libtorrent::info_hash_t& ih)
     {
-        auto str = j.get<std::string>();
+        lt::sha1_hash v1;
+        lt::sha256_hash v2;
 
-        if (str.size() == 40)
+        if (j.is_array() && j.size() >= 1)
         {
-            lt::sha1_hash hash;
-            lt::aux::from_hex({ str.c_str(), 40 }, hash.data());
-            ih = lt::info_hash_t(hash);
+            std::string v1s = j[0].get<std::string>();
+            lt::aux::from_hex({ v1s.c_str() , 40 }, v1.data());
         }
+
+        ih = lt::info_hash_t(v1, v2);
     }
 
     static void to_json(json& j, const libtorrent::info_hash_t& ih)
     {
-        std::stringstream ss;
-        if (ih.has_v2()) { ss << ih.v2; }
-        else { ss << ih.v1; }
+        json::array_t hashes = {nullptr, nullptr};
 
-        j = ss.str();
+        if (ih.has_v1())
+        {
+            std::stringstream ss;
+            ss << ih.v1;
+            hashes[0] = ss.str();
+        }
+
+        if (ih.has_v2())
+        {
+            std::stringstream ss;
+            ss << ih.v2;
+            hashes[1] = ss.str();
+        }
+
+        j = hashes;
     }
 }

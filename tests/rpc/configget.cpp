@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <sqlite3.h>
 
-#include "../../src/database.hpp"
+#include "../../src/data/migrator.hpp"
 #include "../../src/data/statement.hpp"
 #include "../../src/rpc/configget.hpp"
 
 using json = nlohmann::json;
-using pt::Server::Data::Statement;
-using pt::Server::RPC::ConfigGetCommand;
+using pika::Data::Statement;
+using pika::RPC::ConfigGetCommand;
 
 class ConfigGetCommandTests : public ::testing::Test
 {
@@ -15,7 +15,7 @@ protected:
     void SetUp() override
     {
         sqlite3_open(":memory:", &db);
-        EXPECT_TRUE(pt::Server::Database::Migrate(db));
+        EXPECT_TRUE(pika::Data::Migrator::Run(db));
 
         cmd = std::make_unique<ConfigGetCommand>(db);
     }
@@ -33,12 +33,13 @@ protected:
             [](auto const&){},
             [&key, &value](auto stmt)
             {
-                sqlite3_bind_text(stmt, 1, key.data(),          -1, SQLITE_TRANSIENT);
-                sqlite3_bind_text(stmt, 2, value.dump().c_str(), -1, SQLITE_TRANSIENT);
+                CHECK_OK(sqlite3_bind_text(stmt, 1, key.data(),           -1, SQLITE_TRANSIENT))
+                CHECK_OK(sqlite3_bind_text(stmt, 2, value.dump().c_str(), -1, SQLITE_TRANSIENT))
+                return SQLITE_OK;
             });
     }
 
-    json ToResult(const json& value)
+    static json ToResult(const json& value)
     {
         return {
             { "result", value }

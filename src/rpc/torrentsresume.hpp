@@ -1,21 +1,18 @@
 #pragma once
 
-#include <memory>
-#include <nlohmann/json.hpp>
+#include <libpika/jsonrpc/method.hpp>
 
-#include "command.hpp"
+namespace libpika::bittorrent { class ISession; }
 
-namespace pt::Server { class ITorrentHandleFinder; }
-
-namespace pt::Server::RPC
+namespace pika::RPC
 {
-    class TorrentsResumeCommand : public Command
+    class TorrentsResumeCommand : public libpika::jsonrpc::Method
     {
     public:
-        TorrentsResumeCommand(std::shared_ptr<ITorrentHandleFinder>);
+        explicit TorrentsResumeCommand(libpika::bittorrent::ISession& session);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        std::shared_ptr<ITorrentHandleFinder> m_finder;
+        libpika::bittorrent::ISession& m_session;
     };
 }

@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: picotorrent/server
+  IMAGE_NAME: picotorrent/pika
 
 jobs:
   build:
@@ -53,4 +53,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/picotorrent/server:${{ github.sha }},ghcr.io/picotorrent/server:${{ steps.gitversion.outputs.semVer }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}

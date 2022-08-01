@@ -1,23 +1,19 @@
 #include "torrentspause.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/bittorrent/torrenthandle.hpp>
 #include <libtorrent/info_hash.hpp>
-#include <libtorrent/session.hpp>
-#include <libtorrent/torrent_handle.hpp>
-#include <libtorrent/torrent_status.hpp>
-#include <nlohmann/json.hpp>
 
 #include "../json/infohash.hpp"
-#include "../sessionmanager.hpp"
 
 namespace lt = libtorrent;
 
 using json = nlohmann::json;
-using pt::Server::RPC::TorrentsPauseCommand;
-using pt::Server::ITorrentHandleFinder;
+using pika::RPC::TorrentsPauseCommand;
 
-TorrentsPauseCommand::TorrentsPauseCommand(std::shared_ptr<ITorrentHandleFinder> finder)
-    : m_finder(std::move(finder))
+TorrentsPauseCommand::TorrentsPauseCommand(libpika::bittorrent::ISession& session)
+    : m_session(session)
 {
 }
 
@@ -25,7 +21,7 @@ json TorrentsPauseCommand::Execute(const json& j)
 {
     auto pause = [this](const lt::info_hash_t& hash)
     {
-        auto handle = m_finder->Find(hash);
+        auto handle = m_session.FindTorrent(hash);
 
         if (handle == nullptr)
         {
@@ -49,13 +45,8 @@ json TorrentsPauseCommand::Execute(const json& j)
             pause(hash);
         }
 
-        return Ok();
-    }
-    else if (j.is_string())
-    {
-        pause(j.get<lt::info_hash_t>());
-        return Ok();
+        return Ok(true);
     }
 
-    return Error(1, "'params' not a string or array of strings");
+    return Error(1, "Params needs to be an array of info hash arrays");
 }

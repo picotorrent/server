@@ -7,13 +7,14 @@ namespace pt
 {
     static libtorrent::info_hash_t InfoHashFromString(const std::string_view& str)
     {
+        lt::sha1_hash hash1;
+        lt::sha256_hash hash2;
+
         if (str.size() == 40)
         {
-            lt::sha1_hash hash;
-            lt::aux::from_hex({ str.data(), 40 }, hash.data());
-            return lt::info_hash_t(hash);
+            lt::aux::from_hex({ str.data(), 40 }, hash1.data());
         }
 
-        return lt::info_hash_t();
+        return {hash1, hash2};
     }
 }
