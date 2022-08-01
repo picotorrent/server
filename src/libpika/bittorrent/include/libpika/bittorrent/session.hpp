@@ -8,11 +8,13 @@
 #include <boost/asio.hpp>
 #include <boost/signals2.hpp>
 #include <libtorrent/session.hpp>
-#include <nlohmann/json.hpp>
-#include <sqlite3.h>
-#include <toml++/toml.h>
 
-namespace pika
+namespace libpika::data
+{
+    class Database;
+}
+
+namespace libpika::bittorrent
 {
     class ITorrentHandle;
 
@@ -44,15 +46,11 @@ namespace pika
     public:
         struct Options
         {
+            libpika::data::Database& db;
             lt::settings_pack settings;
         };
 
-        explicit Session(boost::asio::io_context& io, sqlite3* db, const Options& opts);
-
-        static std::shared_ptr<Session> Load(
-            boost::asio::io_context& io,
-            sqlite3* db,
-            const toml::table& config);
+        explicit Session(boost::asio::io_context& io, const Options& opts);
 
         ~Session();
 
@@ -107,7 +105,7 @@ namespace pika
         InfoHashSignal m_torrentRemoved;
         InfoHashSignal m_torrentResumed;
 
-        sqlite3* m_db;
+        libpika::data::Database& m_db;
         std::unique_ptr<libtorrent::session> m_session;
         std::map<std::string, int64_t> m_metrics;
         std::map<libtorrent::info_hash_t, libtorrent::torrent_status> m_torrents;

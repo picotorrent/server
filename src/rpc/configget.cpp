@@ -1,12 +1,14 @@
 #include "configget.hpp"
 
+#include <libpika/data/database.hpp>
+
 #include "../data/models/config.hpp"
 
 using json = nlohmann::json;
 using pika::Data::Models::Config;
 using pika::RPC::ConfigGetCommand;
 
-ConfigGetCommand::ConfigGetCommand(sqlite3* db)
+ConfigGetCommand::ConfigGetCommand(libpika::data::Database& db)
     : m_db(db)
 {
 }

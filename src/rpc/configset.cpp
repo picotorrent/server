@@ -6,7 +6,7 @@ using json = nlohmann::json;
 using pika::Data::Models::Config;
 using pika::RPC::ConfigSetCommand;
 
-ConfigSetCommand::ConfigSetCommand(sqlite3* db)
+ConfigSetCommand::ConfigSetCommand(libpika::data::Database& db)
     : m_db(db)
 {
 }

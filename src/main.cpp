@@ -4,13 +4,14 @@
 #include <sqlite3.h>
 
 #include "config.hpp"
-#include "data/migrator.hpp"
 #include "log.hpp"
-#include "session.hpp"
 
 #include "http/handlers/eventshandler.hpp"
 #include "http/handlers/jsonrpchandler.hpp"
 
+#include <libpika/bittorrent/session.hpp>
+#include <libpika/data/database.hpp>
+#include <libpika/data/migrator.hpp>
 #include <libpika/http/httpfuncs.hpp>
 #include <libpika/http/server.hpp>
 #include <libpika/jsonrpc/jsonrpcserver.hpp>
@@ -32,33 +33,9 @@
 namespace fs = std::filesystem;
 namespace lt = libtorrent;
 
-using pika::Data::Migrator;
 using pika::Http::Handlers::EventsHandler;
 using pika::Http::Handlers::JsonRpcHandler;
 using pika::Log;
-using pika::Session;
-
-struct sqlite3_deleter
-{
-    void operator()(sqlite3* db)
-    {
-        BOOST_LOG_TRIVIAL(info)
-            << "Running SQLite VACUUM with result: "
-            << sqlite3_exec(db, "VACUUM;", nullptr, nullptr, nullptr);
-
-        sqlite3_close(db);
-    }
-};
-
-static std::unique_ptr<sqlite3, sqlite3_deleter> OpenSQLiteDatabase(const char* path)
-{
-    BOOST_LOG_TRIVIAL(info) << "Loading database from " << path;
-
-    sqlite3* buffer = nullptr;
-    return sqlite3_open(path, &buffer) == SQLITE_OK
-        ? std::unique_ptr<sqlite3, sqlite3_deleter>(buffer)
-        : throw std::runtime_error("failed to open database");
-}
 
 int main(int argc, char* argv[])
 {
@@ -78,15 +55,6 @@ int main(int argc, char* argv[])
 
     BOOST_LOG_TRIVIAL(info) << "Pika starting up";
 
-    auto db = OpenSQLiteDatabase(tbl["db"].value<const char*>().value_or("pika.sqlite"));
-    sqlite3_exec(db.get(), "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
-
-    if (!Migrator::Run(db.get()))
-    {
-        BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
-        return 1;
-    }
-
     boost::asio::io_context io;
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
     signals.async_wait(
@@ -96,13 +64,22 @@ int main(int argc, char* argv[])
             io.stop();
         });
 
-    pika::Session session(io, db.get(), pika::Session::Options{
+    libpika::data::Database database(tbl["db"].value<const char*>().value_or("pika.sqlite"));
+
+    if (!libpika::data::Migrator::Run(database, {}))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Failed to migrate database, shutting down";
+        return 1;
+    }
+
+    libpika::bittorrent::Session session(io, libpika::bittorrent::Session::Options{
+        .db = database,
         .settings = lt::default_settings()
     });
 
     libpika::jsonrpc::JsonRpcServer rpcServer({
-        { "config.get", std::make_shared<pika::RPC::ConfigGetCommand>(db.get()) },
-        { "config.set", std::make_shared<pika::RPC::ConfigSetCommand>(db.get()) },
+        { "config.get", std::make_shared<pika::RPC::ConfigGetCommand>(database) },
+        { "config.set", std::make_shared<pika::RPC::ConfigSetCommand>(database) },
         { "session.addTorrent", std::make_shared<pika::RPC::SessionAddTorrentCommand>(session) },
         { "session.findTorrents", std::make_shared<pika::RPC::SessionFindTorrents>(session) },
         { "session.getTorrents", std::make_shared<pika::RPC::SessionGetTorrentsCommand>(session) },

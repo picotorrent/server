@@ -5,7 +5,7 @@
 #include <libtorrent/info_hash.hpp>
 #include <libtorrent/torrent_status.hpp>
 
-namespace pika
+namespace libpika::bittorrent
 {
     class ITorrentHandle
     {

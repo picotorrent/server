@@ -16,6 +16,48 @@ find_package(tomlplusplus        CONFIG REQUIRED)
 find_package(unofficial-sqlite3  CONFIG REQUIRED)
 
 add_library(
+    pikabittorrent
+    STATIC
+    src/libpika/bittorrent/src/session.cpp
+    src/libpika/bittorrent/src/_aux/models/addtorrentparams.cpp
+    src/libpika/bittorrent/src/_aux/models/addtorrentparams.hpp
+    src/libpika/bittorrent/src/_aux/torrenthandle.cpp
+    src/libpika/bittorrent/src/_aux/torrenthandle.hpp
+)
+
+target_include_directories(
+    pikabittorrent
+    PUBLIC
+    src/libpika/bittorrent/include
+)
+
+target_link_libraries(
+    pikabittorrent
+    pikadata
+    LibtorrentRasterbar::torrent-rasterbar
+)
+
+add_library(
+    pikadata
+    STATIC
+    src/libpika/data/src/_aux/transaction.cpp
+    src/libpika/data/src/_aux/transaction.hpp
+    src/libpika/data/src/database.cpp
+    src/libpika/data/src/migrator.cpp
+)
+
+target_include_directories(
+    pikadata
+    PUBLIC
+    src/libpika/data/include
+)
+
+target_link_libraries(
+    pikadata
+    unofficial::sqlite3::sqlite3
+)
+
+add_library(
     pikajsonrpc
     STATIC
     src/libpika/jsonrpc/src/jsonrpcserver.cpp
@@ -59,26 +101,14 @@ add_library(
     src/config.cpp
     src/config.hpp
     src/log.cpp
-    src/session.cpp
-    src/session.hpp
-    src/torrenthandle.hpp
 
     # data
-    src/data/migrator.cpp
-    src/data/migrator.hpp
     src/data/migrations/0001_initialsetup.cpp
     src/data/migrations/0002_labels.cpp
     src/data/migrations/0002_labels.hpp
     src/data/statement.cpp
-    src/data/transaction.cpp
-    src/data/models/addtorrentparams.cpp
-    src/data/models/addtorrentparams.hpp
     src/data/models/config.cpp
     src/data/models/config.hpp
-    src/data/models/labels.cpp
-    src/data/models/labels.hpp
-    src/data/models/sessionparams.cpp
-    src/data/models/sessionparams.hpp
 
     # http handler
     src/http/handlers/eventshandler.cpp
@@ -113,6 +143,8 @@ add_library(
 
 target_link_libraries(
     pikacore
+    pikabittorrent
+    pikadata
     pikajsonrpc
     pikahttp
 

@@ -1,31 +1,27 @@
-#include "session.hpp"
+#include <libpika/bittorrent/session.hpp>
 
 #include <boost/log/trivial.hpp>
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/create_torrent.hpp>
-#include <libtorrent/magnet_uri.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/session_stats.hpp>
 #include <utility>
 #include <libtorrent/write_resume_data.hpp>
 #include <nlohmann/json.hpp>
 
-#include "data/datareader.hpp"
-#include "data/models/addtorrentparams.hpp"
-#include "data/models/labels.hpp"
-#include "data/models/sessionparams.hpp"
-#include "data/sqliteexception.hpp"
-#include "data/statement.hpp"
-#include "torrenthandle.hpp"
+#include "_aux/models/addtorrentparams.hpp"
+#include "_aux/models/labels.hpp"
+#include "_aux/models/sessionparams.hpp"
+#include "_aux/torrenthandle.hpp"
 
 namespace lt = libtorrent;
 using json = nlohmann::json;
-using pika::Data::Models::AddTorrentParams;
-using pika::Data::Models::Labels;
-using pika::Data::Models::SessionParams;
-using pika::Data::Statement;
-using pika::Data::SQLiteException;
-using pika::Session;
+
+using libpika::bittorrent::Session;
+using libpika::bittorrent::_aux::models::AddTorrentParams;
+using libpika::bittorrent::_aux::models::Labels;
+using libpika::bittorrent::_aux::models::SessionParams;
+using libpika::bittorrent::_aux::TorrentHandle;
 
 struct PikaParams
 {
@@ -33,65 +29,7 @@ struct PikaParams
     int total;
 };
 
-class TorrentHandle : public pika::ITorrentHandle
-{
-public:
-    explicit TorrentHandle(lt::torrent_status status, std::map<std::string, std::string>& labels)
-        : m_status(std::move(status))
-        , m_labels(labels)
-    {
-    }
-
-    ~TorrentHandle() override = default;
-
-    lt::info_hash_t InfoHash() override
-    {
-        return m_status.info_hashes;
-    }
-
-    bool IsValid() override
-    {
-        return m_status.handle.is_valid();
-    }
-
-    std::map<std::string, std::string>& Labels() override
-    {
-        return m_labels;
-    }
-
-    void MoveStorage(const std::string& path) override
-    {
-        BOOST_LOG_TRIVIAL(info) << "Moving " << m_status.name << " to " << path;
-        m_status.handle.move_storage(path);
-    }
-
-    void Pause() override
-    {
-        m_status.handle.unset_flags(
-            lt::torrent_flags::auto_managed);
-
-        m_status.handle.pause();
-    }
-
-    void Resume() override
-    {
-        m_status.handle.set_flags(
-            lt::torrent_flags::auto_managed);
-
-        m_status.handle.resume();
-    }
-
-    const lt::torrent_status& Status() override
-    {
-        return m_status;
-    }
-
-private:
-    lt::torrent_status m_status;
-    std::map<std::string, std::string>& m_labels;
-};
-
-std::shared_ptr<Session> Session::Load(
+/*std::shared_ptr<Session> Session::Load(
     boost::asio::io_context& io,
     sqlite3* db,
     const toml::table& config)
@@ -177,11 +115,11 @@ std::shared_ptr<Session> Session::Load(
         });
 
     return nullptr;
-}
+}*/
 
-Session::Session(boost::asio::io_context& io, sqlite3* db, const Options& opts)
+Session::Session(boost::asio::io_context& io, const Options& opts)
     : m_io(io)
-    , m_db(db)
+    , m_db(opts.db)
     , m_torrents()
     , m_timer(io)
     , m_stats(lt::session_stats_metrics())
@@ -306,7 +244,7 @@ std::map<std::string, int64_t> Session::Counters()
     return m_metrics;
 }
 
-std::shared_ptr<pika::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t& hash)
+std::shared_ptr<libpika::bittorrent::ITorrentHandle> Session::FindTorrent(const lt::info_hash_t& hash)
 {
     auto status = m_torrents.find(hash);
 

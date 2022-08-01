@@ -1,17 +1,21 @@
 #pragma once
 
 #include <libpika/jsonrpc/method.hpp>
-#include <sqlite3.h>
+
+namespace libpika::data
+{
+    class Database;
+}
 
 namespace pika::RPC
 {
     class ConfigGetCommand : public libpika::jsonrpc::Method
     {
     public:
-        explicit ConfigGetCommand(sqlite3* db);
+        explicit ConfigGetCommand(libpika::data::Database& db);
         nlohmann::json Execute(const nlohmann::json&) override;
 
     private:
-        sqlite3* m_db;
+        libpika::data::Database& m_db;
     };
 }
