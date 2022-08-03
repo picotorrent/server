@@ -22,6 +22,8 @@ add_library(
     src/native/bindings.cpp
     src/native/session.cpp
     src/native/session.hpp
+    src/native/torrent.cpp
+    src/native/torrent.hpp
 )
 
 set_target_properties(
