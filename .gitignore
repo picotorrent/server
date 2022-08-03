@@ -3,4 +3,5 @@
 .vscode/
 build/
 cmake-build-*/
+node_modules/
 vendor/sqlite*

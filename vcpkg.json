@@ -3,16 +3,7 @@
   "name": "picotorrent",
   "version-string": "1",
   "dependencies": [
-    "boost-beast",
-    "boost-log",
-    "boost-program-options",
-    "boost-signals2",
-    "boost-system",
-    "catch2",
-    "gtest",
     "libtorrent",
-    "nlohmann-json",
-    "sqlite3",
-    "tomlplusplus"
+    "sqlite3"
   ]
 }
