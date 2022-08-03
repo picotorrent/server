@@ -1,5 +1,5 @@
 const http = require('http');
-const {Session} = require('bindings')('native');
+const {Session} = require('@picotorrent/pika-native');
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database("/home/viktor/pika.db");
 
