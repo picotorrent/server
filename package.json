@@ -2,11 +2,19 @@
   "name": "pika",
   "private": true,
   "main": "index.js",
-  "dependencies": {
-    "@picotorrent/pika-native": "0.0.1",
-    "sqlite3": "^5.0.11"
+  "scripts": {
+    "start": "ts-node index.ts"
   },
   "workspaces": [
     "lib/native"
-  ]
+  ],
+  "dependencies": {
+    "@picotorrent/pika-native": "0.0.1",
+    "sqlite3": "^5.0.11",
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.6.3",
+    "@types/sqlite3": "^3.1.8"
+  }
 }
