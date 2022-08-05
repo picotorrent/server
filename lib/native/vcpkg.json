@@ -1,9 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-  "name": "picotorrent",
+  "name": "pika-native",
   "version-string": "1",
   "dependencies": [
-    "libtorrent",
-    "sqlite3"
+    "libtorrent"
   ]
 }

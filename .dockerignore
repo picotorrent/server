@@ -1,8 +1,14 @@
+.git
+.github
 .vscode
-build/
-client/dist
+client/build
 client/node_modules
-cmake-build-*
+lib/native/build
+lib/native/node_modules
+node_modules
+plugins/autoadd/client/build
+plugins/autoadd/client/node_modules
+vendor/duktape
 vendor/vcpkg/buildtrees
 vendor/vcpkg/downloads
 vendor/vcpkg/packages

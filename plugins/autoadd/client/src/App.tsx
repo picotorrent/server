@@ -1,0 +1,25 @@
+import React from 'react';
+import { useState } from 'react';
+import { Box, Button, ChakraProvider } from "@chakra-ui/react";
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { trpc } from './utils/trpc';
+import Home from './pages/Home';
+
+export function App() {
+  const [queryClient] = useState(() => new QueryClient());
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
+      url: 'trpc'
+    }),
+  );
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider>
+          <Home />
+        </ChakraProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
+  )
+}
